@@ -98,4 +98,4 @@ Changes follow [`conventions.md`](conventions.md): one issue per change request,
 
 ## Licence
 
-To be decided before the repository is made public. The choice will be recorded in `docs/decisions/`.
+MIT. See [`LICENSE`](LICENSE). The choice is recorded in [`docs/decisions/0002-licence-mit.md`](docs/decisions/0002-licence-mit.md).
