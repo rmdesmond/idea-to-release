@@ -18,12 +18,14 @@ pipeline:
       enabled: true
     build:
       enabled: false
-      reason: "Markdown-only project; nothing to compile"
+      reason: "Markdown and shell scripts; nothing to compile"
     unit:
-      enabled: false
+      enabled: true
       coverage_min: null
-      reason: "No executable code beyond lint scripts yet"
     integration:
       enabled: false
-      reason: "Skills are verified by scratch-repo runs; not automated yet"
-  extra_stages: []
+      reason: "End-to-end runs need GitHub credentials and a person to confirm admin steps; they are plan tasks, not automated"
+  extra_stages:
+    - name: shellcheck
+      runs_on: [change_request]
+      mode: advisory
