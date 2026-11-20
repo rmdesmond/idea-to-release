@@ -52,4 +52,15 @@ Status: not yet implemented
 
 ### issue.list
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** optional filters: `state` (`open` | `closed` | `all`, default `open`), `labels`, `milestone`
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  gh issue list --repo {o}/{r} --state <state> --limit 1000 \
+    --json number,title,state,labels,milestone,body,closedAt,url
+  ```
+  Add `--label <name>` once per label, and `--milestone "<title>"`, to filter.
+- **Output:** for each issue: `number`, `title`, `state` (lower-cased), `labels` (names), `milestone` (title or none), `body`, `closed` (date or none), `url`. Pull requests are not included.
+- **Notes:** `--limit` caps the result. If exactly 1000 come back, say the list may be incomplete.
+- **Fallback:** none needed.
