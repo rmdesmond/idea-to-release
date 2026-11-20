@@ -1,0 +1,29 @@
+forge: github
+tracker: github
+owner: rmdesmond
+repo: idea-to-release
+default_branch: main
+visibility: private
+merge_method: squash
+release:
+  versioning: semver
+  strategy: trunk
+  tag_prefix: v
+review:
+  required_approvals: 1
+  code_owners: false
+pipeline:
+  stages:
+    lint:
+      enabled: true
+    build:
+      enabled: false
+      reason: "Markdown-only project; nothing to compile"
+    unit:
+      enabled: false
+      coverage_min: null
+      reason: "No executable code beyond lint scripts yet"
+    integration:
+      enabled: false
+      reason: "Skills are verified by scratch-repo runs; not automated yet"
+  extra_stages: []
