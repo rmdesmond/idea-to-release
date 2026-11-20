@@ -51,7 +51,7 @@ LICENSE
 
 ## 4. Project config
 
-`.project/config.yml` is written once by repo-bootstrap and read by every other skill. A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
+`.project/config.yml` is written once by repo-bootstrap and read by every other skill. The one exception is the `pipeline` block, which idea-to-plan keeps in step with the plan's verification strategy (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
 
 ```yaml
 forge: github            # adapter name under adapters/forge/
@@ -106,6 +106,9 @@ Done when:
 - [ ] `tool --version` prints the version
 - [ ] Unit test covers argument parsing
 ```
+
+- **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. plan-to-issues adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is the ledger's job (section 6).
+- `scripts/check-plan.sh` checks a plan against this section.
 
 Changes to the plan after issues exist go through a change request like any other change, so the plan's git history shows how scope moved.
 
