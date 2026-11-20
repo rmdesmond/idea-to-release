@@ -1,0 +1,23 @@
+# expect: released_in must be a tag like v0.1.0
+# A ledger at every stage of a task's life.
+tasks:
+  T-001:
+    milestone: M1
+    issue: 12                # tracker's issue identifier
+    change_requests: [15, 16]
+    released_in: 0.1
+    created: 2026-11-20
+    merged: 2026-11-21
+    released: 2026-11-24
+
+  T-002:
+    milestone: M1
+    issue: 13
+    change_requests: [17]
+    created: 2026-11-20
+    merged: 2026-11-22
+  T-003:
+    milestone: M2
+    issue: 14
+    change_requests: []
+    created: 2026-11-20
