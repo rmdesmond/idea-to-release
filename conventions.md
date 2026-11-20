@@ -132,7 +132,7 @@ Rules:
 
 - **Only two skills write the ledger.** plan-to-issues adds entries when it creates issues. release fills in `change_requests`, `merged`, `released_in` and `released` by reconciling against the forge. work-issue does not touch it, which avoids merge conflicts between parallel branches.
 - The ledger is the idempotency check: before creating an issue for a task, look the task up. If it already has an issue, update that issue instead of creating another.
-- Ledger changes are committed on the default branch through a change request titled `chore(ledger): ...`.
+- Ledger changes are committed on the default branch through a change request titled `chore(ledger): ...`. They often have no issue of their own. Then the branch is `chore/ledger-<YYYYMMDD>`, the one exception to the branch pattern in section 10.
 - The ledger keeps exactly the shape shown above: two-space indent for task IDs, four for fields, one `key: value` per line, and lists written inline (`[15, 16]`). An empty ledger is `tasks: {}`. This lets `scripts/check-ledger.sh` check it without a YAML library. The check also confirms that every task exists in the plan, with the same milestone.
 
 ## 7. Decision records
