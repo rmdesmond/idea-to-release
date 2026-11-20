@@ -19,9 +19,9 @@ All optional. Pass them as `key=value`.
 |---|---|---|
 | `owner`, `repo` | from config or git remote | Required in create mode if neither exists |
 | `visibility` | `private` | `private` \| `public` \| `internal`. Used only when creating; changing it later is repo-governance's job |
-| `description` | existing description, or ask | One line |
+| `description` | existing description; else ask; empty if non-interactive | One line. Never invented: if nobody gave one, leave it empty |
 | `licence` | ask; `mit` if non-interactive | An SPDX key (`mit`, `apache-2.0`, ...) or `none` |
-| `holder` | owner's display name | Copyright holder in the licence |
+| `holder` | owner's display name, from the forge adapter's "Owner display name" source | Copyright holder in the licence |
 | `merge_method` | `squash` | `squash` \| `merge` \| `rebase` |
 | `gitignore` | ask; none if non-interactive | A language template name (`Python`, `Node`, ...) |
 | `issue` | none | Issue number for the adopt-mode branch and change request |
@@ -60,8 +60,11 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 **Repository settings** (via `repo.describe`):
 - merge methods: exactly `merge_method`
 - delete branch on merge: on
-- issues enabled; wiki and projects off unless already on (leave existing features on)
-- description
+- features (the optional repo tabs: issues, wiki, projects):
+  - issues: on in both modes, because the tracker needs it
+  - wiki and projects, **create mode:** off. The plan, decisions and ledger live as files in the repository, and a wiki or board would be a second place for planning to drift. The forge may turn them on by default when it creates a repo, so set them explicitly.
+  - wiki and projects, **adopt mode:** leave them as they are. If either is on, say so in the dry run, because the owner may be using it. Turn it off only if the user asks.
+- description: only if one was given and it differs
 
 **Labels** (via `label.ensure`'s check), the set from conventions §8:
 
@@ -92,7 +95,15 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 | Change request template | At the adapter's path: sections *What changed*, *How it was verified*, *Issue* (`Closes #`) |
 | Issue template | At the adapter's path, one template named "Task": *Context*, *Done when* checklist, *Depends on*, footer `Plan-Task: T-___` |
 
-**Decision records** (conventions §7). One each for the licence, the visibility, and the merge method with release strategy. Before writing, look through `docs/decisions/` for an existing record on the same subject that is `accepted`; if there is one, skip it. Number new records from the next free four-digit number.
+**Decision records** (conventions §7). Three records, each with a fixed filename slug so a re-run can find it:
+
+| Subject | Filename |
+|---|---|
+| Licence | `NNNN-licence-<key>.md` (e.g. `-licence-mit`, `-licence-none`) |
+| Visibility | `NNNN-visibility-<value>.md` |
+| Merge method and release strategy | `NNNN-merge-strategy.md` |
+
+Before writing a record, look for `docs/decisions/*-licence-*.md` (or `*-visibility-*.md`, `*-merge-strategy.md`) with `Status: accepted`. If one exists, skip that record. If it records a different choice from the current inputs, that's a conflict: stop and ask (conventions §13). Number new records from the next free four-digit number.
 
 ### 5. Dry run and confirmation
 
@@ -108,10 +119,12 @@ Write:
   label.ensure    create 10 labels; 0 already present; 0 differ
   files           create .project/config.yml, .project/ledger.yml, CHANGELOG.md, LICENSE (MIT), ...
                   keep README.md (exists)
-  decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-squash-merge-trunk.md
+  decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md
   change request  branch chore/1-bootstrap → main
 No change:
   description, issues enabled
+Left as is (adopt mode):
+  projects: on   (say if you want it off)
 ```
 
 If nothing differs anywhere, say "Already bootstrapped; no changes" and stop.

@@ -86,7 +86,7 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
     --description "<description>" \
     --enable-issues=true --enable-wiki=false --enable-projects=false
   ```
-  `merge_method` maps to exactly one of the three `--enable-*-merge` flags set to `true`, with the other two `false`. For `squash`, `--squash-merge-commit-message pr-title-description` makes the PR title the commit subject (conventions §10).
+  The example shows every flag. A real call includes only the settings that differ. `merge_method` maps to exactly one of the three `--enable-*-merge` flags set to `true`, with the other two `false`. For `squash`, `--squash-merge-commit-message pr-title-description` makes the PR title the commit subject (conventions §10).
 - **Output:** settings changed, as `name: old → new`.
 - **Notes:** visibility is not changed here. Changing it is `repo-governance`'s job and needs `--accept-visibility-change-consequences`.
 - **Fallback:** none needed.
@@ -182,6 +182,14 @@ gh api licenses/<key> --jq .body
 ```
 
 Keys are SPDX identifiers in lower case: `mit`, `apache-2.0`, `gpl-3.0`, `bsd-3-clause`, `mpl-2.0`, and so on. List them with `gh api licenses --jq '.[].key'`. Replace `[year]` and `[fullname]` in the body with the current year and the copyright holder.
+
+### Owner display name
+
+```sh
+gh api users/{o} --jq '.name // .login'
+```
+
+Works for both user and organisation owners. Falls back to the login when no display name is set. Use the repository owner, not the signed-in user (`gh api user`), who may be someone else.
 
 ### .gitignore templates
 
