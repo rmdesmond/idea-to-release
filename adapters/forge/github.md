@@ -41,6 +41,10 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
   hasIssuesEnabled,hasWikiEnabled,hasProjectsEnabled,\
   squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge,licenseInfo
   ```
+  `gh repo view` doesn't expose the squash commit message setting, so read it from the REST API as well:
+  ```sh
+  gh api repos/{o}/{r} --jq '{squash_merge_commit_title, squash_merge_commit_message}'
+  ```
 - **Output:** neutral fields:
 
   | Neutral | GitHub JSON |
@@ -51,6 +55,7 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
   | `default_branch` | `defaultBranchRef.name` |
   | `description` | `description` |
   | `merge_methods` | the set of `squash`, `merge`, `rebase` whose `*Allowed` is true |
+  | `squash_message` | `pr-title-description` when the REST fields are `PR_TITLE` and `PR_BODY`; otherwise `other` |
   | `delete_branch_on_merge` | `deleteBranchOnMerge` |
   | `features.issues` / `.wiki` / `.projects` | `has*Enabled` |
   | `licence` | `licenseInfo.key`, or none |
@@ -86,7 +91,9 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
     --description "<description>" \
     --enable-issues=true --enable-wiki=false --enable-projects=false
   ```
-  The example shows every flag. A real call includes only the settings that differ. `merge_method` maps to exactly one of the three `--enable-*-merge` flags set to `true`, with the other two `false`. For `squash`, `--squash-merge-commit-message pr-title-description` makes the PR title the commit subject (conventions §10).
+  The example shows every flag. A real call includes only the settings that differ, with one exception below. `merge_method` maps to exactly one of the three `--enable-*-merge` flags set to `true`, with the other two `false`. For `squash`, `--squash-merge-commit-message pr-title-description` makes the PR title the commit subject (conventions §10). It's wanted whenever `squash_message` isn't already `pr-title-description`. A new repository starts with GitHub's default.
+
+  **Exception:** `gh` rejects `--squash-merge-commit-message` unless `--enable-squash-merge=true` is in the same call. Whenever the message setting is passed, pass `--enable-squash-merge=true` too, even if squash merging is already allowed.
 - **Output:** settings changed, as `name: old → new`.
 - **Notes:** visibility is not changed here. Changing it is `repo-governance`'s job and needs `--accept-visibility-change-consequences`.
 - **Fallback:** none needed.
