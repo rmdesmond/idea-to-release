@@ -126,7 +126,7 @@ Done when:
 - [ ] ...
 ```
 
-Then run `scripts/check-plan.sh docs/plan/PLAN.md`. Fix every problem it reports before going on.
+Then run `scripts/check-plan.sh docs/plan/PLAN.md`. The script belongs to the idea-to-release skill set, next to `conventions.md`, not to the project. Fix every problem it reports before going on.
 
 ### 7. Keep the config in step
 
