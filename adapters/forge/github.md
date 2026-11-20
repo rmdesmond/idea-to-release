@@ -1,0 +1,208 @@
+# Forge adapter: GitHub
+
+Translates the neutral forge verbs in `conventions.md` §2 into GitHub commands. Skills call verbs by name; they never call `gh` directly.
+
+Every forge verb has a section here. A verb that is not yet available says `Status: not yet implemented`. A skill that needs one stops and tells the user. `scripts/check-adapters.sh` checks that no verb is missing.
+
+## Prerequisites
+
+- `gh` 2.40 or later, signed in: `gh auth status` must succeed.
+- Token scopes: `repo` (create repositories, edit settings, open pull requests). `read:org` if the owner is an organisation. `workflow` is needed later by `pipeline.render`.
+- `git` with a working push remote (SSH or HTTPS).
+
+## Resolving the repository
+
+1. If `.project/config.yml` exists, use `owner` and `repo` from it.
+2. Otherwise parse `git remote get-url origin`:
+   - `git@github.com:OWNER/REPO.git`
+   - `https://github.com/OWNER/REPO(.git)`
+3. Otherwise there is no repository yet. Only `repo.create` can run.
+
+Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--repo {o}/{r}`, or as an argument) rather than relying on `gh`'s directory detection.
+
+## Errors
+
+- A non-zero exit from `gh` is a failure. Report the command and its stderr, then stop. Don't retry writes or admin actions automatically.
+- `HTTP 403` with "Resource not accessible" or "Must have admin rights" means the token or the user lacks permission. Report it as a permission gap, not a bug.
+- `HTTP 404` on a repository the user can see in the browser usually means missing token scopes.
+
+---
+
+## Repository
+
+### repo.describe
+
+- **Tier:** read
+- **Inputs:** `{o}/{r}`
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  gh repo view {o}/{r} --json name,owner,description,visibility,isEmpty,defaultBranchRef,\
+  hasIssuesEnabled,hasWikiEnabled,hasProjectsEnabled,\
+  squashMergeAllowed,mergeCommitAllowed,rebaseMergeAllowed,deleteBranchOnMerge,licenseInfo
+  ```
+- **Output:** neutral fields:
+
+  | Neutral | GitHub JSON |
+  |---|---|
+  | `exists` | exit code 0 |
+  | `empty` | `isEmpty` |
+  | `visibility` | `visibility`, lower-cased |
+  | `default_branch` | `defaultBranchRef.name` |
+  | `description` | `description` |
+  | `merge_methods` | the set of `squash`, `merge`, `rebase` whose `*Allowed` is true |
+  | `delete_branch_on_merge` | `deleteBranchOnMerge` |
+  | `features.issues` / `.wiki` / `.projects` | `has*Enabled` |
+  | `licence` | `licenseInfo.key`, or none |
+
+- **Not found:** exit code 1 with `Could not resolve to a Repository`. Report `exists: false`. Any other error is a failure.
+- **Fallback:** none needed.
+
+### repo.create
+
+- **Tier:** admin
+- **Inputs:** owner, name, visibility (`private` | `public` | `internal`), description
+- **Check existing state:** run `repo.describe`. If the repository exists, do not create it; the skill switches to adopt mode.
+- **Command:**
+  ```sh
+  gh repo create {o}/{r} --private --description "<description>"
+  ```
+  Use `--public` or `--internal` instead of `--private` to match the visibility. `--internal` only works for organisation owners on GitHub Enterprise.
+  Create the repository empty: no `--add-readme`, `--license` or `--gitignore`. The skill writes those files itself, so create and adopt modes produce the same files.
+- **Output:** the repository URL. Then set the local remote if there isn't one: `git remote add origin git@github.com:{o}/{r}.git`.
+- **Fallback:** none. If creation fails, stop.
+
+### repo.configure
+
+- **Tier:** admin
+- **Inputs:** any of: `merge_method` (`squash` | `merge` | `rebase`), `delete_branch_on_merge`, `description`, `features` (`issues`, `wiki`, `projects`)
+- **Check existing state:** run `repo.describe` and compare. Pass only the settings that differ. If none differ, report "no changes" and skip the command.
+- **Command:** one `gh repo edit` call carrying every differing setting:
+  ```sh
+  gh repo edit {o}/{r} \
+    --enable-squash-merge=true --enable-merge-commit=false --enable-rebase-merge=false \
+    --squash-merge-commit-message pr-title-description \
+    --delete-branch-on-merge=true \
+    --description "<description>" \
+    --enable-issues=true --enable-wiki=false --enable-projects=false
+  ```
+  The example shows every flag. A real call includes only the settings that differ. `merge_method` maps to exactly one of the three `--enable-*-merge` flags set to `true`, with the other two `false`. For `squash`, `--squash-merge-commit-message pr-title-description` makes the PR title the commit subject (conventions §10).
+- **Output:** settings changed, as `name: old → new`.
+- **Notes:** visibility is not changed here. Changing it is `repo-governance`'s job and needs `--accept-visibility-change-consequences`.
+- **Fallback:** none needed.
+
+## Access
+
+### access.grant
+
+Status: not yet implemented
+
+### access.list
+
+Status: not yet implemented
+
+### rule.protect-branch
+
+Status: not yet implemented
+
+### rule.require-review
+
+Status: not yet implemented
+
+### rule.require-checks
+
+Status: not yet implemented
+
+## Changes
+
+### cr.open
+
+- **Tier:** write
+- **Inputs:** head branch, base branch (default branch), title (Conventional Commit format), body
+- **Check existing state:** see whether an open pull request already exists for this head:
+  ```sh
+  gh pr list --repo {o}/{r} --head <branch> --state open --json number,url,title
+  ```
+  If one exists, report it and use `cr.update` instead of opening another.
+- **Command:** the branch must already be pushed (`git push -u origin <branch>`).
+  ```sh
+  gh pr create --repo {o}/{r} --base <base> --head <branch> --title "<title>" --body-file <file>
+  ```
+  Write the body to a temporary file so it isn't mangled by shell quoting.
+- **Output:** pull request number and URL.
+- **Closing reference:** put `Closes #<issue>` in the body.
+- **Fallback:** none needed.
+
+### cr.update
+
+Status: not yet implemented
+
+### cr.status
+
+Status: not yet implemented
+
+### cr.merge
+
+Status: not yet implemented
+
+## Pipeline
+
+### pipeline.render
+
+Status: not yet implemented
+
+### pipeline.status
+
+Status: not yet implemented
+
+## Release
+
+### tag.create
+
+Status: not yet implemented
+
+### release.draft
+
+Status: not yet implemented
+
+### release.publish
+
+Status: not yet implemented
+
+---
+
+## Forge-specific sources
+
+These aren't verbs. Skills ask the adapter for them when they write standard files.
+
+### Licence text
+
+```sh
+gh api licenses/<key> --jq .body
+```
+
+Keys are SPDX identifiers in lower case: `mit`, `apache-2.0`, `gpl-3.0`, `bsd-3-clause`, `mpl-2.0`, and so on. List them with `gh api licenses --jq '.[].key'`. Replace `[year]` and `[fullname]` in the body with the current year and the copyright holder.
+
+### Owner display name
+
+```sh
+gh api users/{o} --jq '.name // .login'
+```
+
+Works for both user and organisation owners. Falls back to the login when no display name is set. Use the repository owner, not the signed-in user (`gh api user`), who may be someone else.
+
+### .gitignore templates
+
+```sh
+gh api repos/github/gitignore/contents/<Name>.gitignore --jq .content | base64 --decode
+```
+
+`<Name>` is a language such as `Python`, `Node` or `Go`. Always append an OS and editor block (`.DS_Store`, `Thumbs.db`, `.idea/`, `.vscode/`, `*.swp`). With no language, use only that block.
+
+### Templates for issues and change requests
+
+| Neutral | Path on GitHub |
+|---|---|
+| Change request template | `.github/pull_request_template.md` |
+| Issue templates | `.github/ISSUE_TEMPLATE/<name>.md`, with YAML front matter `name`, `about`, `labels` |
+| Issue template config | `.github/ISSUE_TEMPLATE/config.yml` |
