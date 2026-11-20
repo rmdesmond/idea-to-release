@@ -144,6 +144,8 @@ Reported, not changed:
   #12 (T-007): title differs from the plan
 ```
 
+Issues that don't exist yet have no number, so refer to them by task ID: list their links as `T-003 blocked-by T-001, T-002`, and count their ledger entries. A dry run must account for every write the apply step will make. Never write "after it is created" in place of the actual links.
+
 If nothing would change, say "Issues match the plan; no changes" and stop.
 
 Wait for explicit confirmation (conventions §13). Non-interactive runs proceed only with `confirm`, and only if there are no conflicts.
