@@ -26,15 +26,16 @@ All optional. Pass them as `key=value`.
 ### 1. Read and check the inputs
 
 1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
-2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh`. If either fails, stop and show the problems. The plan or ledger must be fixed first, through a change request.
-3. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
+2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request.
+3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
+4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
    - ID, title and milestone
    - `Depends on:` and `Issue:`
    - the *Done when* checklist
    - whether it's **dropped** (the heading ends in `(dropped)`), and the reason on its `Dropped` line
    - whether it's **done** (every *Done when* box ticked)
-4. Read the ledger.
-5. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
+5. Read the ledger.
+6. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
 
 ### 2. Find each task's issue
 
@@ -50,6 +51,7 @@ Then check that the sources agree. **Stop and ask** (conventions §13) if:
 - an issue named by the ledger or an `Issue:` line doesn't exist on the forge
 - more than one issue carries the same `Plan-Task:` line
 - an issue's `Plan-Task:` line names a different task than the one the ledger or plan links it to
+- a live task's issue is closed as `not planned` (the plan says the work is wanted; the tracker says it was abandoned)
 
 Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
 
@@ -77,11 +79,12 @@ Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
   Plan-Task: <ID>
   ```
 - **Milestone:** the task's milestone
-- **Type label**, inferred from the title's first word:
-  - Add, Implement, Build or Support → `type:feature`
-  - Fix → `type:bug`
-  - Write, Document or Explain → `type:docs`
-  - anything else → `type:chore`
+- **Type label**, inferred from the title. Most plan tasks add capability, so `type:feature` is the default:
+  - first word Fix → `type:bug`
+  - first word Write, Document, Draft or Explain → `type:docs`
+  - a test task (title starts with "Integration test", "End-to-end test" or "Test") → `type:chore`
+  - first word Set up, Configure, Update, Upgrade, Remove, Refactor, Rename, Reorder, Clean, Bump, Decide, Run or Release → `type:chore`
+  - anything else → `type:feature`
 - **Priority:** `priority:normal`
 - **State label:**
   - `needs-decision` if the title starts with "Decide"
@@ -111,6 +114,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Done task, existing open issue:** this is a contradiction (the plan says done, the tracker says open). Report it and ask. Never close it on the plan's word alone.
 - **Dropped task with an open issue:** close it as `not planned`, with the plan's `Dropped` line as the comment.
 - **Dropped task with no issue:** create nothing.
+- **Whenever an issue is closed,** remove its state label (`ready`, `blocked` or `needs-decision`) in the same step. State labels only describe open work (conventions §8).
 
 **Ledger.** For every task with an issue (created or adopted), the entry has:
 
