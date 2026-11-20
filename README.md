@@ -26,11 +26,11 @@ idea ──► plan ──► repository ──► issues ──► change reque
 | Stage | Skill | What it does |
 |---|---|---|
 | Idea → plan | `idea-to-plan` | Turns an idea into a plan with milestones, tasks and a verification strategy |
-| Plan → repository | `repo-bootstrap` | Creates the repository and its standard files (README, licence, `.gitignore`, templates, project config) |
-| Repository rules | `repo-governance` | Sets visibility, access, branch rules and review requirements |
-| Plan → issues | `plan-to-issues` | Creates labels, milestones and dependency-ordered issues from the plan |
+| Plan → repository | `repo-bootstrap` | Creates or adopts the repository: settings, standard labels and standard files (README, licence, `.gitignore`, templates, project config) |
+| Plan → issues | `plan-to-issues` | Creates milestones and dependency-ordered issues from the plan |
 | Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
 | Checks | `ci-setup` | Renders the pipeline: lint, build, unit and integration stages, plus any extras |
+| Repository rules | `repo-governance` | Sets visibility, access, branch rules, required checks and review requirements. Runs after `ci-setup`, so required checks can name real pipeline stages |
 | Changes → release | `release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
 ## Design principles
@@ -78,17 +78,17 @@ Until then, the skills can be tried by copying a skill folder, the `adapters/` f
 ## Roadmap
 
 1. `conventions.md` — drafted
-2. GitHub forge and tracker adapters
-3. `repo-bootstrap`
-4. `plan-to-issues`
-5. `idea-to-plan`
+2. GitHub forge and tracker adapters — verbs for `repo-bootstrap` done; the rest are added with the skills that need them
+3. `repo-bootstrap` — done, and used on this repository
+4. `idea-to-plan`
+5. `plan-to-issues`
 6. `work-issue`
-7. `repo-governance`
-8. `ci-setup`
+7. `ci-setup`
+8. `repo-governance`
 9. `release`
 10. First tagged release of the skill set
 
-The order may change as building the early skills exposes gaps. Progress is tracked in this repository's issues and milestones.
+The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 
 ## Contributing
 
