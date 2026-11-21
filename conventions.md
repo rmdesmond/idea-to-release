@@ -167,7 +167,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 ## 9. Issues
 
-- **Title:** imperative, no ID prefix. Example: `Add command-line entry point`.
+- **Title:** the plan task ID, a colon, then the task title in the imperative. Example: `T-001: Add command-line entry point`. The ID makes a task findable from the issue list without opening issues. Issues for work outside the plan (the last point below) have no ID prefix.
 - **Body:** context, acceptance criteria copied from the plan as a checklist, dependencies, then a footer line `Plan-Task: T-001` linking back to the plan.
 - **Milestone:** the plan milestone, named `M1: Walking skeleton`.
 - **Dependencies:** recorded with `issue.link`. If a task depends on an unfinished task, its issue gets `blocked` instead of `ready`.

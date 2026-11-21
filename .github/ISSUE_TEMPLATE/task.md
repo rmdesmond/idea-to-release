@@ -1,6 +1,7 @@
 ---
 name: Task
 about: One task from the plan
+title: "T-___: "
 labels: []
 ---
 

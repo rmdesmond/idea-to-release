@@ -149,6 +149,14 @@ Done when:
 - [ ] T-018 is labelled `needs-decision`
 - [ ] The ledger covers every task and passes `scripts/check-ledger.sh`
 
+### T-028: Put task IDs in issue titles
+Depends on: T-009
+Issue: #41
+Done when:
+- [x] Conventions §9: issue titles for plan tasks are `T-NNN: <title>`, recorded in a decision record
+- [x] plan-to-issues writes new titles with the prefix, and adds a missing prefix to existing issues as a stated change, keeping their wording
+- [x] Every plan issue on this repository has its task ID in its title, and a re-run reports no changes
+
 ## M3: Issue to change request
 
 `work-issue` takes a `ready` issue to an open change request that includes its tests, and this repository's tasks are worked with it from then on.

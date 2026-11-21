@@ -50,7 +50,7 @@ Then check that the sources agree. **Stop and ask** (conventions §13) if:
 - the ledger and the `Issue:` line name different issues
 - an issue named by the ledger or an `Issue:` line doesn't exist on the forge
 - more than one issue carries the same `Plan-Task:` line
-- an issue's `Plan-Task:` line names a different task than the one the ledger or plan links it to
+- an issue's `Plan-Task:` line names a different task than the one the ledger or plan links it to, or its title starts with a different task ID
 - a live task's issue is closed as `not planned` (the plan says the work is wanted; the tracker says it was abandoned)
 
 Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
@@ -61,7 +61,7 @@ Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
 
 **New issues**, one for each unlinked task that isn't dropped:
 
-- **Title:** the task title, with no ID (conventions §9)
+- **Title:** `<ID>: <task title>`, for example `T-012: Implement the change verbs for work-issue` (conventions §9)
 - **Body:**
   ```markdown
   ## Context
@@ -100,12 +100,13 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Add anything missing:**
   - the milestone, if it's not set
   - the `Plan-Task: <ID>` line, appended to the body if absent
+  - the `<ID>: ` prefix on the title, if absent. Keep the rest of the title as it is: only the prefix is added. If the title starts with a different task ID, that is a conflict (step 2).
   - a type or priority label, if the issue has none (using the inference above)
 - **Correct, as a stated change in the dry run:**
   - a milestone that doesn't match the plan
   - the state label of an open issue (`ready` ↔ `blocked`), as dependencies finish or change. `needs-decision` is left alone once set.
   - any state label (`ready`, `blocked` or `needs-decision`) on a closed issue: remove it. Issues are usually closed by merging a change request, which leaves their labels behind, and state labels only describe open work (conventions §8).
-- **Report, but don't change:** a title or *Done when* list that differs from the plan. Someone may have edited the issue on purpose. Ask, and apply only what the user accepts.
+- **Report, but don't change:** a title (compared without its `<ID>: ` prefix) or *Done when* list that differs from the plan. Someone may have edited the issue on purpose. Ask, and apply only what the user accepts.
 
 **Links.** For each dependency, the dependent task's issue is `blocked-by` the dependency's issue (`issue.link`). Record each link from the dependent side only. A link present on the forge but no longer in the plan is reported, and removed only if the user agrees.
 
@@ -133,10 +134,10 @@ Show one summary. List every write, and every difference reported but not change
 Repository: owner/repo   Plan: 5 milestones, 27 tasks (5 done, 0 dropped)
 
 milestone.ensure  create M2: Plan to issues, M3: ..., M4: ..., M5: ...; M1 unchanged
-issue.create      T-007 Implement the tracker verbs ...      type:feature priority:normal ready    M2
-                  T-018 Decide the review rule ...           type:chore   priority:normal needs-decision M4
-                  T-001 Draft the shared conventions ...     → then close as completed
-issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002
+issue.create      "T-007: Implement the tracker verbs ..."   type:feature priority:normal ready    M2
+                  "T-018: Decide the review rule ..."        type:chore   priority:normal needs-decision M4
+                  "T-001: Draft the shared conventions ..."  → then close as completed
+issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title prefix "T-002: "
 issue.link        #14 blocked-by #12, #13   (+ 31 more)
 issue.close       none
 ledger            add 27 entries → branch chore/11-ledger, change request "chore(ledger): record issues for the plan"
