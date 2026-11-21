@@ -306,6 +306,29 @@ Making the repository public, or upgrading the account, brings the rules back. R
 - **Notes:** GitHub computes mergeability in the background, so straight after a push `mergeable` can be `unknown`. Read again after a few seconds before reporting it. `closes` is empty if the body's closing reference is missing or malformed, which is worth flagging: the issue won't close on merge.
 - **Fallback:** none needed.
 
+### cr.list
+
+- **Tier:** read
+- **Inputs:** base branch (default branch)
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  gh pr list --repo {o}/{r} --state merged --base <base> --limit 1000 \
+    --json number,title,mergedAt,mergeCommit,closingIssuesReferences
+  ```
+- **Output:** for each merged change request:
+  - `number`
+  - `title`
+  - `merged`: the UTC date, from `mergedAt`
+  - `merge_commit`: `mergeCommit.oid`, the squash commit on the base branch
+  - `closes`: the numbers in `closingIssuesReferences`
+
+  GitHub keeps the closing references after the merge.
+- **Notes:**
+  - To find the change requests in a range, intersect `merge_commit` with `git rev-list <from>..<to>`. Don't parse `(#N)` out of commit subjects, because a title can contain other numbers.
+  - If exactly 1000 come back, say the list may be incomplete.
+- **Fallback:** none needed.
+
 ### cr.merge
 
 Status: not yet implemented
@@ -341,7 +364,7 @@ Merging is an admin action (conventions §13). In this project the maintainer me
 ### pipeline.status
 
 - **Tier:** read
-- **Inputs:** a commit SHA, or a change request (number or branch)
+- **Inputs:** a commit SHA, a change request (number or branch), or a tag
 - **Check existing state:** not applicable (this is the read).
 - **Command:**
   - for a change request: `cr.status`'s `checks` (`gh pr view <n> --json statusCheckRollup`)
@@ -349,6 +372,13 @@ Merging is an admin action (conventions §13). In this project the maintainer me
     ```sh
     gh api repos/{o}/{r}/commits/<sha>/check-runs --jq '.check_runs[] | {name, status, conclusion}'
     ```
+  - for a tag, which runs the release stages: a tag push and the earlier push to the default branch run on the same commit, so read the tag's own workflow run, not the commit's check runs:
+    ```sh
+    gh run list --repo {o}/{r} --commit <sha> --event push --json databaseId,headBranch,status,conclusion \
+      --jq '.[] | select(.headBranch == "<tag>")'
+    gh run view <id> --repo {o}/{r} --json jobs --jq '.jobs[] | {name, status, conclusion}'
+    ```
+    No run for the tag yet is `pending` for a minute after the push, then `missing`.
 - **Output:** one line per stage of the config, core and extra, in config order:
   - **Result:** `pass`, `fail`, `pending`, `skipped` or `missing`. Map `status` and `conclusion` as for `cr.status` check runs. A stage with no check run is `missing`: the workflow may not have been pushed yet, or hasn't started.
   - **Placeholder:** for a disabled stage, a `pass` is reported as `pass (placeholder)`.
@@ -365,7 +395,9 @@ Merging is an admin action (conventions §13). In this project the maintainer me
 2. `release.draft` uses `--verify-tag`, so a draft can only be attached to a tag that exists.
 3. `release.publish` runs only when the release gates on the tag have passed.
 
-If no tag exists, GitHub accepts a draft anyway. Its URL shows as `…/releases/tag/untagged-<id>`, and publishing creates a *lightweight* tag at the target. Never rely on that: the release gates wouldn't have run on it.
+If no tag exists, GitHub accepts a draft anyway, and publishing creates a *lightweight* tag at the target. Never rely on that: the release gates wouldn't have run on it.
+
+Every draft's URL is `…/releases/tag/untagged-<id>` until it's published, even when its tag exists, so don't read the URL as a sign that the tag is missing. Check the tag with `git ls-remote`.
 
 ### tag.create
 
@@ -448,6 +480,11 @@ gh api licenses/<key> --jq .body
 ```
 
 Keys are SPDX identifiers in lower case: `mit`, `apache-2.0`, `gpl-3.0`, `bsd-3-clause`, `mpl-2.0`, and so on. List them with `gh api licenses --jq '.[].key'`. Replace `[year]` and `[fullname]` in the body with the current year and the copyright holder.
+
+### Release and changelog links
+
+- A release page: `https://github.com/{o}/{r}/releases/tag/<tag>`
+- The changes in a release, for the changelog's link references: `https://github.com/{o}/{r}/compare/<previous-tag>...<tag>`. For the first release, which has no previous tag, use the release page.
 
 ### Owner display name
 
