@@ -7,17 +7,19 @@ idea-to-release is a set of agent skills that take a software project from a rou
 In (first release, v0.1.0):
 - The seven skills: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance`, `release`
 - `conventions.md`, and the GitHub forge and tracker adapters with every verb the skills use implemented
+- Target adapters, which package and install what a project ships: `agent-skills` (this repository) and `shell-cli` (decision 0013)
 - This repository's own checks: `scripts/check-adapters.sh`, `scripts/check-plan.sh` and `tests/run.sh`
-- Installation instructions
+- Installation instructions, and an install script that puts the skills where each Agent Skills tool looks for them
 - This repository built and released with its own skills, ending in tag `v0.1.0`
 
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
-- Testing on agents other than Claude Code
+- Testing on agents other than Claude Code (the install script knows their skill folders, but only Claude Code is tested)
+- Targets other than `agent-skills` and `shell-cli` (macOS apps, Homebrew, packages, plugins): the design allows them; none are built yet
 - Projects spread across several repositories
 - Anything outside the agent: no separate CLI, app or hosted service
 
-See decision 0007.
+See decisions 0007 and 0013.
 
 ## Constraints
 
@@ -255,7 +257,7 @@ Done when:
 
 ## M5: First release
 
-The `release` skill exists, the skills can be installed from the instructions, and v0.1.0 of this repository was cut with the skill itself.
+The `release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then the repository went public.
 
 ### T-023: Implement the tag and release verbs
 Depends on: T-002
@@ -264,25 +266,48 @@ Done when:
 - [ ] Each has been run against a scratch repository
 - [ ] `scripts/check-adapters.sh` passes
 
-### T-024: Add the release skill
-Depends on: T-008, T-023
+### T-031: Add the target verbs and the agent-skills target
+Depends on: T-002
 Done when:
-- [ ] `skills/release/SKILL.md` derives the version bump from the commits since the last tag (conventions §12)
+- [ ] Conventions §2 has a Target group (`package.build`, `package.verify`, `package.publish`, `install.describe`), and §4 a `target:` key naming `adapters/target/<name>.md`
+- [ ] `adapters/target/agent-skills.md` defines all four verbs, and `scripts/check-adapters.sh` checks target adapters against the Target group only
+- [ ] `package.build` and `package.verify` have been run on this repository: the archive installs into a temporary project, and the installed skills find the shared files
+
+### T-024: Add the release skill
+Depends on: T-008, T-023, T-031
+Done when:
+- [ ] `skills/release/SKILL.md` derives the version bump from the commits since the last tag (conventions §12). With no earlier tag, the version is `v0.1.0` unless a `version` argument is given, and §12 says so
 - [ ] It updates `CHANGELOG.md` in the Keep a Changelog layout, from merged change request titles
 - [ ] It writes release notes listing each task with its issue and change request, from the ledger
-- [ ] It reconciles the ledger (`change_requests`, `merged`, `released_in`, `released`), and the result passes `scripts/check-ledger.sh`
+- [ ] It reconciles the ledger (`change_requests`, `merged`, `released_in`, `released`), filling in entries that have none from the merged change requests that closed their issues, and the result passes `scripts/check-ledger.sh`
+- [ ] It builds and verifies the package through the target adapter, attaches the artifacts to the draft, puts `install.describe` in the notes, and calls `package.publish` with `release.publish`
 - [ ] It drafts first, and publishes only after confirmation and only when every release gate passes
 
 ### T-025: Write installation instructions
 Depends on: T-024
 Done when:
-- [ ] The README explains how to install the skills, adapters and conventions into a project, and what each requires
+- [ ] The release archive has an `install.sh` that installs the skills, adapters, conventions and check scripts for a chosen agent (`claude`, `codex`, `copilot`, `gemini` or `generic`), into a project or the user's folder
+- [ ] A decision record says where the shared files go once installed, and every skill finds them there
+- [ ] The README explains how to install, what each part requires, and its roadmap is current
 - [ ] Following the instructions from a clean clone, in a new scratch project, gives working skills
 
+### T-032: Ask for the release target when planning
+Depends on: T-031
+Done when:
+- [ ] `idea-to-plan` asks what the project ships and records it in a "Release target" plan section, reporting a missing target adapter as a gap to plan for
+- [ ] `repo-bootstrap` writes `target:` to `.project/config.yml`, and `scripts/check-plan.sh` accepts the new section
+
+### T-033: Add the shell-cli target
+Depends on: T-031
+Done when:
+- [ ] `adapters/target/shell-cli.md` defines all four verbs: an archive of the project's commands with an `install.sh` that copies them to a `bin` folder
+- [ ] `scripts/check-adapters.sh` passes, and the verbs have been run on a scratch project
+
 ### T-026: End-to-end test from idea to release
-Depends on: T-024, T-025
+Depends on: T-024, T-025, T-032, T-033
 Done when:
 - [ ] On a new scratch repository with the skills installed from the instructions: every skill in order, through a published release
+- [ ] The project chose the `shell-cli` target in `idea-to-plan`, its release carries the archive, and installing from the release notes gives a working command
 - [ ] The release notes list the tasks that shipped, and the ledger is complete
 - [ ] Problems found are fixed in the skills, or filed as issues
 
@@ -290,5 +315,12 @@ Done when:
 Depends on: T-022, T-026
 Done when:
 - [ ] Every release gate passes on the default branch
-- [ ] The `release` skill drafts v0.1.0, and it's published after confirmation
+- [ ] The `release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The README status and roadmap say the first release is out
+
+### T-030: Make the repository public
+Depends on: T-027
+Done when:
+- [ ] `repo-governance visibility=public` is run after its own confirmation, with a decision record superseding 0003
+- [ ] The branch rules are applied, a direct push to `main` is rejected, and a record supersedes 0012
+- [ ] The README's "How `main` is protected" section describes the enforced rules
