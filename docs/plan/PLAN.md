@@ -50,7 +50,7 @@ Extra stages:
 
 | Stage | Runs on | Mode | What it does |
 |---|---|---|---|
-| shellcheck | change_request | advisory | `shellcheck` on `scripts/` and `tests/` |
+| shellcheck | change_request | advisory | `shellcheck` on `scripts/`, `tests/` and the adapters' helper scripts |
 
 ## M1: Foundations
 
