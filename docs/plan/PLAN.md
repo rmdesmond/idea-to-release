@@ -236,9 +236,9 @@ Done when:
 ### T-020: Add the repo-governance skill
 Depends on: T-016, T-018, T-019
 Done when:
-- [ ] `skills/repo-governance/SKILL.md` protects the default branch, requires the core checks and the configured reviews, and manages visibility and access, with a dry run before every change
-- [ ] When the forge can't enforce a rule, it writes a decision record for the fallback instead of failing
-- [ ] A re-run with an unchanged config reports no changes
+- [x] `skills/repo-governance/SKILL.md` protects the default branch, requires the core checks and the configured reviews, and manages visibility and access, with a dry run before every change
+- [x] When the forge can't enforce a rule, it writes a decision record for the fallback instead of failing
+- [x] A re-run with an unchanged config reports no changes
 
 ### T-021: End-to-end test through repo-governance
 Depends on: T-020
