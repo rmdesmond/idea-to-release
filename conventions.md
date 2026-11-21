@@ -30,7 +30,7 @@ These are the only operations skills may ask an adapter to perform. An adapter m
 - **Repository:** `repo.create`, `repo.configure` (visibility, merge methods, features), `repo.describe`
 - **Access:** `access.grant`, `access.list`, `rule.protect-branch`, `rule.require-review`, `rule.require-checks`
 - **Tracker:** `label.ensure`, `milestone.ensure`, `issue.create`, `issue.update`, `issue.link` (blocks / blocked-by / parent), `issue.close`, `issue.list`
-- **Changes:** `cr.open`, `cr.update`, `cr.status`, `cr.merge`
+- **Changes:** `cr.open`, `cr.update`, `cr.status`, `cr.list` (merged change requests: number, title, merge commit and date, issues closed), `cr.merge`
 - **Pipeline:** `pipeline.render` (write CI files from the neutral pipeline description), `pipeline.status`
 - **Release:** `tag.create`, `release.draft`, `release.publish`
 - **Target:** `package.build` (the release artifacts, from a clean copy of the tagged commit), `package.verify` (install them somewhere clean and smoke-test them), `package.publish` (push them to the target's channel, if it has one), `install.describe` (the install instructions, for the README and the release notes)
@@ -192,7 +192,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 ## 10. Branches, commits and change requests
 
-**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. The default branch always stays releasable. Nobody, human or agent, pushes directly to it.
+**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. Two exceptions: `chore/ledger-<YYYYMMDD>` (section 6) and `chore/release-<version>` (section 12). The default branch always stays releasable. Nobody, human or agent, pushes directly to it.
 
 **Commits:** Conventional Commits. `<type>(<optional scope>): <summary>`, imperative, 72 characters or fewer. Breaking changes use `!` after the type and a `BREAKING CHANGE:` footer. Each commit references its issue in a footer: `Refs: #12`.
 
@@ -250,11 +250,22 @@ A disabled stage has a `reason` instead of a `run`.
 
 ## 12. Versions and releases
 
-- Semantic Versioning. Tags are `v<major>.<minor>.<patch>`. Before `1.0.0`, breaking changes bump the minor version.
-- The version bump is derived from the commit types merged since the last tag: `fix` → patch, `feat` → minor, breaking → major.
-- `CHANGELOG.md` follows the Keep a Changelog layout, with entries generated from merged CR titles and grouped as Added, Changed, Fixed, Removed.
-- Release notes list each included task with its issue and CR, taken from the ledger, so a release shows which parts of the plan it delivered.
-- A release is drafted first and published only after the user confirms, and only when every release gate passes.
+- Semantic Versioning. Tags are `<tag_prefix><major>.<minor>.<patch>` (`v0.1.0`). Before `1.0.0`, breaking changes bump the minor version.
+- **What's in a release:** the change requests merged to the default branch since the last release tag, found with `cr.list`, whose merge commits lie between that tag and the release commit.
+- **The version bump** comes from their titles (Conventional Commits): a breaking change (`!` after the type, or a `BREAKING CHANGE:` footer) → major; `feat` → minor; `fix` → patch. Other types don't bump. If nothing bumps, there's nothing to release.
+- **The first release,** with no earlier tag, is `0.1.0`, unless the user names another version. A named version must be valid and higher than the last tag.
+- **The release date** is the UTC date the release change request is prepared. The changelog heading and the ledger's `released` use it.
+- **`CHANGELOG.md`** follows the Keep a Changelog layout. Its entries are the change request titles, without the type prefix, followed by the change request reference (`- Add the release skill (#82)`). They're grouped like this:
+  - **Added:** `feat`
+  - **Changed:** `refactor`, `perf`, and any breaking change, marked **Breaking:**
+  - **Fixed:** `fix`
+  - **Removed:** a title whose summary starts with "remove" or "drop"
+  - Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed.
+- **Release notes** list each included task with its issue and change requests, grouped by milestone and taken from the ledger, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
+- **The release change request** carries the changelog and ledger updates. Branch `chore/release-<version>` (an exception to section 10's pattern, like the ledger's), title `chore(release): <version>`. The tag goes on its merge commit.
+- **Order:** release change request merged → release gates pass on its commit → tag (`tag.create`) → release gates pass on the tag → package (`package.build`, `package.verify`) → draft (`release.draft`) → the user confirms → publish (`package.publish`, `release.publish`).
+- **Confirmation:** a release is drafted first and published only after the user confirms, and only when every release gate passes. Creating the tag and publishing each need a person's explicit yes.
+- **Tags are permanent.** A release found to be wrong after tagging is fixed with a new patch release, never by moving the tag.
 
 ## 13. Safety
 
