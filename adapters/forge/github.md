@@ -142,15 +142,52 @@ Status: not yet implemented
 
 ### cr.update
 
-Status: not yet implemented
+- **Tier:** write
+- **Inputs:** the change request (number, or head branch), and any of: `title`, `body`, `labels_add`, `labels_remove`
+- **Check existing state:** find the open pull request, then read what can change:
+  ```sh
+  gh pr list --repo {o}/{r} --head <branch> --state open --json number   # if given a branch
+  gh pr view <n> --repo {o}/{r} --json state,title,body,labels
+  ```
+  No open pull request for the branch is a failure: use `cr.open` instead. Compare, and pass only what differs. Compare bodies after trimming trailing whitespace. If nothing differs, report "no changes" and skip the command.
+- **Command:** one call carrying every difference:
+  ```sh
+  gh pr edit <n> --repo {o}/{r} --title "<title>" --body-file <file> \
+    --add-label "<label>" --remove-label "<label>"
+  ```
+- **Output:** fields changed, as `name: old → new` (for the body, just "body changed").
+- **Notes:** new commits aren't an update. They reach the pull request by pushing the head branch (`git push`). A pull request that is closed or merged isn't updated; report it and stop.
+- **Fallback:** none needed.
 
 ### cr.status
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** the change request (number, or head branch)
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  gh pr view <n> --repo {o}/{r} --json state,isDraft,mergeable,mergeStateStatus,\
+  reviewDecision,latestReviews,statusCheckRollup,closingIssuesReferences,url
+  ```
+- **Output:** neutral fields:
+
+  | Neutral | GitHub JSON |
+  |---|---|
+  | `state` | `state`, lower-cased: `open`, `closed` or `merged`; plus `draft` from `isDraft` |
+  | `checks` | one entry per item in `statusCheckRollup`, which mixes two kinds (see `__typename`). **CheckRun** (GitHub Actions jobs): `name`; `conclusion` SUCCESS → `pass`; FAILURE, CANCELLED, TIMED_OUT, ACTION_REQUIRED, STARTUP_FAILURE → `fail`; SKIPPED or NEUTRAL → `skipped`; no conclusion yet (`status` not COMPLETED) → `pending`. **StatusContext** (commit statuses): `context`; `state` SUCCESS → `pass`; FAILURE or ERROR → `fail`; PENDING or EXPECTED → `pending`. An empty list → "no checks reported" |
+  | `review` | `reviewDecision`: APPROVED → `approved`, CHANGES_REQUESTED → `changes requested`, REVIEW_REQUIRED → `review required`, empty → `no review required` |
+  | `reviews` | each of `latestReviews`: author login and state |
+  | `mergeable` | `mergeable`: MERGEABLE → `yes`, CONFLICTING → `conflicts`, UNKNOWN → `unknown`; plus `mergeStateStatus` as the reason (e.g. BLOCKED, BEHIND, DIRTY, CLEAN) |
+  | `closes` | the issue numbers in `closingIssuesReferences` |
+
+- **Notes:** GitHub computes mergeability in the background, so straight after a push `mergeable` can be `unknown`. Read again after a few seconds before reporting it. `closes` is empty if the body's closing reference is missing or malformed, which is worth flagging: the issue won't close on merge.
+- **Fallback:** none needed.
 
 ### cr.merge
 
 Status: not yet implemented
+
+Merging is an admin action (conventions §13). In this project the maintainer merges every change request themselves, so no skill needs this verb yet. `release` may need it later.
 
 ## Pipeline
 
