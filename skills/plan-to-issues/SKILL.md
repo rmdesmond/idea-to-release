@@ -104,6 +104,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Correct, as a stated change in the dry run:**
   - a milestone that doesn't match the plan
   - the state label of an open issue (`ready` ↔ `blocked`), as dependencies finish or change. `needs-decision` is left alone once set.
+  - any state label (`ready`, `blocked` or `needs-decision`) on a closed issue: remove it. Issues are usually closed by merging a change request, which leaves their labels behind, and state labels only describe open work (conventions §8).
 - **Report, but don't change:** a title or *Done when* list that differs from the plan. Someone may have edited the issue on purpose. Ask, and apply only what the user accepts.
 
 **Links.** For each dependency, the dependent task's issue is `blocked-by` the dependency's issue (`issue.link`). Record each link from the dependent side only. A link present on the forge but no longer in the plan is reported, and removed only if the user agrees.
