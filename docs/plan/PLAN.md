@@ -223,8 +223,8 @@ Done when:
 ### T-018: Decide the review rule for a single maintainer
 Depends on: none
 Done when:
-- [ ] A decision record states how changes are reviewed while there's one maintainer, and what changes when a second one joins
-- [ ] `review.required_approvals` in `.project/config.yml` matches the decision
+- [x] A decision record states how changes are reviewed while there's one maintainer, and what changes when a second one joins
+- [x] `review.required_approvals` in `.project/config.yml` matches the decision
 
 ### T-019: Implement the access and rule verbs
 Depends on: T-002
