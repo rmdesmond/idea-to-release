@@ -287,9 +287,9 @@ Done when:
 ### T-025: Write installation instructions
 Depends on: T-024
 Done when:
-- [ ] The release archive has an `install.sh` that installs the skills, adapters, conventions and check scripts for a chosen agent (`claude`, `codex`, `copilot`, `gemini` or `generic`), into a project or the user's folder
-- [ ] The README explains how to install, what each part requires, and its roadmap is current
-- [ ] Following the instructions from a clean clone, in a new scratch project, gives working skills
+- [x] The release archive has an `install.sh` that installs the skills, adapters, conventions and check scripts for a chosen agent (`claude`, `codex`, `copilot`, `gemini` or `generic`), into a project or the user's folder
+- [x] The README explains how to install, what each part requires, and its roadmap is current
+- [x] Following the instructions from a clean clone, in a new scratch project, gives working skills
 
 ### T-032: Ask for the release target when planning
 Depends on: T-031
