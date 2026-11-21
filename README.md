@@ -4,7 +4,7 @@ Agent skills that take a software project from a rough idea to an official relea
 
 The skills cover planning, repository setup, access and branch rules, ticket creation, day-to-day issue work, CI, and releases. They share one set of conventions, so each step links to the one before it: plan → issues → change requests → release notes.
 
-> **Status: early development.** The conventions are drafted and the skills are being built in the order shown under [Roadmap](#roadmap). Nothing here is ready for production use yet.
+> **Status: first release.** [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0) has all seven skills, the GitHub adapters and the `agent-skills` and `shell-cli` targets. It's early: expect the conventions to change between minor versions until 1.0.
 
 ## Why
 
@@ -64,7 +64,7 @@ This repository is built with its own skills and follows its own conventions, so
 
 ## Installing
 
-The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code. Each release has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
+The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code. Each [release](https://github.com/rmdesmond/idea-to-release/releases) has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
 
 ```sh
 tar -xzf idea-to-release-<version>.tar.gz
@@ -112,7 +112,8 @@ Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an e
 7. `ci-setup`: done, and used for this repository's pipeline
 8. `repo-governance`: done, and used on this repository (branch rules kept by procedure while it's private)
 9. Target adapters and `cut-release`: done, with the `agent-skills` and `shell-cli` targets
-10. First tagged release of the skill set: next
+10. First tagged release of the skill set: done, [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0), cut with `cut-release`
+11. Making the repository public, with branch rules enforced: next
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 

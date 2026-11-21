@@ -318,9 +318,9 @@ Done when:
 ### T-027: Release v0.1.0
 Depends on: T-022, T-026
 Done when:
-- [ ] Every release gate passes on the default branch
-- [ ] The `cut-release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
-- [ ] The README status and roadmap say the first release is out
+- [x] Every release gate passes on the default branch
+- [x] The `cut-release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
+- [x] The README status and roadmap say the first release is out
 
 ### T-030: Make the repository public
 Depends on: T-027
