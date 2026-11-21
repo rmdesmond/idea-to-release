@@ -51,7 +51,7 @@ Work through these topics **one at a time**, in this order. For each, propose an
 
 In revise mode, start from the existing plan: ask what changed, and go through only the topics the change touches.
 
-**Assumptions.** Anything decided without the user, whether because the run is non-interactive or because the user said "your call", is written down in the plan's *Assumptions* section. Never fill a gap silently.
+**Assumptions.** Anything decided without the user, whether because the run is non-interactive or because the user said "your call", is written down in the plan's *Assumptions* section. A `run` command proposed without confirmation is one of these: write it to the config so the stage can run, and record it as an assumption to confirm before the first task that uses it. Never fill a gap silently.
 
 ### 3. Write tasks and the verification strategy
 
@@ -64,6 +64,7 @@ Follow conventions §5:
 - **Integration and system tests:** these get their own tasks, usually one or more per milestone, at the end of the milestone and depending on the tasks they exercise.
 - **Order:** within a milestone, list tasks so that dependencies come first where possible.
 - **Verification strategy:** state the test levels that apply, and the four core stages (`lint`, `build`, `unit`, `integration`). Each stage is enabled, or disabled with a one-line reason. Also list any extra stages, with when they run and whether they're required or advisory (§11).
+- **Run commands:** every enabled stage, core or extra, needs a `run` command (conventions §11): one shell command, run from the repository root, that exits 0 when the stage passes. Propose one from the constraints and the test infrastructure task, for example `npm test`, `go test ./...`, `cargo clippy` or `tests/run.sh`, and confirm it with the user as part of the verification strategy topic. A command that a task will create (a test runner, say) is fine: name that task. Never enable a stage without a command, because work-issue stops on it.
 
 ### 4. Record work already done
 
@@ -107,9 +108,9 @@ Out: ...
 
 Test levels: ...
 
-| Stage | Enabled | Reason |
+| Stage | Enabled | Run command, or reason if disabled |
 |---|---|---|
-| lint | yes | ... |
+| lint | yes | `...` |
 | build | no | ... |
 | unit | ... | ... |
 | integration | ... | ... |
@@ -130,9 +131,9 @@ Then run `scripts/check-plan.sh docs/plan/PLAN.md`. The script belongs to the id
 
 ### 7. Keep the config in step
 
-Compare the verification strategy with the `pipeline` block of `.project/config.yml`. Work out the changes needed to make them match: `enabled`, `reason` and `extra_stages`. Leave everything else in the config untouched (conventions §4).
+Compare the verification strategy with the `pipeline` block of `.project/config.yml`. Work out the changes needed to make them match: `enabled`, `run`, `reason` and `extra_stages`. Leave everything else in the config untouched (conventions §4).
 
-- **Enabling** a stage, or changing a reason: include it in the change.
+- **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.
 - **Disabling a stage that is currently enabled:** conventions §11 requires a decision record. Ask first. If the user agrees, write the record. If not, keep the stage enabled and update the plan to match.
 
 ### 8. Decision records
