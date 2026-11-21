@@ -26,7 +26,7 @@ All optional. Pass them as `key=value`.
 ### 1. Read and check the inputs
 
 1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
-2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request.
+2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request. One exception: failures that are only `missing title` mean a ledger written before titles existed. Carry on, and add the titles in the ledger step.
 3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
 4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
    - ID, title and milestone
@@ -140,7 +140,7 @@ issue.create      "T-007: Implement the tracker verbs ..."   type:feature priori
 issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title prefix "T-002: "
 issue.link        #14 blocked-by #12, #13   (+ 31 more)
 issue.close       none
-ledger            add 27 entries → branch chore/11-ledger, change request "chore(ledger): record issues for the plan"
+ledger            add 27 entries; refresh titles 0 → branch chore/11-ledger, change request "chore(ledger): record issues for the plan"
 
 Reported, not changed:
   #12 (T-007): title differs from the plan
@@ -163,7 +163,8 @@ In this order, stopping at the first failure and reporting what was done:
 5. `issue.close` for done and dropped tasks, as above
 6. **Ledger:**
    - write `.project/ledger.yml` in the shape from conventions §6, with tasks in ID order
-   - run `scripts/check-ledger.sh`
+   - every entry's `title` is the plan's task title (without ` (dropped)`), double-quoted with `\"` and `\\` escapes. Add it to entries that lack it, and refresh it where the plan's title has changed. Keep every other field as it is: release owns those.
+   - run `scripts/check-ledger.sh`. It must pass with no warnings
    - commit on branch `chore/<issue>-ledger`, or `chore/ledger-<YYYYMMDD>` with no issue, with the message `chore(ledger): record issues for the plan` and a `Refs: #<issue>` footer if there is an issue
    - push, then `cr.open`. The body lists the tasks added or changed. Don't merge it.
 

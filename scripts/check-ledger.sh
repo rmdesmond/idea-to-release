@@ -6,6 +6,7 @@
 #
 #   tasks:                       (or "tasks: {}" when empty)
 #     T-001:                     two-space indent
+#       title: "Add a check"     the plan's task title, double-quoted
 #       milestone: M1            four-space indent, one "key: value" per line
 #       issue: 12
 #       change_requests: [15, 16]
@@ -19,15 +20,18 @@
 # Checks:
 # - only the keys above, each at most once per task; task IDs unique
 # - every task ID exists in the plan, and its milestone matches the plan's
+# - title is a double-quoted string (\" and \\ escapes). If it differs from
+#   the plan's title, that is a warning, not a failure: plan-to-issues
+#   refreshes titles, and a plan change that renames a task must still pass
 # - issue is an integer; change_requests is a list of integers;
 #   released_in is a tag v<major>.<minor>.<patch>; dates are YYYY-MM-DD
-# - every task has milestone, issue and created
+# - every task has title, milestone, issue and created
 # - merged needs change_requests; released_in and released come together;
 #   created <= merged <= released
 #
 # Usage: scripts/check-ledger.sh [ledger] [plan]
 #        (defaults: .project/ledger.yml and docs/plan/PLAN.md)
-# Exit status: 0 if every check passes, 1 otherwise.
+# Exit status: 0 if every check passes (warnings included), 1 otherwise.
 
 set -euo pipefail
 
@@ -39,6 +43,7 @@ plan="${2:-$root/docs/plan/PLAN.md}"
 
 awk '
 function fail(line, msg) { printf "FAIL  %s:%d: %s\n", FILENAME, line, msg; failures++ }
+function warn(line, msg) { printf "warn  %s:%d: %s\n", FILENAME, line, msg; warnings++ }
 function is_date(v) { return v ~ /^[0-9][0-9][0-9][0-9]-[01][0-9]-[0-3][0-9]$/ }
 
 function close_task(    k) {
@@ -56,8 +61,8 @@ function close_task(    k) {
 }
 
 BEGIN {
-  required["milestone"]; required["issue"]; required["created"]
-  known["milestone"]; known["issue"]; known["change_requests"]; known["released_in"]
+  required["title"]; required["milestone"]; required["issue"]; required["created"]
+  known["title"]; known["milestone"]; known["issue"]; known["change_requests"]; known["released_in"]
   known["created"]; known["merged"]; known["released"]
 }
 
@@ -65,7 +70,25 @@ BEGIN {
 FNR == NR {
   if ($0 ~ /^## M[0-9]+: /) { m = $2; sub(/:$/, "", m) }
   else if ($0 ~ /^## /) m = ""
-  else if (m != "" && $0 ~ /^### T-[0-9][0-9][0-9]: /) { t = $2; sub(/:$/, "", t); plan_ms[t] = m }
+  else if (m != "" && $0 ~ /^### T-[0-9][0-9][0-9]: /) {
+    t = $2; sub(/:$/, "", t); plan_ms[t] = m
+    pt = $0; sub(/^### T-[0-9][0-9][0-9]: /, "", pt); sub(/ \(dropped\)$/, "", pt); plan_title[t] = pt
+  }
+  next
+}
+
+# A title is read before comments are dropped, because it may contain " #".
+/^    title: / {
+  if (task == "") { fail(FNR, "field outside a task"); next }
+  v = $0; sub(/^    title: /, "", v)
+  if (!match(v, /^"([^"\\]|\\.)*"/)) { fail(FNR, task ": title must be a double-quoted string"); next }
+  if (substr(v, RLENGTH + 1) !~ /^([ \t]+#.*)?[ \t]*$/) { fail(FNR, task ": unexpected text after the title"); next }
+  if ((task, "title") in val) { fail(FNR, task ": duplicate key title"); next }
+  t = ""
+  for (i = 2; i < RLENGTH; i++) { c = substr(v, i, 1); if (c == "\\") { i++; c = substr(v, i, 1) }; t = t c }
+  val[task, "title"] = t
+  if ((task in plan_title) && plan_title[task] != t)
+    warn(FNR, task ": title differs from the plan (\"" plan_title[task] "\"); run plan-to-issues")
   next
 }
 
@@ -122,6 +145,8 @@ END {
   if (!seen_root) fail(1, "the ledger must start with \"tasks:\"")
   if (failures > 0) { printf "%d problem(s) in %s\n", failures, FILENAME; exit 1 }
   n = 0; for (t in tasks) n++
-  printf "ok: %s has %d task(s)\n", FILENAME, n
+  printf "ok: %s has %d task(s)", FILENAME, n
+  if (warnings > 0) printf ", %d warning(s)", warnings
+  printf "\n"
 }
 ' "$plan" "$ledger"

@@ -157,6 +157,14 @@ Done when:
 - [x] plan-to-issues writes new titles with the prefix, and adds a missing prefix to existing issues as a stated change, keeping their wording
 - [x] Every plan issue on this repository has its task ID in its title, and a re-run reports no changes
 
+### T-029: Put task titles in the ledger
+Depends on: T-008, T-009
+Issue: #50
+Done when:
+- [x] Conventions §6: every ledger entry has a quoted `title` copied from the plan, written and refreshed only by plan-to-issues
+- [x] `scripts/check-ledger.sh` requires a quoted title and warns, without failing, when it differs from the plan; fixture tests cover both
+- [x] plan-to-issues adds and refreshes titles, and this repository's ledger has a title on every entry
+
 ## M3: Issue to change request
 
 `work-issue` takes a `ready` issue to an open change request that includes its tests, and this repository's tasks are worked with it from then on.
