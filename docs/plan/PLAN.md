@@ -229,9 +229,9 @@ Done when:
 ### T-019: Implement the access and rule verbs
 Depends on: T-002
 Done when:
-- [ ] `access.grant`, `access.list`, `rule.protect-branch`, `rule.require-review` and `rule.require-checks` are implemented in the forge adapter, using rulesets where available
-- [ ] The adapter documents the fallback for private repositories on free accounts (conventions §14)
-- [ ] `scripts/check-adapters.sh` passes
+- [x] `access.grant`, `access.list`, `rule.protect-branch`, `rule.require-review` and `rule.require-checks` are implemented in the forge adapter, using rulesets where available
+- [x] The adapter documents the fallback for private repositories on free accounts (conventions §14)
+- [x] `scripts/check-adapters.sh` passes
 
 ### T-020: Add the repo-governance skill
 Depends on: T-016, T-018, T-019
