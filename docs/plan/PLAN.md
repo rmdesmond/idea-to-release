@@ -161,9 +161,9 @@ Done when:
 Depends on: T-008, T-009
 Issue: #50
 Done when:
-- [ ] Conventions §6: every ledger entry has a quoted `title` copied from the plan, written and refreshed only by plan-to-issues
-- [ ] `scripts/check-ledger.sh` requires a quoted title and warns, without failing, when it differs from the plan; fixture tests cover both
-- [ ] plan-to-issues adds and refreshes titles, and this repository's ledger has a title on every entry
+- [x] Conventions §6: every ledger entry has a quoted `title` copied from the plan, written and refreshed only by plan-to-issues
+- [x] `scripts/check-ledger.sh` requires a quoted title and warns, without failing, when it differs from the plan; fixture tests cover both
+- [x] plan-to-issues adds and refreshes titles, and this repository's ledger has a title on every entry
 
 ## M3: Issue to change request
 
