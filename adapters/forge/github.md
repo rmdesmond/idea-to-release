@@ -24,7 +24,9 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
 
 - A non-zero exit from `gh` is a failure. Report the command and its stderr, then stop. Don't retry writes or admin actions automatically.
 - `HTTP 403` with "Resource not accessible" or "Must have admin rights" means the token or the user lacks permission. Report it as a permission gap, not a bug.
+- `HTTP 403` with "Upgrade to GitHub Pro or make this repository public to enable this feature" means the feature isn't available on the plan tier. It isn't a permission gap. For branch rules, use the fallback under *Branch rules: one ruleset*.
 - `HTTP 404` on a repository the user can see in the browser usually means missing token scopes.
+- `HTTP 403` with "Repository has been locked" can come for a few seconds after a visibility change. Wait, read again, and repeat the write only once a read succeeds.
 
 ---
 
@@ -102,23 +104,138 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
 
 ### access.grant
 
-Status: not yet implemented
+- **Tier:** admin (it gives a person rights on the repository)
+- **Inputs:** a GitHub login, and a role: `read`, `triage`, `write`, `maintain` or `admin` (GitHub's API names for these are `pull`, `triage`, `push`, `maintain` and `admin`)
+- **Check existing state:** `access.list`. If the person already has exactly that role, report "no change" and skip. If they have a different role, the grant changes it: say so in the dry run. If an invitation is pending, report it rather than sending another.
+- **Command:**
+  ```sh
+  gh api -X PUT repos/{o}/{r}/collaborators/<login> -f permission=<pull|triage|push|maintain|admin>
+  ```
+  For an organisation team instead of a person: `gh api -X PUT orgs/{org}/teams/<slug>/repos/{o}/{r} -f permission=<...>`.
+- **Output:** HTTP 201 means an invitation was sent, which the person must accept. HTTP 204 means the role changed for an existing collaborator.
+- **Notes:**
+  - On a repository owned by a user (not an organisation), collaborators can only get `write`-level access, and the API ignores other roles.
+  - The repository owner can't be added (HTTP 422 "Repository owner cannot be a collaborator"); they're already `admin`.
+  - Sending an invitation notifies a real person, so it always needs confirmation, even in a non-interactive run.
+- **Fallback:** none needed.
 
 ### access.list
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** none
+- **Command:**
+  ```sh
+  gh api repos/{o}/{r}/collaborators --paginate --jq '.[] | {login, role: .role_name}'
+  gh api repos/{o}/{r}/invitations --jq '.[] | {login: .invitee.login, role: .permissions, pending: true}'
+  ```
+- **Output:** one line per person: login, role (`read`, `triage`, `write`, `maintain`, `admin`) and whether the invitation is pending. The owner is included as `admin`. Also report how many people can write, because `repo-governance` uses it (decision 0011).
+- **Fallback:** none needed.
+
+### Branch rules: one ruleset
+
+The three `rule.*` verbs share one repository **ruleset** named `idea-to-release`. Rulesets are GitHub's current branch rules, and they replace classic branch protection.
+
+- It targets the default branch (`~DEFAULT_BRANCH`), with `enforcement: active` and **no bypass actors**, so the rules apply to admins too.
+- Each verb owns some of the ruleset's `rules` entries:
+  - `rule.protect-branch`: `deletion`, `non_fast_forward`, and the presence of `pull_request`
+  - `rule.require-review`: the `pull_request` rule's parameters
+  - `rule.require-checks`: `required_status_checks`
+- Each verb leaves the entries it doesn't own exactly as it found them.
+
+Every verb follows the same steps:
+
+1. **Read** the ruleset, if there is one:
+   ```sh
+   id=$(gh api repos/{o}/{r}/rulesets --jq '.[] | select(.name == "idea-to-release") | .id')
+   gh api repos/{o}/{r}/rulesets/$id > current.json          # only if $id is set
+   ```
+   Other rulesets on the repository are left alone. Mention them in the dry run, because they also apply.
+2. **Build** the wanted ruleset: start from `current.json`, or from this skeleton if there's none. For each entry the verb owns:
+   - **Missing:** add it.
+   - **Present:** merge the verb's parameters over the current ones (`$current.parameters + $verb.parameters`). Don't replace the entry: GitHub stores extra parameters with defaults (for example `allowed_merge_methods` and `required_reviewers` on `pull_request`). Replacing the entry would drop them, and then every run would look like a change.
+
+   The skeleton:
+   ```json
+   {
+     "name": "idea-to-release",
+     "target": "branch",
+     "enforcement": "active",
+     "bypass_actors": [],
+     "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
+     "rules": []
+   }
+   ```
+3. **Compare** the wanted `enforcement`, `bypass_actors`, `conditions` and `rules` with the current ones, after sorting rules by `type`:
+   ```sh
+   norm='{enforcement, bypass_actors, conditions, rules: (.rules | sort_by(.type))}'
+   diff <(jq -S "$norm" current.json) <(jq -S "$norm" wanted.json)
+   ```
+   If they're equal, report "no change" and stop. Otherwise the diff is the dry run's "before → after".
+4. **Write** it, sending only `name`, `target`, `enforcement`, `bypass_actors`, `conditions` and `rules`:
+   ```sh
+   gh api -X POST repos/{o}/{r}/rulesets --input wanted.json        # no ruleset yet
+   gh api -X PUT  repos/{o}/{r}/rulesets/$id --input wanted.json    # update
+   ```
+
+All three verbs are **admin tier**: they change who can merge what. Show the rules before and after, and wait for confirmation.
+
+**Fallback: rules the plan can't enforce.** On a private repository owned by a free account, every ruleset and branch-protection endpoint, even a read, returns:
+
+```
+HTTP 403: Upgrade to GitHub Pro or make this repository public to enable this feature.
+```
+
+Treat exactly that message as "branch rules not available on the plan tier", not as a permission error (see *Errors*). The skill then follows conventions §14:
+
+- record the gap in a decision record, naming each rule it couldn't apply
+- enforce the rules by procedure: agents never push to the default branch, `work-issue` opens a change request for every change, the pipeline still runs and reports on every change request, and only the maintainer merges
+- don't change the repository's visibility to get the feature; visibility is the user's call
+
+Making the repository public, or upgrading the account, brings the rules back. Re-run the skill then; the verbs apply normally.
 
 ### rule.protect-branch
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** none (the ruleset targets the default branch)
+- **Check existing state:** steps 1–3 above.
+- **Command:** steps 2 and 4 above, with these entries:
+  ```json
+  { "type": "deletion" },
+  { "type": "non_fast_forward" },
+  { "type": "pull_request", "parameters": { "required_approving_review_count": 0, "dismiss_stale_reviews_on_push": true, "require_code_owner_review": false, "require_last_push_approval": false, "required_review_thread_resolution": false } }
+  ```
+  If a `pull_request` entry already exists, keep its parameters: they belong to `rule.require-review`.
+- **Output:** what the default branch now refuses: deletion, force pushes, and direct pushes (every change arrives through a change request).
+- **Fallback:** see *Fallback: rules the plan can't enforce*.
 
 ### rule.require-review
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** `required_approvals` (an integer) and `code_owners` (true or false), from the config's `review` block
+- **Check existing state:** steps 1–3 above. Before applying, use `access.list` to check that enough people other than the author can approve. If `required_approvals` is 1 or more but only one person can write, warn: no change request could ever merge (decision 0011).
+- **Command:** steps 2 and 4 above, setting the `pull_request` entry's parameters (adding the entry if `rule.protect-branch` hasn't run):
+  ```json
+  { "type": "pull_request", "parameters": { "required_approving_review_count": <required_approvals>, "require_code_owner_review": <code_owners>, "dismiss_stale_reviews_on_push": true, "require_last_push_approval": false, "required_review_thread_resolution": false } }
+  ```
+- **Output:** the number of approvals required, and whether code owners must approve.
+- **Notes:** GitHub never counts an author's own approval. Agents open change requests with the maintainer's login, so the maintainer can't approve them.
+- **Fallback:** see *Fallback: rules the plan can't enforce*.
 
 ### rule.require-checks
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** the check names, normally the four core stages `lint`, `build`, `unit` and `integration` (conventions §11). Advisory extra stages are never required, and required extra stages are added by name.
+- **Check existing state:** steps 1–3 above. Also check that each named check has actually reported on the default branch or a recent change request (`pipeline.status`). A required check that never runs blocks every merge. If one is missing, stop and suggest running `ci-setup` first.
+- **Command:** steps 2 and 4 above, with this entry. `15368` is the GitHub Actions app, so only Actions can satisfy the checks:
+  ```json
+  { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": false, "do_not_enforce_on_create": false, "required_status_checks": [ { "context": "lint", "integration_id": 15368 }, { "context": "build", "integration_id": 15368 }, { "context": "unit", "integration_id": 15368 }, { "context": "integration", "integration_id": 15368 } ] } }
+  ```
+- **Output:** the checks now required before merging.
+- **Notes:**
+  - With required checks in place, a change request whose checks never report is `BLOCKED`. `gh pr merge` then suggests `--admin`. Never use it: merging past a gate is a waiver, which is an admin action (conventions §11).
+  - GitHub treats a required check that was skipped by an `if:` condition as passing. That's why `lint`, which runs only on change requests, can be required.
+  - `strict` is off, so a change request needn't be rebased on the latest default branch before merging. With squash merges and checks on every change request, that's enough.
+- **Fallback:** see *Fallback: rules the plan can't enforce*.
 
 ## Changes
 
@@ -137,6 +254,7 @@ Status: not yet implemented
   ```
   Write the body to a temporary file so it isn't mangled by shell quoting.
 - **Output:** pull request number and URL.
+- **Draft change requests:** GitHub offers drafts on public repositories, and on private ones only on paid plans. On a private repository owned by a free account, `gh pr create --draft` opens an ordinary pull request without warning. Don't rely on draft state to keep a change request from being merged; say so in its title instead.
 - **Closing reference:** put `Closes #<issue>` in the body. GitHub treats any of these words, in any case, followed by an issue reference as an instruction to close that issue on merge: `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`. A colon between them counts too (`Fixes: #12`). It applies anywhere in the body, so write other mentions without the keyword ("the label on #24 (done)", not "closed #24"). `cr.status`'s `closes` field shows what GitHub actually parsed.
 - **Fallback:** none needed.
 
