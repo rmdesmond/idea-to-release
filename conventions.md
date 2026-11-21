@@ -1,6 +1,6 @@
 # Conventions
 
-Shared rules for the idea-to-release skill set. Every skill reads this file before acting. Skills describe *what* to do in the neutral terms defined here; adapters translate those terms into commands for a specific forge or tracker.
+Shared rules for the idea-to-release skill set. Every skill reads this file before acting. Skills describe *what* to do in the neutral terms defined here; adapters translate those terms into commands for a specific forge, tracker or release target.
 
 If a skill and this file disagree, this file wins. If this file and the project's `.project/config.yml` disagree, the config wins, because it records choices the project owner made.
 
@@ -33,6 +33,9 @@ These are the only operations skills may ask an adapter to perform. An adapter m
 - **Changes:** `cr.open`, `cr.update`, `cr.status`, `cr.merge`
 - **Pipeline:** `pipeline.render` (write CI files from the neutral pipeline description), `pipeline.status`
 - **Release:** `tag.create`, `release.draft`, `release.publish`
+- **Target:** `package.build` (the release artifacts, from a clean copy of the tagged commit), `package.verify` (install them somewhere clean and smoke-test them), `package.publish` (push them to the target's channel, if it has one), `install.describe` (the install instructions, for the README and the release notes)
+
+Tracker verbs are defined by tracker adapters (`adapters/tracker/`), Target verbs by target adapters (`adapters/target/`), and all others by forge adapters (`adapters/forge/`). The target is what a project ships: a command-line tool, an app, a package, a set of agent skills (decision 0013).
 
 Verbs ending in `ensure` are idempotent: create if missing, leave alone if present, report a difference if present but different.
 
@@ -51,6 +54,13 @@ LICENSE
 .gitignore
 ```
 
+**Where the skill set's own files are.** `conventions.md`, `adapters/` and the check scripts (`scripts/check-*.sh`) belong to the skill set, not to the project. A skill finds them relative to its own folder:
+
+- **Installed:** in `idea-to-release/`, a sibling of the skill folders (for example `.claude/skills/idea-to-release/conventions.md` next to `.claude/skills/work-issue/`). The folder has no `SKILL.md`, so agents don't load it as a skill.
+- **In a clone of the idea-to-release repository:** at the repository root, two levels up from the skill folder.
+
+See decision 0014.
+
 ## 4. Project config
 
 `.project/config.yml` is written once by repo-bootstrap and read by every other skill. The one exception is the `pipeline` block, which idea-to-plan keeps in step with the plan's verification strategy (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
@@ -58,6 +68,7 @@ LICENSE
 ```yaml
 forge: github            # adapter name under adapters/forge/
 tracker: github          # adapter name under adapters/tracker/
+target: shell-cli        # adapter name under adapters/target/: what the project ships
 owner: example-org
 repo: example-project
 default_branch: main

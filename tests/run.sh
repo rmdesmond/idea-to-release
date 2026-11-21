@@ -13,6 +13,9 @@
 # - every err/*.yml must fail with the message on its first line,
 #   as "# expect: <text>"
 #
+# Each script tests/script-<name>.sh is a self-contained test: it passes if
+# it exits 0. Its output is shown when it fails.
+#
 # Usage: tests/run.sh
 # Exit status: 0 if every test passes, 1 otherwise.
 
@@ -89,6 +92,15 @@ for dir in "$root"/tests/render-*/; do
       passed=$((passed + 1))
     fi
   done
+done
+
+for t in "$root"/tests/script-*.sh; do
+  [[ -f "$t" ]] || continue
+  if out=$("$t" 2>&1); then
+    passed=$((passed + 1))
+  else
+    fail "$(basename "$t")" "$out"
+  fi
 done
 
 echo "$passed passed, $failed failed"

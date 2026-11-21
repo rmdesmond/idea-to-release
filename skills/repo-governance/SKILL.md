@@ -7,6 +7,8 @@ description: Apply a repository's rules from .project/config.yml - protect the d
 
 Makes the repository enforce what the conventions promise: nobody pushes straight to the default branch, every change request passes the core checks and gets the configured reviews, and visibility and access are what the project says they are.
 
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+
 Before doing anything, read `conventions.md`, especially §4 (config), §7 (decision records), §10 (merging), §11 (gates), §13 (safety: every action here is **admin tier**) and §14 (fallbacks). Also read decision records about review and visibility in `docs/decisions/`.
 
 **Verbs used:** `repo.describe`, `repo.configure`, `access.list`, `access.grant`, `rule.protect-branch`, `rule.require-review`, `rule.require-checks`, `pipeline.status`, `cr.open` (forge). Look each one up in the forge adapter named in `.project/config.yml`.

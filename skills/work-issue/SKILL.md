@@ -7,6 +7,8 @@ description: Take a ready issue from the tracker to an open change request - bra
 
 Takes one `ready` issue to an open change request that does what its *Done when* list says, with the evidence to show it.
 
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+
 Before doing anything, read `conventions.md`, especially §8 (labels), §9 (issues), §10 (branches, commits and change requests), §11 (pipeline stages and `run` commands) and §13 (safety).
 
 **Verbs used:** `issue.list` (tracker); `cr.open`, `cr.update`, `cr.status` (forge). Look each one up in the adapters named in `.project/config.yml`.
