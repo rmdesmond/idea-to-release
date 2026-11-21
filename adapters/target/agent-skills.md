@@ -56,7 +56,9 @@ idea-to-release-<version>/
   - each skill says where the shared files are, and they exist at `../idea-to-release/`
   - the shared folder has no `SKILL.md`
   - the installed `check-adapters.sh` passes
-  - a second install replaces the first, `--dest` works, and a folder that idea-to-release didn't install is refused
+  - a second install replaces the first; `--user`, `--dest` and each `--agent` install where they should
+  - name clashes (decision 0015): a same-named folder idea-to-release didn't install is never replaced, even with `--force`, and a same-named personal skill stops a project install unless `--force` is given
+  - every install runs with a throw-away `HOME`, so the real personal skills never affect the result
 - **Output:** `ok: … installs N skill(s); M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
 
 ### package.publish
@@ -79,8 +81,7 @@ idea-to-release-<version>/
       tar -xzf idea-to-release-<version>.tar.gz
       cd idea-to-release-<version>
       ./install.sh --agent claude --project /path/to/your/project   # or --user, for every project
-      ./install.sh --dest /path/to/skills-folder                     # any other agent
 
-  Each skill goes in its own folder, and the shared files go in `idea-to-release/` beside them. Re-running replaces an earlier install.
+  `--agent` also takes `codex`, `copilot` or `gemini`. For any other agent, use `--dest <its skills folder>`. Each skill goes in its own folder, and the shared files go in `idea-to-release/` beside them. Re-running replaces an earlier install. If a skill of the same name is already there, or in your personal skills, the script stops and names it.
   ```
 - **Output:** the Markdown, for the release notes and the README.
