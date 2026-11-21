@@ -96,6 +96,16 @@ Contributions are welcome once the first release is out. Until then, issues with
 
 Changes follow [`conventions.md`](conventions.md): one issue per change request, Conventional Commits, and tests included with the change. A new forge or tracker adapter must define every neutral verb or state its fallback.
 
+### How `main` is protected
+
+While this repository is private on a free GitHub account, GitHub can't enforce branch rules, so they're kept by procedure ([decision 0012](docs/decisions/0012-branch-rules-fallback.md)):
+
+- Nobody pushes to `main`. Every change arrives through a pull request.
+- The pipeline runs `lint`, `build`, `unit` and `integration` on every pull request, plus an advisory `shellcheck`. A pull request is merged only when the four core checks pass.
+- Only the maintainer merges. Agents open pull requests but never approve, merge or override a check.
+
+Once the repository is public, `repo-governance` turns these into enforced rules: protected `main`, required checks, and the review rule from [decision 0011](docs/decisions/0011-review-rule-single-maintainer.md).
+
 ## Licence
 
 MIT. See [`LICENSE`](LICENSE). The choice is recorded in [`docs/decisions/0002-licence-mit.md`](docs/decisions/0002-licence-mit.md).
