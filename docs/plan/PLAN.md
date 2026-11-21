@@ -243,9 +243,9 @@ Done when:
 ### T-021: End-to-end test through repo-governance
 Depends on: T-020
 Done when:
-- [ ] On a new public scratch repository: bootstrap, plan, issues, `work-issue`, `ci-setup`, then `repo-governance`
-- [ ] A direct push to the default branch is rejected, and the change request can't merge until its required checks pass
-- [ ] Problems found are fixed in the skills, or filed as issues
+- [x] On a new public scratch repository: bootstrap, plan, issues, `work-issue`, `ci-setup`, then `repo-governance`
+- [x] A direct push to the default branch is rejected, and the change request can't merge until its required checks pass
+- [x] Problems found are fixed in the skills, or filed as issues
 
 ### T-022: Run repo-governance on this repository
 Depends on: T-017, T-021
