@@ -18,6 +18,7 @@ All optional. Pass them as `key=value`.
 | Argument | Default | Notes |
 |---|---|---|
 | `issue` | propose the next one | Issue number to work |
+| `decision` | none | For a `needs-decision` issue: the user's decision, in their words (step 2) |
 
 ## Procedure
 
@@ -33,7 +34,7 @@ Run `issue.list` once with `state=open`.
 
 - **Closed:** refuse. There's nothing to do.
 - **`blocked`:** refuse, and name its open blockers.
-- **`needs-decision`:** refuse. The decision comes first; say what the issue asks to decide.
+- **`needs-decision`:** refuse, and say what the issue asks to decide, unless the user states the decision when invoking the skill. In that case, go ahead and say so. The task's work is then to record that decision, as a decision record (conventions §7) for a "Decide ..." task, and to make the changes that follow from it. The change request quotes the decision as the user gave it. Only the user's own words count: never go ahead on the agent's own proposal, or in a non-interactive run. The label stays as it is; closing the issue on merge ends it.
 - **No state label:** ask before going on. It may not be fully specified (conventions §8).
 - **It already has an open change request** (`cr.status` on the branch `<type>/<n>-*`, or a pull request that closes it): switch to **resume mode** (step 9).
 
