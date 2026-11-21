@@ -82,7 +82,7 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
 ### repo.configure
 
 - **Tier:** admin
-- **Inputs:** any of: `merge_method` (`squash` | `merge` | `rebase`), `delete_branch_on_merge`, `description`, `features` (`issues`, `wiki`, `projects`)
+- **Inputs:** any of: `merge_method` (`squash` | `merge` | `rebase`), `delete_branch_on_merge`, `description`, `features` (`issues`, `wiki`, `projects`), `visibility` (`private` | `public` | `internal`)
 - **Check existing state:** run `repo.describe` and compare. Pass only the settings that differ. If none differ, report "no changes" and skip the command.
 - **Command:** one `gh repo edit` call carrying every differing setting:
   ```sh
@@ -97,7 +97,12 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
 
   **Exception:** `gh` rejects `--squash-merge-commit-message` unless `--enable-squash-merge=true` is in the same call. Whenever the message setting is passed, pass `--enable-squash-merge=true` too, even if squash merging is already allowed.
 - **Output:** settings changed, as `name: old → new`.
-- **Notes:** visibility is not changed here. Changing it is `repo-governance`'s job and needs `--accept-visibility-change-consequences`.
+- **Visibility:** a separate call, never combined with other settings, and passed only by `repo-governance`:
+  ```sh
+  gh repo edit {o}/{r} --visibility <private|public|internal> --accept-visibility-change-consequences
+  ```
+  `internal` exists only for organisations on GitHub Enterprise. Going public publishes the whole history. Going private removes stars and watchers, and turns off features the plan only allows on public repositories, such as branch rules on a free account. Afterwards GitHub may answer `Repository has been locked` for a few seconds (see *Errors*).
+- **Notes:** repo-bootstrap never passes `visibility`. It sets visibility only when creating a repository.
 - **Fallback:** none needed.
 
 ## Access
