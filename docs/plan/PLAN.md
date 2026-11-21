@@ -269,10 +269,10 @@ Done when:
 ### T-031: Add the target verbs and the agent-skills target
 Depends on: T-002
 Done when:
-- [ ] Conventions §2 has a Target group (`package.build`, `package.verify`, `package.publish`, `install.describe`), and §4 a `target:` key naming `adapters/target/<name>.md`
-- [ ] `adapters/target/agent-skills.md` defines all four verbs, and `scripts/check-adapters.sh` checks target adapters against the Target group only
-- [ ] `package.build` and `package.verify` have been run on this repository: the archive installs into a temporary project, and the installed skills find the shared files
-- [ ] A decision record says where the shared files go once installed, and every skill finds them there
+- [x] Conventions §2 has a Target group (`package.build`, `package.verify`, `package.publish`, `install.describe`), and §4 a `target:` key naming `adapters/target/<name>.md`
+- [x] `adapters/target/agent-skills.md` defines all four verbs, and `scripts/check-adapters.sh` checks target adapters against the Target group only
+- [x] `package.build` and `package.verify` have been run on this repository: the archive installs into a temporary project, and the installed skills find the shared files
+- [x] A decision record says where the shared files go once installed, and every skill finds them there
 
 ### T-024: Add the release skill
 Depends on: T-008, T-023, T-031
