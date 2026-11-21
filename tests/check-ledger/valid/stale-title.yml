@@ -1,0 +1,8 @@
+# A title that differs from the plan is a warning, not a failure.
+# Quotes, backslashes and " #" inside a title are kept.
+tasks:
+  T-001:
+    title: "First, renamed \"since\" \\ #1"   # a comment after the title
+    milestone: M1
+    issue: 12
+    created: 2026-11-20
