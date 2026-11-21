@@ -34,6 +34,10 @@ See decisions 0007 and 0013.
 
 None. Every choice above was confirmed during planning.
 
+## Release target
+
+Target: `agent-skills` - an archive of the skills, conventions and adapters, with an `install.sh` that puts them where each agent looks (decisions 0013 and 0014)
+
 ## Verification strategy
 
 Test levels:
@@ -294,8 +298,8 @@ Done when:
 ### T-032: Ask for the release target when planning
 Depends on: T-031
 Done when:
-- [ ] `idea-to-plan` asks what the project ships and records it in a "Release target" plan section, reporting a missing target adapter as a gap to plan for
-- [ ] `repo-bootstrap` writes `target:` to `.project/config.yml`, and `scripts/check-plan.sh` accepts the new section
+- [x] `idea-to-plan` asks what the project ships and records it in a "Release target" plan section, reporting a missing target adapter as a gap to plan for
+- [x] `repo-bootstrap` writes `target:` to `.project/config.yml`, and `scripts/check-plan.sh` accepts the new section
 
 ### T-033: Add the shell-cli target
 Depends on: T-031

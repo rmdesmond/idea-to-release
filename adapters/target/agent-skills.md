@@ -2,6 +2,8 @@
 
 Packages and installs a set of agent skills in the Agent Skills format: folders holding a `SKILL.md`, which Claude Code, Codex, GitHub Copilot, Gemini CLI and other agents load from a skills folder (decision 0013). This is the target of the idea-to-release repository itself.
 
+**Limit:** today the scripts package the idea-to-release repository's own layout (its name, shared folder and files). Packaging another project's skills is #84.
+
 Skills call the verbs by name. The commands live in `adapters/target/agent-skills/`. Every Target verb in `conventions.md` §2 has a section here, and `scripts/check-adapters.sh` checks it.
 
 ## What's shipped
