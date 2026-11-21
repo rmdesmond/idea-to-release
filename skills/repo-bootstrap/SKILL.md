@@ -96,7 +96,7 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 
 | File | Content |
 |---|---|
-| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `target: <name>` if known (else left out), `release: {versioning: semver, strategy: trunk, tag_prefix: v}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
+| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `target: <name>` if known (else left out), `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
 | `.project/ledger.yml` | `tasks: {}` |
 | `CHANGELOG.md` | Keep a Changelog header and an empty `## [Unreleased]` section |
 | `LICENSE` | Licence text from the forge adapter, with year and holder filled in. Skipped if `licence=none` |

@@ -78,6 +78,7 @@ release:
   versioning: semver
   strategy: trunk        # trunk | release-branches
   tag_prefix: v
+  version_files: []      # "<path>:<marker>" for each file that holds the version, see section 12
 review:
   required_approvals: 1
   code_owners: false
@@ -263,7 +264,8 @@ A disabled stage has a `reason` instead of a `run`.
   - **Removed:** a title whose summary starts with "remove" or "drop"
   - Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed.
 - **Release notes** list each included task with its issue and change requests, grouped by milestone and taken from the ledger, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
-- **The release change request** carries the changelog and ledger updates. Branch `chore/release-<version>` (an exception to section 10's pattern, like the ledger's), title `chore(release): <version>`. The tag goes on its merge commit.
+- **Version files.** If the code holds its own version number (a `--version` string, `package.json`, `Cargo.toml`), the config lists it under `release.version_files` as `"<path>:<marker>"`. For example, `"bin/slug:SLUG_VERSION="` means the line in `bin/slug` that contains `SLUG_VERSION=`, with the version written right after the marker, optionally in quotes. The marker must be on exactly one line. The release change request writes the new version there, without the tag prefix. The task that first puts a version in the code adds its entry.
+- **The release change request** carries the changelog, ledger and version-file updates. Branch `chore/release-<version>` (an exception to section 10's pattern, like the ledger's), title `chore(release): <version>`. The tag goes on its merge commit.
 - **Order:** release change request merged → release gates pass on its commit → tag (`tag.create`) → release gates pass on the tag → package (`package.build`, `package.verify`) → draft (`release.draft`) → the user confirms → publish (`package.publish`, `release.publish`).
 - **Confirmation:** a release is drafted first and published only after the user confirms, and only when every release gate passes. Creating the tag and publishing each need a person's explicit yes.
 - **Tags are permanent.** A release found to be wrong after tagging is fixed with a new patch release, never by moving the tag.

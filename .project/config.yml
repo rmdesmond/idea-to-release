@@ -10,6 +10,7 @@ release:
   versioning: semver
   strategy: trunk
   tag_prefix: v
+  version_files: []
 review:
   required_approvals: 0   # single maintainer: merge is review (decision 0011)
   code_owners: false
