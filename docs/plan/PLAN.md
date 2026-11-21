@@ -272,6 +272,7 @@ Done when:
 - [ ] Conventions §2 has a Target group (`package.build`, `package.verify`, `package.publish`, `install.describe`), and §4 a `target:` key naming `adapters/target/<name>.md`
 - [ ] `adapters/target/agent-skills.md` defines all four verbs, and `scripts/check-adapters.sh` checks target adapters against the Target group only
 - [ ] `package.build` and `package.verify` have been run on this repository: the archive installs into a temporary project, and the installed skills find the shared files
+- [ ] A decision record says where the shared files go once installed, and every skill finds them there
 
 ### T-024: Add the release skill
 Depends on: T-008, T-023, T-031
@@ -287,7 +288,6 @@ Done when:
 Depends on: T-024
 Done when:
 - [ ] The release archive has an `install.sh` that installs the skills, adapters, conventions and check scripts for a chosen agent (`claude`, `codex`, `copilot`, `gemini` or `generic`), into a project or the user's folder
-- [ ] A decision record says where the shared files go once installed, and every skill finds them there
 - [ ] The README explains how to install, what each part requires, and its roadmap is current
 - [ ] Following the instructions from a clean clone, in a new scratch project, gives working skills
 

@@ -1,5 +1,6 @@
 forge: github
 tracker: github
+target: agent-skills
 owner: rmdesmond
 repo: idea-to-release
 default_branch: main

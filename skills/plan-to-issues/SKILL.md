@@ -7,6 +7,8 @@ description: Turn the project plan (docs/plan/PLAN.md) into tracker milestones a
 
 Makes the tracker match the plan: one milestone per plan milestone, one issue per task, dependencies as links, and a ledger entry for each task.
 
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+
 Before doing anything, read `conventions.md`, especially §5 (plan), §6 (ledger), §8 (labels), §9 (issues) and §13 (safety).
 
 **Verbs used:** `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker); `cr.open` (forge). Look each one up in the adapters named in `.project/config.yml`.

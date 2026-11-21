@@ -7,6 +7,8 @@ description: Turn a project idea into a plan (docs/plan/PLAN.md) with a verifica
 
 Turns an idea into `docs/plan/PLAN.md`: the document every issue comes from (conventions §5).
 
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+
 Before doing anything, read `conventions.md`, especially §5 (plan format), §7 (decision records), §11 (pipeline stages) and §13 (safety). This skill only writes files. It uses the neutral verbs `issue.list` (tracker) and `cr.open` (forge). Look them up in the adapters named in `.project/config.yml`.
 
 ## Arguments

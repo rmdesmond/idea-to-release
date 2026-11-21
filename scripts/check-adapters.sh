@@ -2,7 +2,8 @@
 # Check that every adapter covers every neutral verb in conventions.md §2.
 #
 # - Tracker verbs (the "**Tracker:**" line of §2) must have a section in every
-#   adapters/tracker/*.md. All other verbs must have one in every adapters/forge/*.md.
+#   adapters/tracker/*.md, Target verbs (the "**Target:**" line) in every
+#   adapters/target/*.md, and all other verbs in every adapters/forge/*.md.
 # - A section is a heading "### <verb>". It must contain either a "**Command:**"
 #   entry or the line "Status: not yet implemented".
 # - Verb-shaped headings that aren't in §2 are reported as errors.
@@ -27,9 +28,10 @@ verbs_from() {
 }
 
 tracker_verbs=$(section2 | grep '^- \*\*Tracker:\*\*' | verbs_from)
-forge_verbs=$(section2 | grep '^- \*\*' | grep -v '^- \*\*Tracker:\*\*' | verbs_from)
+target_verbs=$(section2 | grep '^- \*\*Target:\*\*' | verbs_from)
+forge_verbs=$(section2 | grep '^- \*\*' | grep -v -e '^- \*\*Tracker:\*\*' -e '^- \*\*Target:\*\*' | verbs_from)
 
-if [[ -z "$tracker_verbs" || -z "$forge_verbs" ]]; then
+if [[ -z "$tracker_verbs" || -z "$target_verbs" || -z "$forge_verbs" ]]; then
   echo "error: could not read verbs from conventions.md §2" >&2
   exit 1
 fi
@@ -67,6 +69,7 @@ shopt -s nullglob
 adapters=0
 for f in "$root"/adapters/forge/*.md;   do check_adapter "$f" "$forge_verbs";   adapters=$((adapters + 1)); done
 for f in "$root"/adapters/tracker/*.md; do check_adapter "$f" "$tracker_verbs"; adapters=$((adapters + 1)); done
+for f in "$root"/adapters/target/*.md;  do check_adapter "$f" "$target_verbs";  adapters=$((adapters + 1)); done
 
 if (( adapters == 0 )); then
   echo "error: no adapters found under $root/adapters" >&2
@@ -77,4 +80,4 @@ if (( failures > 0 )); then
   echo "$failures problem(s) in $adapters adapter(s)"
   exit 1
 fi
-echo "ok: $adapters adapter(s) cover all $(wc -w <<<"$forge_verbs $tracker_verbs" | tr -d ' ') verbs"
+echo "ok: $adapters adapter(s) cover all $(wc -w <<<"$forge_verbs $tracker_verbs $target_verbs" | tr -d ' ') verbs"

@@ -49,6 +49,7 @@ skills/              # one folder per skill, each with a SKILL.md
 adapters/
   forge/             # one file per forge (github.md first)
   tracker/           # one file per tracker
+  target/            # one file per release target: how a project's releases are packaged and installed
 conventions.md       # shared rules every skill reads first
 docs/
   plan/PLAN.md       # the plan for this project

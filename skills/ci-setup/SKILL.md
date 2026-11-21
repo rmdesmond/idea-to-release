@@ -7,6 +7,8 @@ description: Generate the project's CI pipeline from the pipeline block of .proj
 
 Turns the `pipeline` block of `.project/config.yml` into the forge's CI files, and proposes them as a change request. The config is the single definition of each stage. The generated files are never edited by hand.
 
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+
 Before doing anything, read `conventions.md`, especially §4 (config), §10 (change requests), §11 (pipeline stages, run commands) and §13 (safety).
 
 **Verbs used:** `pipeline.render`, `pipeline.status`, `cr.open`, `cr.update`, `cr.status` (forge). Look each one up in the forge adapter named in `.project/config.yml`.
