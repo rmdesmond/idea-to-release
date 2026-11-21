@@ -120,6 +120,11 @@ Then run `cr.status`. Check that `closes` is **exactly** the issue being worked:
 
 In either case, fix the body with `cr.update` and read `cr.status` again. GitHub can take a few seconds to parse a new body, so read it again before deciding it's wrong.
 
+**Wait for the pipeline.** If the project has CI (ci-setup has run), wait for the change request's checks to finish, and report `pipeline.status`:
+
+- **A required check fails on CI** although it passed locally: the environments differ (tools, shell, operating system). Fix it on the branch as in resume mode (step 9), and wait again. Don't hand over a red change request without saying so.
+- **The branch rules block merging** (`cr.status` mergeable reason `BLOCKED`) for any reason other than a pending review: report why.
+
 **Stop there.** Report the change request link, its status, and anything the user needs to look at. Never approve, merge or close the change request. The person who reviews it isn't the agent that wrote it (conventions §10).
 
 ### 9. Resume mode
