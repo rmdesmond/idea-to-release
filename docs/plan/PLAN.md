@@ -310,10 +310,10 @@ Done when:
 ### T-026: End-to-end test from idea to release
 Depends on: T-024, T-025, T-032, T-033
 Done when:
-- [ ] On a new scratch repository with the skills installed from the instructions: every skill in order, through a published release
-- [ ] The project chose the `shell-cli` target in `idea-to-plan`, its release carries the archive, and installing from the release notes gives a working command
-- [ ] The release notes list the tasks that shipped, and the ledger is complete
-- [ ] Problems found are fixed in the skills, or filed as issues
+- [x] On a new scratch repository with the skills installed from the instructions: every skill in order, through a published release
+- [x] The project chose the `shell-cli` target in `idea-to-plan`, its release carries the archive, and installing from the release notes gives a working command
+- [x] The release notes list the tasks that shipped, and the ledger is complete
+- [x] Problems found are fixed in the skills, or filed as issues
 
 ### T-027: Release v0.1.0
 Depends on: T-022, T-026
