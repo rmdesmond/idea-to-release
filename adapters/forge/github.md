@@ -359,17 +359,81 @@ Merging is an admin action (conventions §13). In this project the maintainer me
 
 ## Release
 
+**Order.** Create the tag first, then the draft, then publish:
+
+1. `tag.create` pushes the tag, which runs the pipeline's release stages (conventions §11).
+2. `release.draft` uses `--verify-tag`, so a draft can only be attached to a tag that exists.
+3. `release.publish` runs only when the release gates on the tag have passed.
+
+If no tag exists, GitHub accepts a draft anyway. Its URL shows as `…/releases/tag/untagged-<id>`, and publishing creates a *lightweight* tag at the target. Never rely on that: the release gates wouldn't have run on it.
+
 ### tag.create
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** tag name (`<tag_prefix><version>`, e.g. `v0.1.0`), the commit (normally the default branch head, read with `git rev-parse origin/<default>` after `git fetch`), and a message (the release title)
+- **Check existing state:**
+  ```sh
+  git fetch --tags origin
+  git ls-remote origin "refs/tags/<tag>^{}"   # the commit an annotated tag points to
+  ```
+  Nothing: create the tag. The same commit: "no change". **A different commit: stop and report.** A release tag is never moved or deleted (conventions §13), and GitHub rejects a push to an existing tag anyway ("already exists").
+- **Command:** an annotated tag, pushed on its own:
+  ```sh
+  git tag -a <tag> <sha> -m "<message>"
+  git push origin "refs/tags/<tag>"
+  ```
+  Never `git push --tags`, which pushes every local tag, and never `-f`.
+- **Output:** the tag and the commit it points to.
+- **Notes:** pushing the tag triggers the release stages. Read them with `pipeline.status` on `<sha>`, waiting until none are pending.
+- **Fallback:** none needed.
 
 ### release.draft
 
-Status: not yet implemented
+- **Tier:** write. Only people with write access can see a draft.
+- **Inputs:** tag, title, notes (written to a file), and asset files (may be none)
+- **Check existing state:**
+  ```sh
+  gh release view <tag> --repo {o}/{r} --json tagName,isDraft,name,body,assets,url
+  ```
+  - **"release not found":** create the draft.
+  - **A draft exists:** update it, changing only what differs: title, notes (compared after trimming trailing whitespace), and assets (by name and size).
+  - **A published release exists:** stop and report. Don't change it. GitHub *does* allow editing a published release's notes and assets, but a release is a record, so a correction is a new patch release.
+- **Command:**
+  ```sh
+  # create
+  gh release create <tag> --repo {o}/{r} --draft --verify-tag \
+    --title "<title>" --notes-file <notes> [<asset> ...]
+  # update a draft
+  gh release edit <tag> --repo {o}/{r} --title "<title>" --notes-file <notes>
+  gh release upload <tag> --repo {o}/{r} <asset> ... --clobber
+  ```
+  `--verify-tag` fails with "tag <tag> doesn't exist in the repo … aborting" if `tag.create` hasn't run. Report that as a missing step, not a forge error.
+- **Output:** the URL, `isDraft: true`, and the asset names and sizes.
+- **Fallback:** none needed.
 
 ### release.publish
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** tag
+- **Check existing state:**
+  ```sh
+  gh release view <tag> --repo {o}/{r} --json isDraft,publishedAt,url,assets
+  git ls-remote origin "refs/tags/<tag>^{}"
+  ```
+  - **Already published:** "no change".
+  - **Not found:** a failure, so run `release.draft` first.
+  - **The tag is missing, or points somewhere other than the drafted commit:** stop and report.
+- **Command:**
+  ```sh
+  gh release edit <tag> --repo {o}/{r} --draft=false
+  ```
+  The release becomes "latest" if its version is the highest. To check:
+  ```sh
+  gh api repos/{o}/{r}/releases/latest --jq .tag_name
+  ```
+- **Output:** the URL, `publishedAt`, and the asset names.
+- **Notes:** publishing doesn't move or recreate an existing tag. The tag `tag.create` pushed stays as it is (checked on a scratch repository). If the repository has *immutable releases* turned on (`isImmutable` in the JSON), the published assets and tag can't change afterwards, which matches the rule above.
+- **Fallback:** none needed.
 
 ---
 
