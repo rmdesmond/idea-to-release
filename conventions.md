@@ -21,6 +21,8 @@ Skills use only these neutral terms. Adapters map them to forge-specific names.
 | gate | A stage that must pass before a merge or release | required status check | required pipeline job |
 | release | Published, tagged version with notes | release | release |
 
+**Dates.** Every date in these conventions is a UTC date, written `YYYY-MM-DD` (`YYYYMMDD` in a branch name). That covers ledger fields, `chore/ledger-<YYYYMMDD>` branches, `Dropped <date>` lines and decision record `Date:` lines. Take a forge timestamp's date after converting it to UTC (GitHub's timestamps already are). Take today's date with `date -u +%Y-%m-%d`, not the local date, so that runs in different timezones, and CI, agree.
+
 ## 2. Neutral verbs
 
 These are the only operations skills may ask an adapter to perform. An adapter must define each one or declare a fallback (section 14).
