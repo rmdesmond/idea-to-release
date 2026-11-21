@@ -31,4 +31,4 @@ pipeline:
     - name: shellcheck
       runs_on: [change_request]
       mode: advisory
-      run: "shellcheck scripts/*.sh tests/*.sh"
+      run: "shellcheck scripts/*.sh tests/*.sh adapters/*/*/*.sh"
