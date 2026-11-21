@@ -26,7 +26,7 @@ See decisions 0007 and 0013.
 - Skills are Markdown (`SKILL.md` in the Agent Skills format) with no runtime code of their own.
 - Scripts use bash and standard tools only (`awk`, `sed`, `grep`), and work with both the BSD (macOS) and GNU (Linux) versions. No Python or Node dependency.
 - Requires `git`, and `gh` 2.40 or later signed in with the `repo` scope. `ci-setup` also needs the `workflow` scope.
-- This repository is private on a free personal account, where GitHub doesn't enforce branch rules (decision 0003). `repo-governance` is tested on a public scratch repository, and this repository uses the "enforced by procedure" fallback until it goes public.
+- This repository stays private (decision 0016). Since 2026-11-21 its account is on GitHub Pro, which enforces branch rules on private repositories. Before that, `repo-governance` was tested on a public scratch repository, and this repository uses the "enforced by procedure" fallback (decision 0012) until T-030 applies the rules.
 - There is one maintainer. A required review can't be satisfied by the author, so the review rule is settled in T-018 before governance is applied.
 - No deadline.
 
@@ -261,7 +261,7 @@ Done when:
 
 ## M5: First release
 
-The `cut-release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then the repository went public.
+The `cut-release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then its branch rules were enforced on the private repository.
 
 ### T-023: Implement the tag and release verbs
 Depends on: T-002
@@ -322,9 +322,9 @@ Done when:
 - [x] The `cut-release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [x] The README status and roadmap say the first release is out
 
-### T-030: Make the repository public
+### T-030: Enforce the branch rules on the private repository
 Depends on: T-027
 Done when:
-- [ ] `repo-governance visibility=public` is run after its own confirmation, with a decision record superseding 0003
-- [ ] The branch rules are applied, a direct push to `main` is rejected, and a record supersedes 0012
-- [ ] The README's "How `main` is protected" section describes the enforced rules
+- [ ] `repo-governance` is run after its own confirmation and applies the branch rules to `main`, with a decision record superseding 0012
+- [ ] A direct push and a force push to `main` are rejected, and a change request with a failing core check can't be merged
+- [ ] The README's "How `main` is protected" section and roadmap describe the enforced rules
