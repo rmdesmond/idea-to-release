@@ -287,7 +287,7 @@ Done when:
 - [ ] Problems found are fixed in the skills, or filed as issues
 
 ### T-027: Release v0.1.0
-Depends on: T-022, T-026
+Depends on: T-999
 Done when:
 - [ ] Every release gate passes on the default branch
 - [ ] The `release` skill drafts v0.1.0, and it's published after confirmation
