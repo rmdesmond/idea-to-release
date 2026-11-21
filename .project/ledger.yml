@@ -144,3 +144,23 @@ tasks:
     milestone: M2
     issue: 50
     created: 2026-11-21
+  T-030:
+    title: "Make the repository public"
+    milestone: M5
+    issue: 78
+    created: 2026-11-21
+  T-031:
+    title: "Add the target verbs and the agent-skills target"
+    milestone: M5
+    issue: 75
+    created: 2026-11-21
+  T-032:
+    title: "Ask for the release target when planning"
+    milestone: M5
+    issue: 76
+    created: 2026-11-21
+  T-033:
+    title: "Add the shell-cli target"
+    milestone: M5
+    issue: 77
+    created: 2026-11-21
