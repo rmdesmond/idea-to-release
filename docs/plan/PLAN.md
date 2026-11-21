@@ -250,8 +250,8 @@ Done when:
 ### T-022: Run repo-governance on this repository
 Depends on: T-017, T-021
 Done when:
-- [ ] The rules are applied where GitHub allows, and the fallback for this private repository is recorded in a decision record
-- [ ] The README notes how the default branch is protected while the repository is private
+- [x] The rules are applied where GitHub allows, and the fallback for this private repository is recorded in a decision record
+- [x] The README notes how the default branch is protected while the repository is private
 
 ## M5: First release
 
