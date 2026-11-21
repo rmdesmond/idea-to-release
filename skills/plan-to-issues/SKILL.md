@@ -26,7 +26,7 @@ All optional. Pass them as `key=value`.
 ### 1. Read and check the inputs
 
 1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
-2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request.
+2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request. One exception: failures that are only `missing title` mean a ledger written before titles existed. Carry on, and add the titles in the ledger step.
 3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
 4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
    - ID, title and milestone
