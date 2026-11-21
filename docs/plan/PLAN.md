@@ -277,12 +277,12 @@ Done when:
 ### T-024: Add the release skill
 Depends on: T-008, T-023, T-031
 Done when:
-- [ ] `skills/release/SKILL.md` derives the version bump from the commits since the last tag (conventions §12). With no earlier tag, the version is `v0.1.0` unless a `version` argument is given, and §12 says so
-- [ ] It updates `CHANGELOG.md` in the Keep a Changelog layout, from merged change request titles
-- [ ] It writes release notes listing each task with its issue and change request, from the ledger
-- [ ] It reconciles the ledger (`change_requests`, `merged`, `released_in`, `released`), filling in entries that have none from the merged change requests that closed their issues, and the result passes `scripts/check-ledger.sh`
-- [ ] It builds and verifies the package through the target adapter, attaches the artifacts to the draft, puts `install.describe` in the notes, and calls `package.publish` with `release.publish`
-- [ ] It drafts first, and publishes only after confirmation and only when every release gate passes
+- [x] `skills/release/SKILL.md` derives the version bump from the commits since the last tag (conventions §12). With no earlier tag, the version is `v0.1.0` unless a `version` argument is given, and §12 says so
+- [x] It updates `CHANGELOG.md` in the Keep a Changelog layout, from merged change request titles
+- [x] It writes release notes listing each task with its issue and change request, from the ledger
+- [x] It reconciles the ledger (`change_requests`, `merged`, `released_in`, `released`), filling in entries that have none from the merged change requests that closed their issues, and the result passes `scripts/check-ledger.sh`
+- [x] It builds and verifies the package through the target adapter, attaches the artifacts to the draft, puts `install.describe` in the notes, and calls `package.publish` with `release.publish`
+- [x] It drafts first, and publishes only after confirmation and only when every release gate passes
 
 ### T-025: Write installation instructions
 Depends on: T-024
