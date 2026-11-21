@@ -9,7 +9,7 @@ Takes a project from "no repository" or "a bare repository" to the standard star
 
 Before doing anything, read `conventions.md`. Every rule there applies, especially §13 (safety). This skill uses only neutral verbs. Look up each verb in the adapters named by the project config, or, without a config, in the adapter inferred in step 1.
 
-**Verbs used:** `repo.describe`, `repo.create`, `repo.configure`, `cr.open` (forge); `label.ensure` (tracker). Also the forge adapter's sources for licence text, `.gitignore` templates and template paths.
+**Verbs used:** `repo.describe`, `repo.create`, `repo.configure`, `access.list`, `cr.open` (forge); `label.ensure` (tracker). Also the forge adapter's sources for licence text, `.gitignore` templates and template paths.
 
 ## Arguments
 
@@ -23,6 +23,7 @@ All optional. Pass them as `key=value`.
 | `licence` | ask; `mit` if non-interactive | An SPDX key (`mit`, `apache-2.0`, ...) or `none` |
 | `holder` | owner's display name, from the forge adapter's "Owner display name" source | Copyright holder in the licence |
 | `merge_method` | `squash` | `squash` \| `merge` \| `rebase` |
+| `required_approvals` | 0 if the owner is the only person who can write, else 1 | Reviews needed before a change request can merge. Ask if interactive, showing the default and why (step 3) |
 | `gitignore` | ask; none if non-interactive | A language template name (`Python`, `Node`, ...) |
 | `issue` | none | Issue number for the adopt-mode branch and change request |
 | `non-interactive` | off | Don't ask questions; use arguments, then defaults |
@@ -50,6 +51,13 @@ Also check whether the working directory is a git repository with that remote. I
 ### 3. Gather inputs
 
 Collect the arguments above. Also ask, unless non-interactive, which core pipeline stages (conventions §11) apply. Every disabled stage needs a `reason`. Every stage the user enables needs a `run` command (conventions §11). Ask for it, proposing one from the `gitignore` language if there is one (for example `Node` → `npm test`). If the user has none yet, leave the stage disabled with a reason, so work-issue never meets an enabled stage it can't run. Non-interactive default: all four disabled with `reason: "Not configured yet; set by idea-to-plan or ci-setup"`, and no `run` commands, so placeholders run until someone decides.
+
+**Review rule.** GitHub never counts an author's own approval, and agents open change requests with the maintainer's login. So with one person who can write, requiring an approval would block every merge. Work out the default from who can write:
+
+- **Create mode:** only the owner can write, so the default is 0.
+- **Adopt mode:** `access.list`, counting people with `write`, `maintain` or `admin`. The default is 0 for one such person, and 1 for two or more.
+
+When asking, explain the choice: with 0, the core checks gate merges and the maintainer's merge is the review. It becomes 1 when a second maintainer joins, through a plan change and a repo-governance run.
 
 If `.project/config.yml` already exists, its values win over defaults. An argument that contradicts the config is a conflict: stop and ask (conventions §13).
 
@@ -85,7 +93,7 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 
 | File | Content |
 |---|---|
-| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `release: {versioning: semver, strategy: trunk, tag_prefix: v}`, `review: {required_approvals: 1, code_owners: false}`, `extra_stages: []` |
+| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `release: {versioning: semver, strategy: trunk, tag_prefix: v}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
 | `.project/ledger.yml` | `tasks: {}` |
 | `CHANGELOG.md` | Keep a Changelog header and an empty `## [Unreleased]` section |
 | `LICENSE` | Licence text from the forge adapter, with year and holder filled in. Skipped if `licence=none` |
@@ -95,15 +103,16 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 | Change request template | At the adapter's path: sections *What changed*, *How it was verified*, *Issue* (`Closes #`) |
 | Issue template | At the adapter's path, one template named "Task", with the title pre-filled as `T-___: `: *Context*, *Done when* checklist, *Depends on*, footer `Plan-Task: T-___` |
 
-**Decision records** (conventions §7). Three records, each with a fixed filename slug so a re-run can find it:
+**Decision records** (conventions §7). Four records, each with a fixed filename slug so a re-run can find it:
 
 | Subject | Filename |
 |---|---|
 | Licence | `NNNN-licence-<key>.md` (e.g. `-licence-mit`, `-licence-none`) |
 | Visibility | `NNNN-visibility-<value>.md` |
 | Merge method and release strategy | `NNNN-merge-strategy.md` |
+| Review rule | `NNNN-review-rule.md`: how many approvals, why (who can write), and what changes when a second maintainer joins |
 
-Before writing a record, look for `docs/decisions/*-licence-*.md` (or `*-visibility-*.md`, `*-merge-strategy.md`) with `Status: accepted`. If one exists, skip that record. If it records a different choice from the current inputs, that's a conflict: stop and ask (conventions §13). Number new records from the next free four-digit number.
+Before writing a record, look for `docs/decisions/*-licence-*.md` (or `*-visibility-*.md`, `*-merge-strategy.md`, `*-review-rule*.md`) with `Status: accepted`. If one exists, skip that record. If it records a different choice from the current inputs, that's a conflict: stop and ask (conventions §13). Number new records from the next free four-digit number.
 
 ### 5. Dry run and confirmation
 
@@ -119,7 +128,7 @@ Write:
   label.ensure    create 10 labels; 0 already present; 0 differ
   files           create .project/config.yml, .project/ledger.yml, CHANGELOG.md, LICENSE (MIT), ...
                   keep README.md (exists)
-  decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md
+  decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md, 0005-review-rule.md
   change request  branch chore/1-bootstrap → main
 No change:
   description, issues enabled
