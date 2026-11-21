@@ -80,7 +80,7 @@ Put completed work in the milestone it belongs to. That's often the first one.
 - **revise mode:**
   - Never change or reuse an existing ID, even if a task moves to another milestone.
   - New tasks take the next number after the highest ID in the plan, including dropped ones.
-  - A dropped task keeps its section and gets ` (dropped)` at the end of its heading. Directly under the heading, add `Dropped <date>: <why>`.
+  - A dropped task keeps its section and gets ` (dropped)` at the end of its heading. Directly under the heading, add `Dropped <date>: <why>`, with today's UTC date (conventions §1).
   - A live task may not depend on a dropped one. For each task that did, update its `Depends on:` line. Also check its *Done when* list for anything the dropped task provided (a flag, a behaviour), and update those items too.
 
 ### 6. Write the plan

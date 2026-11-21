@@ -122,7 +122,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 
 - `milestone`: from the plan
 - `issue`: the number
-- `created`: the issue's creation date (`YYYY-MM-DD`)
+- `created`: the issue's creation date, in UTC (`YYYY-MM-DD`, conventions §1)
 
 Leave `change_requests`, `merged`, `released_in` and `released` alone; the release skill fills those in. Update `milestone` if the task moved. Dropped tasks keep their entries.
 
@@ -165,7 +165,7 @@ In this order, stopping at the first failure and reporting what was done:
    - write `.project/ledger.yml` in the shape from conventions §6, with tasks in ID order
    - every entry's `title` is the plan's task title (without ` (dropped)`), double-quoted with `\"` and `\\` escapes. Add it to entries that lack it, and refresh it where the plan's title has changed. Keep every other field as it is: release owns those.
    - run `scripts/check-ledger.sh`. It must pass with no warnings
-   - commit on branch `chore/<issue>-ledger`, or `chore/ledger-<YYYYMMDD>` with no issue, with the message `chore(ledger): record issues for the plan` and a `Refs: #<issue>` footer if there is an issue
+   - commit on branch `chore/<issue>-ledger`, or `chore/ledger-<YYYYMMDD>` (today's UTC date) with no issue, with the message `chore(ledger): record issues for the plan` and a `Refs: #<issue>` footer if there is an issue
    - push, then `cr.open`. The body lists the tasks added or changed. Don't merge it.
 
 If a run stops partway, running it again is safe. Issues already created are found by their `Plan-Task:` line, and every other verb checks before it acts.
