@@ -325,6 +325,6 @@ Done when:
 ### T-030: Enforce the branch rules on the private repository
 Depends on: T-027
 Done when:
-- [ ] `repo-governance` is run after its own confirmation and applies the branch rules to `main`, with a decision record superseding 0012
-- [ ] A direct push and a force push to `main` are rejected, and a change request with a failing core check can't be merged
-- [ ] The README's "How `main` is protected" section and roadmap describe the enforced rules
+- [x] `repo-governance` is run after its own confirmation and applies the branch rules to `main`, with a decision record superseding 0012
+- [x] A direct push and a force push to `main` are rejected, and a change request with a failing core check can't be merged
+- [x] The README's "How `main` is protected" section and roadmap describe the enforced rules

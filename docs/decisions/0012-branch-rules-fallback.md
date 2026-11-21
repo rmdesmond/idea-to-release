@@ -1,7 +1,7 @@
 # 0012: Branch rules are kept by procedure while the repository is private
 
 Date: 2026-11-21
-Status: accepted
+Status: superseded by 0017
 
 ## Context
 
