@@ -1,0 +1,16 @@
+# expect: build: disabled but has no reason
+default_branch: main
+pipeline:
+  stages:
+    lint:
+      enabled: true
+      run: "true"
+    build:
+      enabled: false
+    unit:
+      enabled: false
+      reason: "x"
+    integration:
+      enabled: false
+      reason: "x"
+  extra_stages: []

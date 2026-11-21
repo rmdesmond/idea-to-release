@@ -7,7 +7,7 @@ Every forge verb has a section here. A verb that is not yet available says `Stat
 ## Prerequisites
 
 - `gh` 2.40 or later, signed in: `gh auth status` must succeed.
-- Token scopes: `repo` (create repositories, edit settings, open pull requests). `read:org` if the owner is an organisation. `workflow` is needed later by `pipeline.render`.
+- Token scopes: `repo` (create repositories, edit settings, open pull requests). `read:org` if the owner is an organisation. `workflow` too, if workflow files are pushed over HTTPS (see `pipeline.render`).
 - `git` with a working push remote (SSH or HTTPS).
 
 ## Resolving the repository
@@ -193,11 +193,46 @@ Merging is an admin action (conventions §13). In this project the maintainer me
 
 ### pipeline.render
 
-Status: not yet implemented
+- **Tier:** write (it writes a file; publishing it is a change request)
+- **Inputs:** the project's `.project/config.yml`
+- **Check existing state:** compare the rendered output with `.github/workflows/pipeline.yml` as committed. If they're identical, report "no changes". If the committed file differs, show the diff: the file may have been edited by hand.
+- **Command:** the renderer that ships with this adapter, run from the project root:
+  ```sh
+  <skill set>/adapters/forge/github/render-pipeline.sh .project/config.yml > .github/workflows/pipeline.yml
+  ```
+  It's deterministic (the same config always gives the same bytes), and it fails, writing nothing, if the config can't be rendered: an enabled stage with no `run`, a disabled stage with no `reason`, a missing core stage, or an unknown `runs_on` or `mode`.
+- **What it renders:** one workflow, `pipeline`, at `.github/workflows/pipeline.yml`, headed "generated, don't edit by hand".
+  - **Triggers:** `pull_request`; `push` to the default branch; `push` of tags matching `<tag_prefix>*`; and `schedule` if any extra stage runs on it (cron from the first such stage's `cron`, else `0 6 * * 1`).
+  - **Core stages:** one job each, with job ID and name exactly `lint`, `build`, `unit` and `integration`, on `ubuntu-latest`.
+    - When they run (conventions §11): `lint` on change requests; the other three on change requests, merges and release tags. A job outside its triggers is skipped, and GitHub counts a skipped required check as passing.
+    - **Enabled:** checks out the repository and runs the stage's `run` with bash.
+    - **Disabled:** a placeholder with the reason as a comment, which prints `skipped: <reason>` and succeeds.
+  - **Extra stages:** one job each, named after the stage. Its `runs_on` becomes an `if:` condition (`change_request` → pull requests, `merge` → pushes to the default branch, `release` → tag pushes, `schedule` → scheduled runs). `advisory` adds `continue-on-error: true`, so the job's failure doesn't fail the workflow.
+  - **Runner:** always `ubuntu-latest`. Projects held to macOS tools still run every stage locally through work-issue.
+- **Output:** the path written, and whether it changed.
+- **Notes:**
+  - Pushing a file under `.github/workflows/` over HTTPS needs the token's `workflow` scope (`gh auth refresh -s workflow`). Pushing over SSH doesn't.
+  - `coverage_min` isn't rendered. A stage that enforces it does so in its own `run` command.
+- **Fallback:** none needed.
 
 ### pipeline.status
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** a commit SHA, or a change request (number or branch)
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  - for a change request: `cr.status`'s `checks` (`gh pr view <n> --json statusCheckRollup`)
+  - for a commit:
+    ```sh
+    gh api repos/{o}/{r}/commits/<sha>/check-runs --jq '.check_runs[] | {name, status, conclusion}'
+    ```
+- **Output:** one line per stage of the config, core and extra, in config order:
+  - **Result:** `pass`, `fail`, `pending`, `skipped` or `missing`. Map `status` and `conclusion` as for `cr.status` check runs. A stage with no check run is `missing`: the workflow may not have been pushed yet, or hasn't started.
+  - **Placeholder:** for a disabled stage, a `pass` is reported as `pass (placeholder)`.
+  - **Advisory:** for an advisory stage, a `fail` is reported as `fail (advisory)`. GitHub still marks the job failed, but it doesn't fail the workflow and never blocks a merge.
+  - Finally, an overall result: `pass` if every required stage passed or was skipped, `fail` if any required stage failed, otherwise `pending`.
+- **Notes:** check runs appear a few seconds after a push. Read again before reporting `missing`.
+- **Fallback:** none needed.
 
 ## Release
 

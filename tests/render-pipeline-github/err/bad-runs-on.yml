@@ -1,0 +1,21 @@
+# expect: unknown runs_on value: nightly
+default_branch: main
+pipeline:
+  stages:
+    lint:
+      enabled: true
+      run: "true"
+    build:
+      enabled: false
+      reason: "x"
+    unit:
+      enabled: false
+      reason: "x"
+    integration:
+      enabled: false
+      reason: "x"
+  extra_stages:
+    - name: audit
+      runs_on: [nightly]
+      mode: advisory
+      run: "true"

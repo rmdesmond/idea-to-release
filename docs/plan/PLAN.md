@@ -200,10 +200,10 @@ Done when:
 ### T-015: Implement the pipeline verbs for GitHub Actions
 Depends on: T-002
 Done when:
-- [ ] `pipeline.render` writes workflow files from the config: the four core stages as jobs named exactly `lint`, `build`, `unit` and `integration`, and extra stages with their `runs_on` and `mode`
-- [ ] A disabled stage is rendered as a placeholder that carries its reason as a comment, prints `skipped: <reason>` and succeeds (conventions §11)
-- [ ] `pipeline.status` reports each stage's result for a commit or change request
-- [ ] `scripts/check-adapters.sh` passes
+- [x] `pipeline.render` writes workflow files from the config: the four core stages as jobs named exactly `lint`, `build`, `unit` and `integration`, and extra stages with their `runs_on` and `mode`
+- [x] A disabled stage is rendered as a placeholder that carries its reason as a comment, prints `skipped: <reason>` and succeeds (conventions §11)
+- [x] `pipeline.status` reports each stage's result for a commit or change request
+- [x] `scripts/check-adapters.sh` passes
 
 ### T-016: Add the ci-setup skill
 Depends on: T-015
