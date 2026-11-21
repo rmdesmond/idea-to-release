@@ -208,9 +208,9 @@ Done when:
 ### T-016: Add the ci-setup skill
 Depends on: T-015
 Done when:
-- [ ] `skills/ci-setup/SKILL.md` renders the pipeline from `.project/config.yml` and opens a change request with the workflow files
-- [ ] On a scratch repository, the change request shows all four core checks, and the placeholders pass with their skip message
-- [ ] A re-run with an unchanged config reports no changes
+- [x] `skills/ci-setup/SKILL.md` renders the pipeline from `.project/config.yml` and opens a change request with the workflow files
+- [x] On a scratch repository, the change request shows all four core checks, and the placeholders pass with their skip message
+- [x] A re-run with an unchanged config reports no changes
 
 ### T-017: Run ci-setup on this repository
 Depends on: T-008, T-016
