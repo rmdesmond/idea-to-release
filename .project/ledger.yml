@@ -255,7 +255,7 @@ tasks:
     merged: 2026-11-21
     released: 2026-11-21
   T-030:
-    title: "Make the repository public"
+    title: "Enforce the branch rules on the private repository"
     milestone: M5
     issue: 78
     created: 2026-11-21
