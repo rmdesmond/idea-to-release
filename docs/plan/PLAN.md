@@ -171,11 +171,11 @@ Done when:
 ### T-013: Add the work-issue skill
 Depends on: T-009, T-012
 Done when:
-- [ ] `skills/work-issue/SKILL.md` only picks up `ready` issues, and uses the branch name and commit format from conventions §10
-- [ ] It doesn't open a change request until the tests named in the task's *Done when* list exist and pass
-- [ ] It opens the change request with what changed, how it was verified and the closing reference, and never approves or merges its own change request
-- [ ] It doesn't touch the ledger
-- [ ] `CLAUDE.md` says to work this repository's tasks with `work-issue`
+- [x] `skills/work-issue/SKILL.md` only picks up `ready` issues, and uses the branch name and commit format from conventions §10
+- [x] It doesn't open a change request until the tests named in the task's *Done when* list exist and pass
+- [x] It opens the change request with what changed, how it was verified and the closing reference, and never approves or merges its own change request
+- [x] It doesn't touch the ledger
+- [x] `CLAUDE.md` says to work this repository's tasks with `work-issue`
 
 ### T-014: End-to-end test through work-issue
 Depends on: T-013
