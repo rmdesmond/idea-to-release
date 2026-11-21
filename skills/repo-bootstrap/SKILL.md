@@ -93,7 +93,7 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 | `README.md` | Only if missing: `# <repo>`, the description, and a "Status: early development" line |
 | `docs/plan/PLAN.md` | Only if missing: a heading, an empty `## Verification strategy` section, and a note that idea-to-plan fills it |
 | Change request template | At the adapter's path: sections *What changed*, *How it was verified*, *Issue* (`Closes #`) |
-| Issue template | At the adapter's path, one template named "Task": *Context*, *Done when* checklist, *Depends on*, footer `Plan-Task: T-___` |
+| Issue template | At the adapter's path, one template named "Task", with the title pre-filled as `T-___: `: *Context*, *Done when* checklist, *Depends on*, footer `Plan-Task: T-___` |
 
 **Decision records** (conventions §7). Three records, each with a fixed filename slug so a re-run can find it:
 
