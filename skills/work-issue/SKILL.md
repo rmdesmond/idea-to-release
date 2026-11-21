@@ -90,7 +90,7 @@ An item with no evidence isn't done. If it can't be done in this change request,
 
 For a plan task, tick its *Done when* boxes in `docs/plan/PLAN.md`: every item that has evidence, and only those (conventions §10). Run `scripts/check-plan.sh` on the plan. The script belongs to the idea-to-release skill set, next to `conventions.md`. Commit with `docs(plan): mark <ID> done` and the `Refs: #<n>` footer.
 
-Don't touch `.project/ledger.yml`. plan-to-issues and release own it (conventions §6).
+Don't touch `.project/ledger.yml`. plan-to-issues and cut-release own it (conventions §6).
 
 ### 8. Open the change request
 
@@ -148,4 +148,4 @@ Running again on an issue with an open change request resumes it (step 9); it ne
 - Changing labels, milestones or links: **plan-to-issues**
 - Changing the plan beyond ticking this task's boxes: **idea-to-plan**
 - Writing CI files from the `run` commands: **ci-setup**
-- Merging, and recording merges in the ledger: the user, then **release**
+- Merging, and recording merges in the ledger: the user, then **cut-release**

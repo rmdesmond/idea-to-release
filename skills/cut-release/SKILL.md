@@ -1,9 +1,9 @@
 ---
-name: release
+name: cut-release
 description: Cut a release of a project that follows the idea-to-release conventions - derive the version from the change requests merged since the last tag, update CHANGELOG.md and the ledger through a release change request, then tag, package through the target adapter, draft the release with notes listing the plan tasks it delivers, and publish only after the user confirms and every release gate passes. Re-runnable; it picks up wherever an earlier run stopped. Use when the default branch has changes worth releasing.
 ---
 
-# release
+# cut-release
 
 Turns what has been merged since the last release into a published, tagged version, with a changelog entry, notes that say which plan tasks shipped, the packaged artifacts, and a complete ledger.
 

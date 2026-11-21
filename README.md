@@ -31,7 +31,7 @@ idea ──► plan ──► repository ──► issues ──► change reque
 | Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
 | Checks | `ci-setup` | Renders the pipeline: lint, build, unit and integration stages, plus any extras |
 | Repository rules | `repo-governance` | Sets visibility, access, branch rules, required checks and review requirements. Runs after `ci-setup`, so required checks can name real pipeline stages |
-| Changes → release | `release` | Derives the version, writes the changelog and release notes, tags and publishes |
+| Changes → release | `cut-release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
 ## Design principles
 
@@ -62,32 +62,57 @@ CHANGELOG.md
 
 This repository is built with its own skills and follows its own conventions, so it doubles as a worked example.
 
-## Using the skills
+## Installing
 
-Installation instructions will be added with the first release.
+The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code. Each release has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
 
-Until then, the skills can be tried by copying a skill folder, the `adapters/` folder and `conventions.md` into a project's `.claude/skills/` directory. Expect breaking changes.
+```sh
+tar -xzf idea-to-release-<version>.tar.gz
+cd idea-to-release-<version>
+./install.sh --agent claude --project /path/to/your/project   # or --user, for every project
+```
+
+| Agent | `--agent` | Project folder | Personal folder (`--user`) |
+|---|---|---|---|
+| Claude Code | `claude` | `.claude/skills` | `~/.claude/skills` |
+| OpenAI Codex | `codex` | `.agents/skills` | `~/.agents/skills` |
+| GitHub Copilot | `copilot` | `.github/skills` | `~/.copilot/skills` |
+| Gemini CLI | `gemini` | `.gemini/skills` | `~/.gemini/skills` |
+| Any other | `--dest DIR` | the folder it reads skills from | |
+
+**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
+
+**Name clashes.** An agent loads only one skill of a given name, without a warning. In Claude Code, a personal skill wins over a project skill. So `install.sh` never replaces a folder it didn't install, and it stops if one of your personal skills has the same name as one of these. `--force` installs anyway, with a warning ([decision 0015](docs/decisions/0015-skill-name-clashes.md)).
+
+**From a clone,** before the first release or to try unreleased changes, build the archive yourself:
+
+```sh
+git clone https://github.com/rmdesmond/idea-to-release.git && cd idea-to-release
+adapters/target/agent-skills/build.sh v0.0.0 /tmp/idea-to-release   # prints the archive's path
+```
 
 **Requirements**
 
-- An agent that supports the Agent Skills format (developed and tested with Claude Code)
-- `git`
-- For the GitHub adapter: the `gh` CLI, signed in with permission to create repositories and manage their settings
+- An agent that reads Agent Skills
+- bash 3.2 or later, `tar`, `git`: the macOS and Linux defaults
+- For the GitHub adapters: the `gh` CLI 2.40 or later, signed in with the `repo` scope (and `workflow` for `ci-setup`)
+
+Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an existing repository.
 
 **A note on permissions.** These skills run commands with your credentials and can change repository settings, access and releases. Read a skill and its adapter before running it, and review the dry run before confirming any admin action.
 
 ## Roadmap
 
-1. `conventions.md` — drafted
-2. GitHub forge and tracker adapters — verbs for `repo-bootstrap` done; the rest are added with the skills that need them
-3. `repo-bootstrap` — done, and used on this repository
-4. `idea-to-plan`
-5. `plan-to-issues`
-6. `work-issue`
-7. `ci-setup`
-8. `repo-governance`
-9. `release`
-10. First tagged release of the skill set
+1. `conventions.md`: done
+2. GitHub forge and tracker adapters: done, every verb implemented except `cr.merge`, which is left to the maintainer
+3. `repo-bootstrap`: done, and used on this repository
+4. `idea-to-plan`: done, and used to write this repository's plan
+5. `plan-to-issues`: done, and used for this repository's issues
+6. `work-issue`: done, and used for this repository's tasks
+7. `ci-setup`: done, and used for this repository's pipeline
+8. `repo-governance`: done, and used on this repository (branch rules kept by procedure while it's private)
+9. Target adapters and `cut-release`: `agent-skills` and `cut-release` done; `shell-cli` in progress
+10. First tagged release of the skill set: next
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 

@@ -127,7 +127,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - `issue`: the number
 - `created`: the issue's creation date, in UTC (`YYYY-MM-DD`, conventions §1)
 
-Leave `change_requests`, `merged`, `released_in` and `released` alone; the release skill fills those in. Update `milestone` if the task moved. Dropped tasks keep their entries.
+Leave `change_requests`, `merged`, `released_in` and `released` alone; the cut-release skill fills those in. Update `milestone` if the task moved. Dropped tasks keep their entries.
 
 ### 4. Dry run and confirmation
 
@@ -186,4 +186,4 @@ Every step checks first, so a second run with no plan changes reports "Issues ma
 
 - Writing or changing the plan: **idea-to-plan**
 - Working an issue: **work-issue**
-- Recording change requests, merges and releases in the ledger: **release**
+- Recording change requests, merges and releases in the ledger: **cut-release**

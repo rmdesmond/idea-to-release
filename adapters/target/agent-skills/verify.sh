@@ -7,7 +7,10 @@
 # - each skill's SKILL.md names its folder, and says where the shared files are
 # - from each skill folder, ../idea-to-release/conventions.md exists
 # - the installed check-adapters.sh passes against the installed adapters
-# - a second install replaces the first; --dest works; a foreign folder is refused
+# - a second install replaces the first; --dest works; each --agent picks its folder
+# - name clashes: a same-named folder idea-to-release didn't install is never
+#   replaced, and a same-named personal skill stops a project install unless --force
+# Installs run with a throw-away HOME, so the real personal skills never matter.
 #
 # Usage: verify.sh <archive.tar.gz>
 # Exit status: 0 if every check passes, 1 otherwise.
@@ -31,7 +34,8 @@ top=$(find "$work" -mindepth 1 -maxdepth 1 -type d -name 'idea-to-release-*' | h
 version=$(cat "$top/skills/idea-to-release/VERSION" 2>/dev/null)
 
 project="$work/project"
-mkdir -p "$project"
+mkdir -p "$project" "$work/home"
+export HOME="$work/home"
 if out=$("$top/install.sh" --agent claude --project "$project" 2>&1); then ok; else fail "install.sh --agent claude failed: $out"; fi
 skills_dir="$project/.claude/skills"
 
@@ -56,8 +60,20 @@ if out=$("$skills_dir/idea-to-release/scripts/check-adapters.sh" "$skills_dir/id
 
 if out=$("$top/install.sh" --agent claude --project "$project" 2>&1) && grep -q '^Replaced' <<<"$out"; then ok; else fail "a second install didn't replace the first: $out"; fi
 if out=$("$top/install.sh" --dest "$work/other" 2>&1) && [[ -f $work/other/idea-to-release/conventions.md ]]; then ok; else fail "install.sh --dest failed: $out"; fi
+for pair in codex:.agents copilot:.github gemini:.gemini; do
+  a=${pair%%:*} dir=${pair#*:}
+  if out=$("$top/install.sh" --agent "$a" --project "$work/p-$a" 2>&1) && [[ -f $work/p-$a/$dir/skills/idea-to-release/VERSION ]]; then ok; else fail "install.sh --agent $a didn't install into $dir/skills: $out"; fi
+done
+if out=$("$top/install.sh" --agent claude --user 2>&1) && [[ -f $HOME/.claude/skills/idea-to-release/VERSION ]]; then ok; else fail "install.sh --user failed: $out"; fi
+
 mkdir -p "$work/foreign/work-issue"
-if "$top/install.sh" --dest "$work/foreign" >/dev/null 2>&1; then fail "install.sh overwrote a folder it didn't install"; else ok; fi
+echo mine > "$work/foreign/work-issue/SKILL.md"
+if "$top/install.sh" --dest "$work/foreign" --force >/dev/null 2>&1; then fail "install.sh replaced a folder it didn't install"; else ok; fi
+check "a foreign folder was changed" grep -qx mine "$work/foreign/work-issue/SKILL.md"
+
+rm -rf "$HOME/.claude/skills" && mkdir -p "$HOME/.claude/skills/cut-release"
+if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" 2>&1); then fail "a same-named personal skill didn't stop the install"; else check "the clash message doesn't name the personal skill: $out" grep -q "$HOME/.claude/skills/cut-release" <<<"$out"; fi
+if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" --force 2>&1) && grep -q '^warning: installed' <<<"$out"; then ok; else fail "--force didn't install with a warning: $out"; fi
 
 if (( failures > 0 )); then
   echo "$failures of $checks check(s) failed for $(basename "$archive")"
