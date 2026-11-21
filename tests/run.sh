@@ -15,7 +15,11 @@ set -uo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
 passed=0 failed=0
 
-fail() { echo "FAIL  $1"; [[ -n "${2:-}" ]] && echo "$2" | sed 's/^/      /'; failed=$((failed + 1)); }
+fail() {
+  echo "FAIL  $1"
+  if [[ -n "${2:-}" ]]; then printf '%s\n' "$2" | while IFS= read -r line; do echo "      $line"; done; fi
+  failed=$((failed + 1))
+}
 
 for dir in "$root"/tests/check-*/; do
   name=$(basename "$dir")
