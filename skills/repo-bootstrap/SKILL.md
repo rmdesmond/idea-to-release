@@ -49,7 +49,7 @@ Also check whether the working directory is a git repository with that remote. I
 
 ### 3. Gather inputs
 
-Collect the arguments above. Also ask, unless non-interactive, which core pipeline stages (conventions §11) apply. Every disabled stage needs a `reason`. Non-interactive default: all four disabled with `reason: "Not configured yet; set by idea-to-plan or ci-setup"`, so placeholders run until someone decides.
+Collect the arguments above. Also ask, unless non-interactive, which core pipeline stages (conventions §11) apply. Every disabled stage needs a `reason`. Every stage the user enables needs a `run` command (conventions §11). Ask for it, proposing one from the `gitignore` language if there is one (for example `Node` → `npm test`). If the user has none yet, leave the stage disabled with a reason, so work-issue never meets an enabled stage it can't run. Non-interactive default: all four disabled with `reason: "Not configured yet; set by idea-to-plan or ci-setup"`, and no `run` commands, so placeholders run until someone decides.
 
 If `.project/config.yml` already exists, its values win over defaults. An argument that contradicts the config is a conflict: stop and ask (conventions §13).
 
