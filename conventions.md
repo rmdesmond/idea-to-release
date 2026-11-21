@@ -72,12 +72,14 @@ pipeline:
   stages:                # see section 11
     lint:
       enabled: true
+      run: "npm run lint"   # command that runs the stage, see section 11
     build:
       enabled: false
       reason: "Markdown-only project; nothing to compile"
     unit:
       enabled: true
       coverage_min: null # optional floor, as a percentage
+      run: "npm test"
     integration:
       enabled: false
       reason: "No external interfaces yet"
@@ -110,7 +112,7 @@ Done when:
 - **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. plan-to-issues adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is the ledger's job (section 6).
 - `scripts/check-plan.sh` checks a plan against this section.
 
-Changes to the plan after issues exist go through a change request like any other change, so the plan's git history shows how scope moved.
+Changes to the plan after issues exist go through a change request like any other change, so the plan's git history shows how scope moved. Ticking a task's boxes when it's done is part of that task's own change request (section 10).
 
 ## 6. Ledger
 
@@ -185,6 +187,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 - Title follows the commit format, since with squash merges it becomes the commit on the default branch and feeds the changelog.
 - Body: what changed, how it was verified, and the adapter's closing reference to the issue (on GitHub, `Closes #12`).
 - A CR includes the tests named in its task's "done when" list. work-issue does not open a CR without them.
+- A CR for a plan task also ticks that task's *Done when* boxes in `docs/plan/PLAN.md`. Merging the CR then closes the issue and marks the task done together, and the plan, the tracker and the ledger stay in step.
 - Merge only when every gate passes (section 11) and required approvals are in. The agent that wrote a CR does not approve it.
 
 ## 11. Pipeline stages and gates
@@ -218,6 +221,13 @@ extra_stages:
 ```
 
 Typical candidates: security scanning, dependency audit, licence compliance, docs build, packaging or install smoke tests, performance benchmarks, and software-in-the-loop (SIL) or hardware-in-the-loop (HIL) tests. Slow or hardware-bound stages such as HIL usually run on `schedule` and gate only `release`, since they cannot reasonably gate every change request.
+
+**Run commands.** Every enabled stage, core or extra, has a `run` command in the config: one shell command, run from the repository root, that exits 0 when the stage passes. It is the single definition of the stage:
+
+- work-issue runs it locally before opening a change request. Required stages must pass; advisory stages are reported. If an advisory stage's tool isn't installed, it is reported as skipped.
+- ci-setup renders the same command into the pipeline, so local and CI results can't drift apart.
+
+A disabled stage has a `reason` instead of a `run`.
 
 **Thresholds.** There is no default coverage floor. A project that wants one sets `coverage_min` on the `unit` stage, and the stage fails below it.
 

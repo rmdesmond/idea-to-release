@@ -16,12 +16,14 @@ pipeline:
   stages:
     lint:
       enabled: true
+      run: "scripts/check-adapters.sh && scripts/check-plan.sh && scripts/check-ledger.sh"
     build:
       enabled: false
       reason: "Markdown and shell scripts; nothing to compile"
     unit:
       enabled: true
       coverage_min: null
+      run: "tests/run.sh"
     integration:
       enabled: false
       reason: "End-to-end runs need GitHub credentials and a person to confirm admin steps; they are plan tasks, not automated"
@@ -29,3 +31,4 @@ pipeline:
     - name: shellcheck
       runs_on: [change_request]
       mode: advisory
+      run: "shellcheck scripts/*.sh tests/*.sh"
