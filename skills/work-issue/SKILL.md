@@ -39,9 +39,10 @@ Run `issue.list` once with `state=open`.
 
 **With no `issue`,** propose one:
 
-- from the open issues labelled `ready`, take the earliest milestone, then the highest priority, then the lowest task ID
+- from the open issues labelled `ready`, take the earliest milestone in plan order (M2 before M10, not by title), then the highest priority, then the lowest task ID
 - skip any with an open change request
 - show the choice and the next two candidates, and wait for the user to confirm or pick another
+- if no issue is `ready` (or every one already has an open change request), say so, list the open `blocked` and `needs-decision` issues with what each is waiting on, and stop
 
 Also look at the `blocked` issues. If all of an issue's blockers are closed, its label is stale. List these and suggest running plan-to-issues to refresh labels. Don't relabel them here; labels are plan-to-issues' job.
 
@@ -80,7 +81,7 @@ An item with no evidence isn't done. If it can't be done in this change request,
 - **A required stage fails:** fix the cause and run it again. If it can't be fixed within this task, stop and report. Never open a change request with a failing required stage.
 - **An advisory stage fails:** keep going, and report it in the change request.
 - **An advisory stage's tool is missing:** report it as skipped.
-- **A stage has no `run` command:** stop and say which one. It needs adding to the config first.
+- **A stage has no `run` command:** stop and say which one. The command goes into the config in its own change request (it isn't this task's work). Once that merges, rebase this branch onto the default branch and verify again.
 
 ### 7. Tick the plan
 
