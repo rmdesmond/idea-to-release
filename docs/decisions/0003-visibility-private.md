@@ -1,7 +1,7 @@
 # 0003: Keep the repository private
 
 Date: 2026-11-20
-Status: accepted
+Status: superseded by 0016
 
 ## Context
 Visibility controls who can see the code, issues and releases. The skill set is in early development.
