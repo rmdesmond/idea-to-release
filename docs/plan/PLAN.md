@@ -164,9 +164,9 @@ Done when:
 ### T-012: Implement the change verbs for work-issue
 Depends on: T-002
 Done when:
-- [ ] `cr.update` and `cr.status` (checks, reviews, mergeability) are implemented in the forge adapter
-- [ ] Each has been run against a scratch repository's pull request
-- [ ] `scripts/check-adapters.sh` passes
+- [x] `cr.update` and `cr.status` (checks, reviews, mergeability) are implemented in the forge adapter
+- [x] Each has been run against a scratch repository's pull request
+- [x] `scripts/check-adapters.sh` passes
 
 ### T-013: Add the work-issue skill
 Depends on: T-009, T-012
