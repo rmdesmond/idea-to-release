@@ -110,7 +110,14 @@ Say what will happen (write tier, §13): push the branch, then `cr.open`:
   Closes #<n>
   ```
 
-Then run `cr.status`. Check that `closes` includes the issue. If it doesn't, the closing reference is wrong; fix the body with `cr.update`.
+Before opening, look through the body for any other issue reference preceded by a closing keyword (the forge adapter's `cr.open` notes list them), and reword it. A merge would close that issue too.
+
+Then run `cr.status`. Check that `closes` is **exactly** the issue being worked:
+
+- **It's missing:** the closing reference is wrong.
+- **It lists another issue:** a closing keyword sits in front of another reference.
+
+In either case, fix the body with `cr.update` and read `cr.status` again. GitHub can take a few seconds to parse a new body, so read it again before deciding it's wrong.
 
 **Stop there.** Report the change request link, its status, and anything the user needs to look at. Never approve, merge or close the change request. The person who reviews it isn't the agent that wrote it (conventions §10).
 

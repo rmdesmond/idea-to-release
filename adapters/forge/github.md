@@ -137,7 +137,7 @@ Status: not yet implemented
   ```
   Write the body to a temporary file so it isn't mangled by shell quoting.
 - **Output:** pull request number and URL.
-- **Closing reference:** put `Closes #<issue>` in the body.
+- **Closing reference:** put `Closes #<issue>` in the body. GitHub treats any of these words, in any case, followed by an issue reference as an instruction to close that issue on merge: `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`. A colon between them counts too (`Fixes: #12`). It applies anywhere in the body, so write other mentions without the keyword ("the label on #24 (done)", not "closed #24"). `cr.status`'s `closes` field shows what GitHub actually parsed.
 - **Fallback:** none needed.
 
 ### cr.update
