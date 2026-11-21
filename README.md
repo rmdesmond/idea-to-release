@@ -111,7 +111,7 @@ Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an e
 6. `work-issue`: done, and used for this repository's tasks
 7. `ci-setup`: done, and used for this repository's pipeline
 8. `repo-governance`: done, and used on this repository (branch rules kept by procedure while it's private)
-9. Target adapters and `cut-release`: `agent-skills` and `cut-release` done; `shell-cli` in progress
+9. Target adapters and `cut-release`: done, with the `agent-skills` and `shell-cli` targets
 10. First tagged release of the skill set: next
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
