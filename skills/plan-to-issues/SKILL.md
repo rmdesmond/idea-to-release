@@ -117,6 +117,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Dropped task with an open issue:** close it as `not planned`, with the plan's `Dropped` line as the comment.
 - **Dropped task with no issue:** create nothing.
 - **Whenever an issue is closed,** remove its state label (`ready`, `blocked` or `needs-decision`) in the same step. State labels only describe open work (conventions §8).
+- **Closed issues outside the plan** (no `Plan-Task:` line: fixes, follow-ups, chores) get the same clean-up. Remove any state label from them too. That's the only change this skill makes to an issue outside the plan. It never adds, relabels, links or closes one.
 
 **Ledger.** For every task with an issue (created or adopted), the entry has:
 
@@ -140,6 +141,7 @@ issue.create      "T-007: Implement the tracker verbs ..."   type:feature priori
 issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title prefix "T-002: "
 issue.link        #14 blocked-by #12, #13   (+ 31 more)
 issue.close       none
+labels            remove ready from closed #39, #44 (outside the plan)
 ledger            add 27 entries; refresh titles 0 → branch chore/11-ledger, change request "chore(ledger): record issues for the plan"
 
 Reported, not changed:
