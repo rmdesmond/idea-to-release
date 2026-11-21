@@ -180,10 +180,10 @@ Done when:
 ### T-014: End-to-end test through work-issue
 Depends on: T-013
 Done when:
-- [ ] On a new scratch repository: bootstrap, plan, issues, then `work-issue` on one `ready` issue
-- [ ] The change request has the right branch, title, body, tests and closing reference
-- [ ] `work-issue` refuses an issue labelled `blocked`
-- [ ] Problems found are fixed in the skills, or filed as issues
+- [x] On a new scratch repository: bootstrap, plan, issues, then `work-issue` on one `ready` issue
+- [x] The change request has the right branch, title, body, tests and closing reference
+- [x] `work-issue` refuses an issue labelled `blocked`
+- [x] Problems found are fixed in the skills, or filed as issues
 
 ## M4: Pipeline and governance
 
