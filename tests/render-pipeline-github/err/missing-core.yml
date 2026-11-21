@@ -1,0 +1,14 @@
+# expect: missing core stage integration
+default_branch: main
+pipeline:
+  stages:
+    lint:
+      enabled: true
+      run: "true"
+    build:
+      enabled: false
+      reason: "x"
+    unit:
+      enabled: false
+      reason: "x"
+  extra_stages: []

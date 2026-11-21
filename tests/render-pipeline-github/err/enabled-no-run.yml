@@ -1,0 +1,16 @@
+# expect: lint: enabled but has no run command
+default_branch: main
+pipeline:
+  stages:
+    lint:
+      enabled: true
+    build:
+      enabled: false
+      reason: "x"
+    unit:
+      enabled: false
+      reason: "x"
+    integration:
+      enabled: false
+      reason: "x"
+  extra_stages: []
