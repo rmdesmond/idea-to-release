@@ -146,7 +146,7 @@ tasks:
 
 Rules:
 
-- **Only two skills write the ledger.** plan-to-issues adds entries when it creates issues. release fills in `change_requests`, `merged`, `released_in` and `released` by reconciling against the forge. work-issue does not touch it, which avoids merge conflicts between parallel branches.
+- **Only two skills write the ledger.** plan-to-issues adds entries when it creates issues. cut-release fills in `change_requests`, `merged`, `released_in` and `released` by reconciling against the forge. work-issue does not touch it, which avoids merge conflicts between parallel branches.
 - **Each entry carries its task's title**, copied from the plan, so the ledger reads on its own and release notes can name tasks. The plan stays the source: plan-to-issues writes the title and refreshes it when the plan's title changes. A dropped task keeps its title, without ` (dropped)`. `scripts/check-ledger.sh` warns, but doesn't fail, when a title differs from the plan. A plan change that renames a task must still pass, and the next plan-to-issues run brings the ledger back in step.
 - The ledger is the idempotency check: before creating an issue for a task, look the task up. If it already has an issue, update that issue instead of creating another.
 - Ledger changes are committed on the default branch through a change request titled `chore(ledger): ...`. They often have no issue of their own. Then the branch is `chore/ledger-<YYYYMMDD>`, the one exception to the branch pattern in section 10.

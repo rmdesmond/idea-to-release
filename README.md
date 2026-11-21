@@ -31,7 +31,7 @@ idea ──► plan ──► repository ──► issues ──► change reque
 | Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
 | Checks | `ci-setup` | Renders the pipeline: lint, build, unit and integration stages, plus any extras |
 | Repository rules | `repo-governance` | Sets visibility, access, branch rules, required checks and review requirements. Runs after `ci-setup`, so required checks can name real pipeline stages |
-| Changes → release | `release` | Derives the version, writes the changelog and release notes, tags and publishes |
+| Changes → release | `cut-release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
 ## Design principles
 
@@ -86,7 +86,7 @@ Until then, the skills can be tried by copying a skill folder, the `adapters/` f
 6. `work-issue`
 7. `ci-setup`
 8. `repo-governance`
-9. `release`
+9. `cut-release`
 10. First tagged release of the skill set
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.

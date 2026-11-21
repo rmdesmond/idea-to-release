@@ -5,7 +5,7 @@ idea-to-release is a set of agent skills that take a software project from a rou
 ## Scope
 
 In (first release, v0.1.0):
-- The seven skills: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance`, `release`
+- The seven skills: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance`, `cut-release`
 - `conventions.md`, and the GitHub forge and tracker adapters with every verb the skills use implemented
 - Target adapters, which package and install what a project ships: `agent-skills` (this repository) and `shell-cli` (decision 0013)
 - This repository's own checks: `scripts/check-adapters.sh`, `scripts/check-plan.sh` and `tests/run.sh`
@@ -257,7 +257,7 @@ Done when:
 
 ## M5: First release
 
-The `release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then the repository went public.
+The `cut-release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then the repository went public.
 
 ### T-023: Implement the tag and release verbs
 Depends on: T-002
@@ -315,7 +315,7 @@ Done when:
 Depends on: T-022, T-026
 Done when:
 - [ ] Every release gate passes on the default branch
-- [ ] The `release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
+- [ ] The `cut-release` skill drafts v0.1.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The README status and roadmap say the first release is out
 
 ### T-030: Make the repository public
