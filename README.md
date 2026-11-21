@@ -113,7 +113,7 @@ Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an e
 8. `repo-governance`: done, and used on this repository (branch rules kept by procedure while it's private)
 9. Target adapters and `cut-release`: done, with the `agent-skills` and `shell-cli` targets
 10. First tagged release of the skill set: done, [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0), cut with `cut-release`
-11. Making the repository public, with branch rules enforced: next
+11. Branch rules enforced on `main`, with the repository kept private: done
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 
@@ -125,13 +125,11 @@ Changes follow [`conventions.md`](conventions.md): one issue per change request,
 
 ### How `main` is protected
 
-While this repository is private on a free GitHub account, GitHub can't enforce branch rules, so they're kept by procedure ([decision 0012](docs/decisions/0012-branch-rules-fallback.md)):
+The repository is private ([decision 0016](docs/decisions/0016-stay-private-with-enforced-rules.md)), and GitHub enforces its rules on `main` ([decision 0017](docs/decisions/0017-branch-rules-enforced.md)):
 
-- Nobody pushes to `main`. Every change arrives through a pull request.
-- The pipeline runs `lint`, `build`, `unit` and `integration` on every pull request, plus an advisory `shellcheck`. A pull request is merged only when the four core checks pass.
-- Only the maintainer merges. Agents open pull requests but never approve, merge or override a check.
-
-Once the repository is public, `repo-governance` turns these into enforced rules: protected `main`, required checks, and the review rule from [decision 0011](docs/decisions/0011-review-rule-single-maintainer.md).
+- Nobody pushes to `main`, the maintainer included. Every change arrives through a pull request, and force pushes and deletion are blocked.
+- A pull request can be merged only when `lint`, `build`, `unit` and `integration` pass. `shellcheck` runs too, as an advisory check.
+- No approval is required while there's a single maintainer: the maintainer's merge is the review ([decision 0011](docs/decisions/0011-review-rule-single-maintainer.md)). Agents open pull requests but never approve, merge or override a check.
 
 ## Licence
 
