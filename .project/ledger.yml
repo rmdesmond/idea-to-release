@@ -107,3 +107,7 @@ tasks:
     milestone: M5
     issue: 37
     created: 2026-11-21
+  T-028:
+    milestone: M2
+    issue: 41
+    created: 2026-11-21
