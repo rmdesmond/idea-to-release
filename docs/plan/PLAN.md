@@ -262,9 +262,9 @@ The `release` skill exists and packages releases through a target adapter, the s
 ### T-023: Implement the tag and release verbs
 Depends on: T-002
 Done when:
-- [ ] `tag.create`, `release.draft` and `release.publish` are implemented in the forge adapter
-- [ ] Each has been run against a scratch repository
-- [ ] `scripts/check-adapters.sh` passes
+- [x] `tag.create`, `release.draft` and `release.publish` are implemented in the forge adapter
+- [x] Each has been run against a scratch repository
+- [x] `scripts/check-adapters.sh` passes
 
 ### T-031: Add the target verbs and the agent-skills target
 Depends on: T-002
