@@ -21,6 +21,8 @@ section2() {
   awk '/^## 2\./ {on=1; next} /^## / {on=0} on' "$conventions"
 }
 verbs_from() {
+  # The backticks are literal Markdown code spans, not command substitution.
+  # shellcheck disable=SC2016
   grep -o '`[a-z]*\.[a-z-]*`' | tr -d '`' | sort -u
 }
 
