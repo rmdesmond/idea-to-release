@@ -9,6 +9,7 @@ Every forge verb has a section here. A verb that is not yet available says `Stat
 - `gh` 2.40 or later, signed in: `gh auth status` must succeed.
 - Token scopes: `repo` (create repositories, edit settings, open pull requests). `read:org` if the owner is an organisation. `workflow` too, if workflow files are pushed over HTTPS (see `pipeline.render`).
 - `git` with a working push remote (SSH or HTTPS).
+- **Run the commands with bash.** The snippets below rely on bash's word splitting and quoting. zsh, macOS's default interactive shell, splits words differently, so run them as `bash -c '…'` or from a bash script.
 
 ## Resolving the repository
 

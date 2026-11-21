@@ -4,6 +4,8 @@ Translates the neutral tracker verbs in `conventions.md` §2 into GitHub command
 
 Every tracker verb has a section here. A verb that is not yet available says `Status: not yet implemented`. `scripts/check-adapters.sh` checks that no verb is missing.
 
+- **Run the commands with bash.** The snippets in this file rely on bash's word splitting and quoting. zsh, macOS's default interactive shell, splits words differently, so run them as `bash -c '…'` or from a bash script.
+
 ---
 
 ### label.ensure

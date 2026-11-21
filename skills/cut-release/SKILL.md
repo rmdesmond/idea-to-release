@@ -30,7 +30,9 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
 
 ### 1. Read
 
-- Read `.project/config.yml`: the `release` block (`tag_prefix`, `strategy`), `target`, and the pipeline stages.
+- Read `.project/config.yml`: the `release` block (`tag_prefix`, `strategy`, `version_files`), `target`, and the pipeline stages.
+  - **Each version file** (conventions §12) must exist, with its marker on exactly one line. If not, stop and say which entry is wrong.
+  - **No `version_files`,** but a file on the default branch that looks like it holds the version (a `--version` string, a `"version":` field, a test that compares the version with the changelog): say so in the dry run, and suggest adding the entry. Don't edit the file without one.
   - `strategy: release-branches` isn't supported yet. Stop and say so.
   - If a verb above is `not yet implemented`, stop and say which one.
   - **No target, or no adapter for it:** carry on without artifacts (decision 0013), and say so in the dry run.
@@ -65,7 +67,8 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
     - **It has a change request in this release,** and no `released_in` yet.
     - **Or its issue is closed as completed with no change request,** and no `released_in` yet. That's work done before the tracker was used, and it ships in the first release that includes it. List these in the dry run so the user can check them.
   - Tasks already released keep their `released_in`.
-- **The release commit's files:** `CHANGELOG.md` and `.project/ledger.yml`. Run `scripts/check-ledger.sh` on the new ledger. It must pass.
+- **Version files:** in each `release.version_files` entry, replace the version after the marker with `<X.Y.Z>`, keeping any quotes.
+- **The release commit's files:** `CHANGELOG.md`, `.project/ledger.yml` and the version files. Run `scripts/check-ledger.sh` on the new ledger. It must pass. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
 
 ### 4. Prepare: dry run, then the release change request
 
@@ -77,6 +80,7 @@ Version:      v0.2.0 (derived: feat in #85, #88)
 Gates now:    build pass, unit pass, integration pass (placeholder)
 Included:     7 change requests (#82, #83, ...); not listed in the changelog: 3 (docs, chore)
 CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3
+Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
 Ledger:       released_in v0.2.0 for T-024, T-025 (2 tasks); change_requests filled in for 21 entries
               closed without a change request: T-001 (#20) → released in v0.2.0
 Change request: branch chore/release-v0.2.0, "chore(release): v0.2.0"

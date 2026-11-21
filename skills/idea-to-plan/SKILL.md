@@ -75,6 +75,7 @@ Follow conventions §5:
 
     The user decides.
   - **Nothing is ever shipped** (a website deployed elsewhere, say): `Target: none - <why>`.
+- **Version in the code:** if a task makes the code hold its own version number (`--version`, `package.json`, …), its *Done when* list adds the `release.version_files` entry for that file to `.project/config.yml` (conventions §12). Then cut-release updates it in every release.
 - **Run commands:** every enabled stage, core or extra, needs a `run` command (conventions §11): one shell command, run from the repository root, that exits 0 when the stage passes. Propose one from the constraints and the test infrastructure task, for example `npm test`, `go test ./...`, `cargo clippy` or `tests/run.sh`, and confirm it with the user as part of the verification strategy topic. A command that a task will create (a test runner, say) is fine: name that task. Never enable a stage without a command, because work-issue stops on it.
 
 ### 4. Record work already done
