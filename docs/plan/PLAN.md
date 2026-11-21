@@ -300,8 +300,8 @@ Done when:
 ### T-033: Add the shell-cli target
 Depends on: T-031
 Done when:
-- [ ] `adapters/target/shell-cli.md` defines all four verbs: an archive of the project's commands with an `install.sh` that copies them to a `bin` folder
-- [ ] `scripts/check-adapters.sh` passes, and the verbs have been run on a scratch project
+- [x] `adapters/target/shell-cli.md` defines all four verbs: an archive of the project's commands with an `install.sh` that copies them to a `bin` folder
+- [x] `scripts/check-adapters.sh` passes, and the verbs have been run on a scratch project
 
 ### T-026: End-to-end test from idea to release
 Depends on: T-024, T-025, T-032, T-033
