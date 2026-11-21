@@ -4,6 +4,10 @@
 
 Lint only.
 
+## Release target
+
+Target: `shell-cli` - a `slug` command, installed into a `bin` folder
+
 ## M1: Skeleton
 
 ### T-001: Entry point

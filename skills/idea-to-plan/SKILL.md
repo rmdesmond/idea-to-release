@@ -47,9 +47,10 @@ Work through these topics **one at a time**, in this order. For each, propose an
 1. **Goal:** what the project is for and who uses it, in two or three sentences
 2. **Scope:** what is in, and what is explicitly out (non-goals)
 3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed
-4. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton
-5. **Tasks:** per milestone (step 3)
-6. **Verification strategy:** test levels and pipeline stages (step 3)
+4. **Release target:** what a release ships, and how people install it (step 3)
+5. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton
+6. **Tasks:** per milestone (step 3)
+7. **Verification strategy:** test levels and pipeline stages (step 3)
 
 In revise mode, start from the existing plan: ask what changed, and go through only the topics the change touches.
 
@@ -66,6 +67,14 @@ Follow conventions §5:
 - **Integration and system tests:** these get their own tasks, usually one or more per milestone, at the end of the milestone and depending on the tasks they exercise.
 - **Order:** within a milestone, list tasks so that dependencies come first where possible.
 - **Verification strategy:** state the test levels that apply, and the four core stages (`lint`, `build`, `unit`, `integration`). Each stage is enabled, or disabled with a one-line reason. Also list any extra stages, with when they run and whether they're required or advisory (§11).
+- **Release target:** propose what a release ships, from the goal and constraints (a command-line tool, an app, a package, a set of agent skills), and how people install it. Match it to a target adapter in the skill set's `adapters/target/` (conventions §2, decision 0013) and confirm the choice with the user:
+  - **An adapter fits:** write ``Target: `<name>` - <what ships>``.
+  - **None fits:** that's a gap. Say so, and offer two choices:
+    - add a task, in the milestone before the first release, to write the adapter (`Add the <name> target`, decision 0001)
+    - `Target: none`: releases with notes and a tag, but no packaged artifacts
+
+    The user decides.
+  - **Nothing is ever shipped** (a website deployed elsewhere, say): `Target: none - <why>`.
 - **Run commands:** every enabled stage, core or extra, needs a `run` command (conventions §11): one shell command, run from the repository root, that exits 0 when the stage passes. Propose one from the constraints and the test infrastructure task, for example `npm test`, `go test ./...`, `cargo clippy` or `tests/run.sh`, and confirm it with the user as part of the verification strategy topic. A command that a task will create (a test runner, say) is fine: name that task. Never enable a stage without a command, because work-issue stops on it.
 
 ### 4. Record work already done
@@ -106,6 +115,10 @@ Out: ...
 
 <Each assumption, and who made it. "None" if there are none.>
 
+## Release target
+
+Target: `<adapter-name>` - <what ships, and how people install it>
+
 ## Verification strategy
 
 Test levels: ...
@@ -133,7 +146,7 @@ Then run `scripts/check-plan.sh docs/plan/PLAN.md`. The script belongs to the id
 
 ### 7. Keep the config in step
 
-Compare the verification strategy with the `pipeline` block of `.project/config.yml`. Work out the changes needed to make them match: `enabled`, `run`, `reason` and `extra_stages`. Leave everything else in the config untouched (conventions §4).
+Compare the verification strategy with the `pipeline` block of `.project/config.yml`, and the release target with its `target`. Work out the changes needed to make them match: `enabled`, `run`, `reason`, `extra_stages` and `target` (removed for `Target: none`). Leave everything else in the config untouched (conventions §4).
 
 - **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.
 - **Disabling a stage that is currently enabled:** conventions §11 requires a decision record. Ask first. If the user agrees, write the record. If not, keep the stage enabled and update the plan to match.

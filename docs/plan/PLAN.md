@@ -34,6 +34,10 @@ See decisions 0007 and 0013.
 
 None. Every choice above was confirmed during planning.
 
+## Release target
+
+Target: `agent-skills` - an archive of the skills, conventions and adapters, with an `install.sh` that puts them where each agent looks (decisions 0013 and 0014)
+
 ## Verification strategy
 
 Test levels:

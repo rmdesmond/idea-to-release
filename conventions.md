@@ -63,7 +63,7 @@ See decision 0014.
 
 ## 4. Project config
 
-`.project/config.yml` is written once by repo-bootstrap and read by every other skill. The one exception is the `pipeline` block, which idea-to-plan keeps in step with the plan's verification strategy (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
+`.project/config.yml` is written once by repo-bootstrap and read by every other skill. The exceptions are the `pipeline` block and `target`, which idea-to-plan keeps in step with the plan's verification strategy and release target (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
 
 ```yaml
 forge: github            # adapter name under adapters/forge/
@@ -111,6 +111,7 @@ The plan lives at `docs/plan/PLAN.md`. It is the origin of every issue.
 - **Test infrastructure is a task.** Choosing a framework and wiring up the harness is one-time work and gets its own early task.
 - **Tests that span tasks get their own tasks.** Integration and system-level tests are planned explicitly, usually one or more per milestone.
 - The plan opens with a **Verification strategy** section stating which test levels apply to this project, which pipeline stages are enabled, any extra stages, and why. The config's `pipeline` block mirrors it.
+- An optional **Release target** section says what the project ships, and how people install it, in one line: ``Target: `shell-cli` - a `slug` command, installed into a `bin` folder``, or `Target: none` for releases without packaged artifacts. The name is a target adapter (`adapters/target/<name>.md`, decision 0013), and the config's `target` mirrors it.
 
 ```markdown
 ## M1: Walking skeleton

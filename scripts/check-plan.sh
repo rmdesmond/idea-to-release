@@ -3,6 +3,9 @@
 #
 # Checks:
 # - a "## Verification strategy" section exists
+# - an optional "## Release target" section has exactly one "Target:" line:
+#   "Target: none" or "Target: `<adapter-name>`", optionally followed by
+#   " - <what ships>" (conventions §5)
 # - milestones are "## M<n>: <title>", with no duplicate numbers
 # - inside a milestone, every "###" heading is a task: "### T-NNN: <title>",
 #   optionally ending in "(dropped)"; task IDs are unique
@@ -36,6 +39,13 @@ function close_task() {
   task = ""
 }
 
+# Check the "## Release target" section that just ended.
+function close_target() {
+  if (!in_target) return
+  if (targets == 0) fail(target_line, "\"## Release target\" has no \"Target:\" line")
+  in_target = 0
+}
+
 function trim(s) { gsub(/^[ \t]+|[ \t]+$/, "", s); return s }
 
 # Depth-first search for a cycle; colour 1 = on the stack, 2 = finished.
@@ -53,8 +63,10 @@ function visit(t,    n, parts, i, d) {
 
 /^## / {
   close_task()
+  close_target()
   in_milestone = 0
   if ($0 ~ /^## Verification strategy[ \t]*$/) { has_vs = 1; next }
+  if ($0 ~ /^## Release target[ \t]*$/) { in_target = 1; target_line = FNR; targets = 0; next }
   if ($0 ~ /^## M/) {
     if ($0 !~ /^## M[0-9]+: [^ ]/) { fail(FNR, "milestone heading must be \"## M<n>: <title>\""); next }
     m = $2; sub(/:$/, "", m)
@@ -74,6 +86,14 @@ function visit(t,    n, parts, i, d) {
   exists[task] = 1; line_of[task] = FNR; task_line = FNR
   if ($0 ~ /\(dropped\)[ \t]*$/) dropped[task] = 1
   has_dep = 0; has_done = 0; items = 0
+  next
+}
+
+in_target && /^Target:/ {
+  targets++
+  if (targets > 1) { fail(FNR, "\"## Release target\" has more than one \"Target:\" line"); next }
+  if ($0 !~ /^Target: (none|`[a-z0-9][a-z0-9-]*`)( - .+)?[ \t]*$/)
+    fail(FNR, "\"Target:\" must be \"none\" or `<adapter-name>`, optionally followed by \" - <what ships>\"")
   next
 }
 
@@ -103,6 +123,7 @@ task != "" && has_done && /^- \[[ xX]\] / { items++ }
 
 END {
   close_task()
+  close_target()
   if (!has_vs) fail(1, "missing \"## Verification strategy\" section")
   for (t in deps) {
     n = split(deps[t], parts, " ")

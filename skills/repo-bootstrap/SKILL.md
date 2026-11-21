@@ -26,6 +26,7 @@ All optional. Pass them as `key=value`.
 | `holder` | owner's display name, from the forge adapter's "Owner display name" source | Copyright holder in the licence |
 | `merge_method` | `squash` | `squash` \| `merge` \| `rebase` |
 | `required_approvals` | 0 if the owner is the only person who can write, else 1 | Reviews needed before a change request can merge. Ask if interactive, showing the default and why (step 3) |
+| `target` | the plan's `Target:` line, if there's a plan; else none | A target adapter name (conventions §5, decision 0013). With none, the config has no `target` line, and idea-to-plan adds it later |
 | `gitignore` | ask; none if non-interactive | A language template name (`Python`, `Node`, ...) |
 | `issue` | none | Issue number for the adopt-mode branch and change request |
 | `non-interactive` | off | Don't ask questions; use arguments, then defaults |
@@ -95,7 +96,7 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 
 | File | Content |
 |---|---|
-| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `release: {versioning: semver, strategy: trunk, tag_prefix: v}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
+| `.project/config.yml` | Conventions §4 shape, filled from the inputs. `target: <name>` if known (else left out), `release: {versioning: semver, strategy: trunk, tag_prefix: v}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
 | `.project/ledger.yml` | `tasks: {}` |
 | `CHANGELOG.md` | Keep a Changelog header and an empty `## [Unreleased]` section |
 | `LICENSE` | Licence text from the forge adapter, with year and holder filled in. Skipped if `licence=none` |
