@@ -215,10 +215,10 @@ Done when:
 ### T-017: Run ci-setup on this repository
 Depends on: T-008, T-016
 Done when:
-- [ ] `lint` runs `scripts/check-adapters.sh`, `scripts/check-plan.sh` and `scripts/check-ledger.sh`, and `unit` runs `tests/run.sh`
-- [ ] `build` and `integration` are placeholders that give their reasons
-- [ ] The advisory `shellcheck` stage runs on change requests and doesn't block merges
-- [ ] A test branch with a broken plan fails `lint`
+- [x] `lint` runs `scripts/check-adapters.sh`, `scripts/check-plan.sh` and `scripts/check-ledger.sh`, and `unit` runs `tests/run.sh`
+- [x] `build` and `integration` are placeholders that give their reasons
+- [x] The advisory `shellcheck` stage runs on change requests and doesn't block merges
+- [x] A test branch with a broken plan fails `lint`
 
 ### T-018: Decide the review rule for a single maintainer
 Depends on: none
