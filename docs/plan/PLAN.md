@@ -115,10 +115,10 @@ Done when:
 Depends on: T-005
 Issue: #10
 Done when:
-- [ ] `docs/plan/PLAN.md` covers the roadmap to v0.1.0, with completed work linked to its issues
-- [ ] `scripts/check-plan.sh` passes on it
-- [ ] The pipeline block of `.project/config.yml` matches the verification strategy
-- [ ] Decision record 0007 records the first release's scope
+- [x] `docs/plan/PLAN.md` covers the roadmap to v0.1.0, with completed work linked to its issues
+- [x] `scripts/check-plan.sh` passes on it
+- [x] The pipeline block of `.project/config.yml` matches the verification strategy
+- [x] Decision record 0007 records the first release's scope
 
 ## M2: Plan to issues
 
@@ -127,42 +127,42 @@ Done when:
 ### T-007: Implement the tracker verbs for plan-to-issues
 Depends on: T-002
 Done when:
-- [ ] `milestone.ensure`, `issue.create`, `issue.update` and `issue.link` (blocks, blocked by, parent) are implemented in the tracker adapter, each with its check of existing state
-- [ ] `issue.link` uses GitHub's issue dependencies and sub-issues where available, and documents the fallback from conventions §14 where not
-- [ ] Each verb has been run against a scratch repository, including a second run that changes nothing
-- [ ] `scripts/check-adapters.sh` passes
+- [x] `milestone.ensure`, `issue.create`, `issue.update` and `issue.link` (blocks, blocked by, parent) are implemented in the tracker adapter, each with its check of existing state
+- [x] `issue.link` uses GitHub's issue dependencies and sub-issues where available, and documents the fallback from conventions §14 where not
+- [x] Each verb has been run against a scratch repository, including a second run that changes nothing
+- [x] `scripts/check-adapters.sh` passes
 
 ### T-008: Add a ledger format check
 Depends on: T-005
 Done when:
-- [ ] `scripts/check-ledger.sh` validates `.project/ledger.yml` against conventions §6: known keys only, task IDs that exist in the plan, issue and change request numbers that are integers, versions in tag format, and ISO dates
-- [ ] `tests/run.sh` runs valid and invalid ledger fixtures, and every invalid one fails with its stated message
-- [ ] Works on BSD and GNU tools, with no YAML library
+- [x] `scripts/check-ledger.sh` validates `.project/ledger.yml` against conventions §6: known keys only, task IDs that exist in the plan, issue and change request numbers that are integers, versions in tag format, and ISO dates
+- [x] `tests/run.sh` runs valid and invalid ledger fixtures, and every invalid one fails with its stated message
+- [x] Works on BSD and GNU tools, with no YAML library
 
 ### T-009: Add the plan-to-issues skill
 Depends on: T-007, T-008
 Done when:
-- [ ] `skills/plan-to-issues/SKILL.md` creates milestones named `M<n>: <title>` and one issue per live task, following conventions §9 (title, body with *Done when* and `Plan-Task:` footer, type and priority labels)
-- [ ] It adopts the issue named by a task's `Issue:` line instead of creating one, and never creates a second issue for a task already in the ledger
-- [ ] It records dependencies with `issue.link`, and labels each issue `ready` or `blocked`
-- [ ] It writes ledger entries through a `chore(ledger): ...` change request, and the ledger passes `scripts/check-ledger.sh`
-- [ ] It shows a dry run before creating anything, and a re-run with no plan changes reports no changes
-- [ ] It stops and asks when the forge contradicts the ledger or the plan
+- [x] `skills/plan-to-issues/SKILL.md` creates milestones named `M<n>: <title>` and one issue per live task, following conventions §9 (title, body with *Done when* and `Plan-Task:` footer, type and priority labels)
+- [x] It adopts the issue named by a task's `Issue:` line instead of creating one, and never creates a second issue for a task already in the ledger
+- [x] It records dependencies with `issue.link`, and labels each issue `ready` or `blocked`
+- [x] It writes ledger entries through a `chore(ledger): ...` change request, and the ledger passes `scripts/check-ledger.sh`
+- [x] It shows a dry run before creating anything, and a re-run with no plan changes reports no changes
+- [x] It stops and asks when the forge contradicts the ledger or the plan
 
 ### T-010: End-to-end test through plan-to-issues
 Depends on: T-009
 Done when:
-- [ ] On a new scratch repository: `repo-bootstrap` (create mode), `idea-to-plan`, then `plan-to-issues`
-- [ ] Every live task has exactly one issue in the right milestone, with the right labels and links, and the ledger matches
-- [ ] A second `plan-to-issues` run reports no changes
-- [ ] Problems found are fixed in the skills, or filed as issues
+- [x] On a new scratch repository: `repo-bootstrap` (create mode), `idea-to-plan`, then `plan-to-issues`
+- [x] Every live task has exactly one issue in the right milestone, with the right labels and links, and the ledger matches
+- [x] A second `plan-to-issues` run reports no changes
+- [x] Problems found are fixed in the skills, or filed as issues
 
 ### T-011: Run plan-to-issues on this repository
 Depends on: T-006, T-010
 Done when:
-- [ ] Issues #1, #4, #6, #8 and #10 are adopted for T-002 to T-006, and the remaining tasks have new issues
-- [ ] T-018 is labelled `needs-decision`
-- [ ] The ledger covers every task and passes `scripts/check-ledger.sh`
+- [x] Issues #1, #4, #6, #8 and #10 are adopted for T-002 to T-006, and the remaining tasks have new issues
+- [x] T-018 is labelled `needs-decision`
+- [x] The ledger covers every task and passes `scripts/check-ledger.sh`
 
 ### T-028: Put task IDs in issue titles
 Depends on: T-009
@@ -394,8 +394,8 @@ Done when:
 ### T-040: Fix the unticked boxes of tasks done before work-issue ticked them
 Depends on: none
 Done when:
-- [ ] Every *Done when* box of T-006 to T-011 is ticked, and the change request lists the evidence for each task: its issue closed as completed and the change request that closed it
-- [ ] No other task's issue is closed as completed while the task has unticked boxes, checked across the whole plan
+- [x] Every *Done when* box of T-006 to T-011 is ticked, and the change request lists the evidence for each task: its issue closed as completed and the change request that closed it
+- [x] No other task's issue is closed as completed while the task has unticked boxes, checked across the whole plan
 
 ### T-041: Fix the changelog group for a breaking removal
 Depends on: none
