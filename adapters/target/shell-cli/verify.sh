@@ -10,6 +10,8 @@
 # - a second install replaces the first, and a file another package
 #   installed is never replaced
 # - if the project has docs/tutorial.md, the archive ships the same file
+# - the archive's README.md is the release README: it has the Version,
+#   About, Install and Usage sections (decision 0023)
 #
 # Usage: verify.sh <archive.tar.gz> [source-root]
 #   source-root  where to find tests/smoke.sh (default: the current directory)
@@ -55,6 +57,14 @@ first=$(basename "$(find "$top/bin" -type f | head -1)")
 mkdir -p "$work/other/bin" && echo theirs > "$work/other/bin/$first"
 if "$top/install.sh" --prefix "$work/other" >/dev/null 2>&1; then fail "install.sh replaced a file another package installed"; else ok; fi
 if grep -qx theirs "$work/other/bin/$first"; then ok; else fail "a file another package installed was changed"; fi
+
+if [[ -f $top/README.md ]]; then
+  for s in Version About Install Usage; do
+    if grep -qx "## $s" "$top/README.md"; then ok; else fail "the archive's README.md has no \"## $s\" section"; fi
+  done
+else
+  fail "the archive has no README.md"
+fi
 
 if [[ -f $src/docs/tutorial.md ]]; then
   if cmp -s "$src/docs/tutorial.md" "$top/docs/tutorial.md"; then ok; else fail "the project has docs/tutorial.md, but the archive doesn't ship it (or ships another copy)"; fi

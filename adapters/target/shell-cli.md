@@ -13,13 +13,16 @@ One archive per release, `<repo>-<tag>.tar.gz`, with `<repo>` taken from `.proje
   install.sh
   bin/<command> ...       every executable file in the project's bin/
   VERSION                 "<repo> <tag>"
-  LICENSE, README.md      if the project has them
+  README.md               the release README (decision 0023), not the project's own
+  LICENSE                 if the project has one
   docs/tutorial.md        if the project has one (decision 0020)
 ```
 
 ## What the project provides
 
 - **`bin/`:** the commands, executable, each with no dependency on the rest of the repository once installed.
+- **A `--help` option on every command,** which exits 0. The release README's Usage section is its output.
+- **A summary,** for the release README's About section: the plan's first paragraph, or the README's.
 - **Optionally, `docs/tutorial.md`:** the project's tutorial, written by write-tutorial. It's shipped as it is.
 - **Optionally, `tests/smoke.sh`:** a short test of the *installed* commands. `package.verify` runs it from an empty folder, with the installed commands first on `PATH`, so it can't reach the repository's own copies. It should exit 0 when they work.
 
@@ -35,16 +38,17 @@ One archive per release, `<repo>-<tag>.tar.gz`, with `<repo>` taken from `.proje
 ### package.build
 
 - **Tier:** write (local files only)
-- **Inputs:** version (`v<major>.<minor>.<patch>`) and the tag it was cut from
+- **Inputs:** version (`v<major>.<minor>.<patch>`), the tag it was cut from, and the release's page, for the README
 - **Check existing state:** none needed. Building is cheap, so build again, and only `package.verify`'s result counts.
 - **Command:** build from a clean copy of the tag, never from the working tree:
   ```sh
   src=$(mktemp -d); git archive <tag> | tar -x -C "$src"
-  <skill-set>/adapters/target/shell-cli/build.sh <version> <out> "$src"
+  <skill-set>/adapters/target/shell-cli/build.sh <version> <out> "$src" <release-url>
   ```
+  It writes the release README at the top of the archive with `describe.sh readme`: Version, About, Install (`install.describe`) and Usage (`usage.describe`).
   `<skill-set>` is where the idea-to-release files are: `../idea-to-release/` from an installed skill (conventions §3).
 - **Output:** the archive's path. It's the only artifact, and `release.draft` attaches it.
-- **Errors:** no `.project/config.yml` or `repo` name; no executable files in `bin/`.
+- **Errors:** no `.project/config.yml` or `repo` name; no executable files in `bin/`; a command whose `--help` fails; no summary for About.
 
 ### package.verify
 
@@ -61,6 +65,7 @@ One archive per release, `<repo>-<tag>.tar.gz`, with `<repo>` taken from `.proje
   - a second install replaces the first
   - a file another package installed is never replaced
   - the archive ships the project's `docs/tutorial.md` unchanged, if it has one
+  - the archive's `README.md` has the Version, About, Install and Usage sections
 - **Output:** `ok: … installs N command(s); …; M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
 
 ### package.publish
@@ -75,15 +80,20 @@ One archive per release, `<repo>-<tag>.tar.gz`, with `<repo>` taken from `.proje
 
 - **Tier:** read
 - **Inputs:** the repo name, the tag (`v0.1.0`) and the release URL
-- **Command:** print this text, with `<repo>`, `<tag>` and `<url>` filled in:
-  ```markdown
-  Download `<repo>-<tag>.tar.gz` from <url>, then:
-
-      tar -xzf <repo>-<tag>.tar.gz
-      cd <repo>-<tag>
-      ./install.sh                      # into ~/.local/bin
-      ./install.sh --prefix /usr/local  # or anywhere else: commands go in <prefix>/bin
-
-  Re-running replaces an earlier install. A file of the same name that this project didn't install is never replaced. If `<prefix>/bin` isn't on your `PATH`, the script says how to add it.
+- **Command:**
+  ```sh
+  <skill-set>/adapters/target/shell-cli/describe.sh install <tag> <url> "$src"
   ```
-- **Output:** the Markdown, for the release notes and the README.
+  It prints where to download `<repo>-<tag>.tar.gz`, and how to run `install.sh` with or without `--prefix`.
+- **Output:** the Markdown, for the release notes and the release README.
+
+### usage.describe
+
+- **Tier:** read
+- **Inputs:** the clean copy of the tag
+- **Command:**
+  ```sh
+  <skill-set>/adapters/target/shell-cli/describe.sh usage "$src"
+  ```
+  It runs each command in `bin/` with `--help` from the clean copy, and prints the real output, one section per command, plus a pointer to `docs/tutorial.md` if the project has one.
+- **Output:** the Markdown, for the release README's Usage section. A command whose `--help` fails is an error.

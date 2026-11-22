@@ -7,21 +7,23 @@
 #     install.sh
 #     bin/<command> ...
 #     VERSION
-#     LICENSE, README.md     if the project has them
+#     README.md              the release README (decision 0023), from describe.sh
+#     LICENSE                if the project has one
 #     docs/tutorial.md       if the project has one (decision 0020)
 #
 # <name> is the project's repo name, from .project/config.yml.
 #
-# Usage: build.sh <version> <out-dir> [source-root]
+# Usage: build.sh <version> <out-dir> [source-root] [release-url]
 #   version      e.g. v0.1.0
 #   out-dir      where the archive is written (created if missing)
 #   source-root  a clean copy of the tagged commit (default: the current directory)
+#   release-url  the release's page, for the README (default: a placeholder)
 # Prints the archive's path. Exit status: 0 on success, 1 otherwise.
 
 set -euo pipefail
 
-[[ $# -ge 2 ]] || { echo "usage: build.sh <version> <out-dir> [source-root]" >&2; exit 1; }
-version=$1 out=$2 src="${3:-.}"
+[[ $# -ge 2 ]] || { echo "usage: build.sh <version> <out-dir> [source-root] [release-url]" >&2; exit 1; }
+version=$1 out=$2 src="${3:-.}" url="${4:-the release page}"
 here="$(cd "$(dirname "$0")" && pwd)"
 
 [[ $version =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "error: version must look like v1.2.3, got: $version" >&2; exit 1; }
@@ -38,7 +40,8 @@ trap 'rm -rf "$work"' EXIT
 top="$work/$name-$version"
 mkdir -p "$top/bin"
 for f in "$src"/bin/*; do [[ -f $f && -x $f ]] && cp -p "$f" "$top/bin/"; done
-for f in LICENSE README.md; do [[ -f $src/$f ]] && cp "$src/$f" "$top/"; done
+[[ -f $src/LICENSE ]] && cp "$src/LICENSE" "$top/"
+"$here/describe.sh" readme "$version" "$url" "$src" > "$top/README.md"
 if [[ -f $src/docs/tutorial.md ]]; then mkdir -p "$top/docs" && cp "$src/docs/tutorial.md" "$top/docs/"; fi
 printf '%s %s\n' "$name" "$version" > "$top/VERSION"
 cp "$here/install.sh" "$top/install.sh"

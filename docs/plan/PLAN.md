@@ -487,10 +487,10 @@ Done when:
 ### T-048: Give every release archive its own README
 Depends on: none
 Done when:
-- [ ] Conventions §2 adds a target verb, `usage.describe`, and every target adapter implements it: `shell-cli` uses each installed command's `--help`, and `agent-skills` lists each skill with its description and how to invoke it
-- [ ] `cut-release` writes the release README: the version, an about section from the plan's summary, install from `install.describe`, and usage from `usage.describe`, all from real output. `package.build` puts it at the top of the archive in place of the project's README
-- [ ] `package.verify` fails when the README is missing, or lacks one of its four sections
-- [ ] `scripts/check-adapters.sh` covers 30 verbs, and the target tests cover the README, a missing section included
+- [x] Conventions §2 adds a target verb, `usage.describe`, and every target adapter implements it: `shell-cli` uses each installed command's `--help`, and `agent-skills` lists each skill with its description and how to invoke it
+- [x] `cut-release` writes the release README: the version, an about section from the plan's summary, install from `install.describe`, and usage from `usage.describe`, all from real output. `package.build` puts it at the top of the archive in place of the project's README
+- [x] `package.verify` fails when the README is missing, or lacks one of its four sections
+- [x] `scripts/check-adapters.sh` covers 30 verbs, and the target tests cover the README, a missing section included
 
 ### T-049: Clean up the README
 Depends on: T-047, T-048

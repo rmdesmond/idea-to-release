@@ -15,7 +15,9 @@
 # Claude Code plugin i2r (decision 0019): plugin.json's version and the
 # marketplace's ref match the archive's version, and, when `claude` is on
 # PATH, `claude plugin validate --strict` passes. If the source has
-# docs/tutorial.md, the archive ships the same file.
+# docs/tutorial.md, the archive ships the same file. The archive's README.md
+# is the release README, with Version, About, Install and Usage sections
+# (decision 0023).
 #
 # Usage: verify.sh <archive.tar.gz> [source-root]
 # Exit status: 0 if every check passes, 1 otherwise.
@@ -81,6 +83,14 @@ check "a foreign folder was changed" grep -qx mine "$work/foreign/work-issue/SKI
 rm -rf "$HOME/.claude/skills" && mkdir -p "$HOME/.claude/skills/cut-release"
 if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" 2>&1); then fail "a same-named personal skill didn't stop the install"; else check "the clash message doesn't name the personal skill: $out" grep -q "$HOME/.claude/skills/cut-release" <<<"$out"; fi
 if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" --force 2>&1) && grep -q '^warning: installed' <<<"$out"; then ok; else fail "--force didn't install with a warning: $out"; fi
+
+if [[ -f $top/README.md ]]; then
+  for s in Version About Install Usage; do
+    check "the archive's README.md has no \"## $s\" section" grep -qx "## $s" "$top/README.md"
+  done
+else
+  fail "the archive has no README.md"
+fi
 
 if [[ -n $src && -f $src/docs/tutorial.md ]]; then
   check "the repository has docs/tutorial.md, but the archive doesn't ship it" cmp -s "$src/docs/tutorial.md" "$top/docs/tutorial.md"
