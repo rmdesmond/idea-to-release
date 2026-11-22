@@ -16,6 +16,7 @@ In (v0.2.0, M6):
 - The skills as a Claude Code plugin, `i2r`, installed from this repository (decision 0019)
 - No stored ledger: the trail from task to release is read from the plan, the issues, the change requests and the tags (decision 0018)
 - The fix for the stale `blocked` labels found end to end
+- An eighth skill, `write-tutorial`: an optional tutorial for a project, from real runs, shipped with its releases (decision 0020)
 
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
@@ -340,7 +341,7 @@ Done when:
 
 ## M6: Plugin release
 
-The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, two small defects in the plan and the changelog rules are fixed, and v0.2.0 is released with the plugin.
+The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, a `write-tutorial` skill writes one for any project and releases ship it, two small defects in the plan and the changelog rules are fixed, and v0.2.0 is released with the plugin.
 
 ### T-034: Remove the ledger
 Depends on: none
@@ -377,7 +378,7 @@ Done when:
 - [x] Problems found are fixed in the skills, or filed as issues
 
 ### T-038: Release v0.2.0
-Depends on: T-037, T-039, T-040, T-041
+Depends on: T-037, T-039, T-040, T-041, T-042, T-043
 Done when:
 - [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
@@ -402,3 +403,20 @@ Depends on: none
 Done when:
 - [x] Conventions §12 says that a breaking change whose summary starts with "remove" or "drop" goes under **Removed**, marked **Breaking:**, and not under **Changed**
 - [x] `cut-release`'s changelog step says the same, and its dry-run example shows such an entry
+
+### T-042: Add the write-tutorial skill
+Depends on: T-039
+Done when:
+- [ ] `skills/write-tutorial/SKILL.md` writes or updates `docs/tutorial.md` for the project: a small example that goes from installing it through its main uses, each step with what the user types and what comes back
+- [ ] Every command and output in the tutorial comes from a real run, never from memory. Shell steps are run in a clean copy of the default branch. Steps that aren't shell commands (an agent's skills, say) are quoted from a recorded run the user points to. If a step fails or no run exists, the skill stops and says so
+- [ ] It shows the outline before writing, and delivers the tutorial through a change request; it never merges it, and running it again only updates what changed
+- [ ] Conventions say where the tutorial lives and that it's optional, and the README, the plugin and the archive list eight skills
+- [ ] This repository's `docs/tutorial.md` is rewritten by the skill from T-039's recorded run
+- [ ] Decision 0020 records why tutorials come from real runs and are optional
+
+### T-043: Ship the tutorial with releases
+Depends on: T-042
+Done when:
+- [ ] When `docs/tutorial.md` exists, the `shell-cli` and `agent-skills` archives include it, and their `package.verify` checks it's there
+- [ ] `cut-release`'s notes link to the tutorial at the release's tag, and its dry run warns when the tutorial was last changed before change requests in the release. It never requires a tutorial
+- [ ] On a scratch repository, `write-tutorial` writes a tutorial through a change request, and the next `cut-release` ships it in the archive and links it from the notes
