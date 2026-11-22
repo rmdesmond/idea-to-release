@@ -12,7 +12,7 @@ Plenty of individual skills exist for creating a repo, turning a plan into issue
 
 - **Fast:** an agent can do the routine work of setup, ticketing and releasing, with a person confirming the steps that matter.
 - **Traceable:** every task has a permanent ID that follows it from the plan to the release that shipped it.
-- **Portable:** the history lives in the repository as plain files, so it survives a change of forge or tracker.
+- **Portable:** the plan, decision records and changelog are plain files in the repository, and each squash-merged commit keeps its issue reference, so the trail from task to release survives a change of forge or tracker.
 
 ## How it fits together
 
