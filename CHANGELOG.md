@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-22
+
+### Added
+
+- Save a new plan in a private repository (#133)
+- Add accept-the-plan for setup and CI (#134)
+- Add work-the-plan (#136)
+- Give every release archive its own README (#137)
+
+### Changed
+
+- **Breaking:** Fold four skills into accept-the-plan (#135)
+
+### Fixed
+
+- Let a proposed decision record be accepted (#139)
+
 ## [0.2.0] - 2026-11-22
 
 ### Added
@@ -61,3 +78,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.1.0]: https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0
 [0.2.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.1.0...v0.2.0
+[0.3.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.2.0...v0.3.0
