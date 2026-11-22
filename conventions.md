@@ -143,7 +143,7 @@ Rules:
 
 - **No skill writes a ledger file.** A leftover `.project/ledger.yml` from an earlier version is ignored, and can be deleted.
 - **Idempotency:** before creating an issue for a task, look for it: the plan's `Issue:` line, then an issue carrying the task's `Plan-Task:` line. If one exists, update it instead of creating another.
-- **A task closed with no change request** (work done before the tracker was used, or closed by hand as completed) is delivered by the first release after its issue was closed.
+- **A task closed with no change request** (work done before the tracker was used, or closed by hand as completed) is delivered by the first release after its issue was closed, unless the task was already done in the plan at the previous release's tag. Then it shipped earlier, and its issue was only created and closed later, for example when plan-to-issues first runs on a project that has already released.
 
 ## 7. Decision records
 
