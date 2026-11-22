@@ -1,15 +1,15 @@
 ---
 name: idea-to-plan
-description: Turn a project idea into a plan (docs/plan/PLAN.md) with a verification strategy, milestones and dependency-ordered tasks, following the idea-to-release conventions, or revise an existing plan without renumbering it. Also keeps the project config's pipeline stages in step with the plan. Use when starting a project, when scope changes, or when work done outside the plan needs recording.
+description: Turn a project idea into a plan (docs/plan/PLAN.md) with a verification strategy, milestones and dependency-ordered tasks, following the idea-to-release conventions, or revise an existing plan without renumbering it. Ends with the plan saved in a repository: a new private one it creates, or a change request in an existing one. Also keeps the project config's pipeline stages in step with the plan. Use when starting a project, when scope changes, or when work done outside the plan needs recording.
 ---
 
 # idea-to-plan
 
-Turns an idea into `docs/plan/PLAN.md`: the document every issue comes from (conventions §5).
+Turns an idea into `docs/plan/PLAN.md`: the document every issue comes from (conventions §5). It's the first of three gates (decision 0021). The plan is the check that what was asked for is what was understood, so the skill ends with the plan saved where anyone can review it: in a new private repository it creates, or in a change request to an existing one.
 
 **Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit.
 
-Before doing anything, read `conventions.md`, especially §5 (plan format), §7 (decision records), §11 (pipeline stages) and §13 (safety). This skill only writes files. It uses the neutral verbs `issue.list` (tracker) and `cr.open` (forge). Look them up in the adapters named in `.project/config.yml`.
+Before doing anything, read `conventions.md`, especially §5 (plan format), §7 (decision records), §11 (pipeline stages) and §13 (safety). It uses the neutral verbs `issue.list` (tracker), and `repo.describe`, `repo.create` and `cr.open` (forge). Look them up in the adapters named in `.project/config.yml`, or, for a new repository, in the forge adapter chosen in step 1.
 
 ## Arguments
 
@@ -19,6 +19,8 @@ All optional. Pass them as `key=value`.
 |---|---|---|
 | `idea` | ask | Text, or a path to a file describing the idea |
 | `issue` | none | Issue number for the branch and change request |
+| `owner`, `repo` | from config or git remote; else ask | Only for a new repository (step 10). The repo name is proposed from the project's name |
+| `description` | ask, proposing one from the goal | Only for a new repository: its one-line description |
 | `non-interactive` | off | Don't ask. Work from the idea and the repository alone, and record every assumption (see "Assumptions") |
 
 ## Procedure
@@ -37,7 +39,10 @@ All optional. Pass them as `key=value`.
 
   If `issue.list` fails (for example, the repository isn't on the forge yet), say so and continue with git history only.
 
-If there's no `.project/config.yml`, say so and suggest running repo-bootstrap first. The skill can still write the plan, but it can't update the pipeline block or open a change request. If the user plans first anyway, write the plan and stop there: repo-bootstrap then commits the plan and decision records, and takes the stages from the plan's verification strategy, in its first commit. So the next step is repo-bootstrap, then plan-to-issues; there's no need to run idea-to-plan again.
+**Where the plan will be saved.** Find the repository: from `.project/config.yml`, else from `git remote get-url origin` (conventions §4: say what was inferred). Then `repo.describe`.
+
+- **An existing repository:** the plan goes in a change request (step 9).
+- **No repository yet** (no config and no remote, or a repository that doesn't exist on the forge): the plan goes in a new repository, which step 10 creates. The forge defaults to `github`. The tracker is the forge's own.
 
 ### 2. Understand the idea
 
@@ -47,7 +52,7 @@ Work through these topics **one at a time**, in this order. For each, propose an
 2. **Scope:** what is in, and what is explicitly out (non-goals)
 3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed
 4. **Release target:** what a release ships, and how people install it (step 3)
-5. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton
+5. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton. Also ask which milestones end in a release, and with which version: each of those gets a `Release: vX.Y.Z` line (step 6)
 6. **Tasks:** per milestone (step 3)
 7. **Verification strategy:** test levels and pipeline stages (step 3)
 
@@ -102,6 +107,8 @@ Put completed work in the milestone it belongs to. That's often the first one.
 ```markdown
 # Plan: <project name>
 
+Status: draft
+
 <One-paragraph summary of the goal.>
 
 ## Scope
@@ -134,6 +141,8 @@ Extra stages: none
 
 ## M1: <title>
 
+Release: v0.1.0
+
 <One sentence: what is usable at the end of this milestone.>
 
 ### T-001: <title>
@@ -142,11 +151,19 @@ Done when:
 - [ ] ...
 ```
 
+- **`Status:`** goes directly under the title (conventions §5). This skill always writes `Status: draft`: in new mode, and in revise mode too, even when the plan was `accepted <date>`. A changed plan has to be accepted again before it's worked (decision 0022). Ticking a task's boxes isn't a revision, and leaves the status alone.
+- **`Release: vX.Y.Z`** goes under the heading of a milestone that ends in a release, before its summary. Leave it out for the other milestones. Pre-1.0, a release usually bumps the minor version (conventions §12).
+
 Then run `scripts/check-plan.sh docs/plan/PLAN.md`. The script belongs to the idea-to-release skill set, next to `conventions.md`, not to the project. Fix every problem it reports before going on.
 
 ### 7. Keep the config in step
 
 Compare the verification strategy with the `pipeline` block of `.project/config.yml`, and the release target with its `target`. Work out the changes needed to make them match: `enabled`, `run`, `reason`, `extra_stages` and `target` (removed for `Target: none`). Leave everything else in the config untouched (conventions §4).
+
+**A new repository has no config yet.** Write `.project/config.yml` in the conventions §4 shape:
+- `forge` and `tracker`, `owner` and `repo` (step 10), `default_branch: main` and `visibility: private`
+- `target`, and the `pipeline` block, from the plan
+- the defaults for the rest: `merge_method: squash`, `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, and `review: {required_approvals: 0, code_owners: false}`. Only the owner can write to a new repository, and a required approval would block every merge, since nobody can approve their own change request
 
 - **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.
 - **Disabling a stage that is currently enabled:** conventions §11 requires a decision record. Ask first. If the user agrees, write the record. If not, keep the stage enabled and update the plan to match.
@@ -159,14 +176,16 @@ A choice the user made or confirmed gets `Status: accepted`. A choice listed und
 
 ### 9. Review and publish
 
-Show the user:
+Show the user, in both cases:
 
 - a summary of the plan: milestones with task counts, which tasks are already done, and the assumptions
 - in revise mode, the difference from the previous plan: tasks added, dropped, moved, or with changed dependencies
 - the config changes
 - the decision records to be written
 
-Say what will happen, which is a write-tier action (§13):
+**In a new repository,** go on to step 10.
+
+**In an existing repository,** say what will happen, which is a write-tier action (§13):
 
 - create branch `docs/<issue>-plan` (or `docs/plan` with no issue) from the default branch
 - commit with `docs(plan): <summary>`, plus a `Refs: #<issue>` footer if there is an issue
@@ -174,11 +193,34 @@ Say what will happen, which is a write-tier action (§13):
 
 The change request body lists the summary above and says it was checked with `scripts/check-plan.sh`. Don't merge it: plan changes go through review like any other change (§5).
 
+### 10. Save the plan in a new repository
+
+Only when step 1 found no repository.
+
+1. **Owner, name and description.** Use the arguments, or ask: propose the repository name from the project's name (lower case, words joined by `-`), and a one-line description from the goal. Never invent a description the user didn't confirm. If `repo.describe` now finds the repository, stop and say so: it already exists, so run again to save the plan in a change request.
+2. **Dry run.** Creating a repository is an admin action (§13). Show what will happen, and wait for a yes:
+
+   ```
+   Repository: you/titlecase   create, private
+   Commit:     docs(plan): plan titlecase   → main, the repository's first commit
+               docs/plan/PLAN.md (Status: draft), docs/decisions/0001-…, .project/config.yml
+   Next:       repo-bootstrap, then plan-to-issues
+   ```
+
+   The repository is always created **private**. That isn't a question: the plan is a draft, and going public later is a separate, deliberate change (repo-governance). A `non-interactive` run stops after the dry run.
+3. **Apply,** stopping at the first failure:
+   1. `git init -b main` if the folder isn't a git repository yet. Existing local commits are kept, and pushed with the plan.
+   2. `repo.create` with `visibility: private`, which also sets the `origin` remote.
+   3. Commit the plan, the decision records and the config on `main`: `docs(plan): <summary>`. This is one of the two commits made straight to the default branch, before any branch rules exist (conventions §10).
+   4. Push `main`.
+4. **Report** the repository's address, and what comes next: **repo-bootstrap** adopts the repository for the rest of the standard setup (labels, settings, licence, changelog, templates), and keeps the plan and config it finds. Then **plan-to-issues**.
+
 ## Re-running
 
 If nothing changed (same plan, same config, no new completed work), report "Plan up to date; no changes" and stop. Before opening a change request, `cr.open` checks for an open one on the same branch.
 
 ## Out of scope
 
+- The rest of a new repository's setup (labels, settings, standard files): **repo-bootstrap**
 - Creating issues and milestones: **plan-to-issues**
 - Writing CI files: **ci-setup**

@@ -64,7 +64,7 @@ See decisions 0014 and 0019.
 
 ## 4. Project config
 
-`.project/config.yml` is written once by repo-bootstrap and read by every other skill. The exceptions are the `pipeline` block and `target`, which idea-to-plan keeps in step with the plan's verification strategy and release target (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
+`.project/config.yml` is written once, by idea-to-plan when it creates the repository or by repo-bootstrap when it adopts one, and read by every other skill. The exceptions are the `pipeline` block and `target`, which idea-to-plan keeps in step with the plan's verification strategy and release target (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
 
 ```yaml
 forge: github            # adapter name under adapters/forge/
@@ -106,6 +106,8 @@ pipeline:
 The plan lives at `docs/plan/PLAN.md`. It is the origin of every issue.
 
 - A plan has **milestones** (`M1`, `M2`, ...) and each milestone has **tasks** (`T-001`, `T-002`, ...).
+- **Status.** Directly under its title, a plan has one `Status:` line: `Status: draft`, or `Status: accepted <date>` with a UTC date (`2026-11-22`). idea-to-plan writes `draft`, in every new plan and every revision. A plan is accepted explicitly, and only an accepted plan is worked (decision 0022). A stub with no milestones needs no status.
+- **Releases.** A milestone that ends in a release has one `Release: vX.Y.Z` line under its heading, before its first task. The version is the one that milestone's release gets.
 - Task IDs are numbered across the whole plan, are never reused, and never change, even if a task moves to another milestone or is dropped. A dropped task is marked `(dropped)` and kept.
 - Each task states: a one-line title, what done looks like (acceptance criteria as a checklist), and any tasks it depends on.
 - A task should be small enough for one change request. If it needs more than one, split it in the plan first.
@@ -117,6 +119,8 @@ The plan lives at `docs/plan/PLAN.md`. It is the origin of every issue.
 
 ```markdown
 ## M1: Walking skeleton
+
+Release: v0.1.0
 
 ### T-001: Command-line entry point
 Depends on: none
@@ -188,7 +192,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 ## 10. Branches, commits and change requests
 
-**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. One exception: `chore/release-<version>` (section 12). The default branch always stays releasable. Nobody, human or agent, pushes directly to it.
+**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. One exception: `chore/release-<version>` (section 12). The default branch always stays releasable. Nobody, human or agent, pushes directly to it, with two exceptions, both in a new repository before its branch rules exist: idea-to-plan's first commit, which saves the plan (decision 0021), and the setup commit that readies the repository for work.
 
 **Commits:** Conventional Commits. `<type>(<optional scope>): <summary>`, imperative, 72 characters or fewer. Breaking changes use `!` after the type and a `BREAKING CHANGE:` footer. Each commit references its issue in a footer: `Refs: #12`.
 

@@ -1,5 +1,7 @@
 # Plan: idea-to-release
 
+Status: accepted 2026-11-22
+
 idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
 ## Scope
@@ -282,6 +284,8 @@ Done when:
 
 ## M5: First release
 
+Release: v0.1.0
+
 The `cut-release` skill exists and packages releases through a target adapter, the skills can be installed with the install script, and v0.1.0 of this repository was cut with the skill itself, then its branch rules were enforced on the private repository.
 
 ### T-023: Implement the tag and release verbs
@@ -351,6 +355,8 @@ Done when:
 - [x] The README's "How `main` is protected" section and roadmap describe the enforced rules
 
 ## M6: Plugin release
+
+Release: v0.2.0
 
 The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, a `write-tutorial` skill writes one for any project and releases ship it, two small defects in the plan and the changelog rules are fixed, and v0.2.0 is released with the plugin.
 
@@ -434,17 +440,19 @@ Done when:
 
 ## M7: Plan, accept, work
 
+Release: v0.3.0
+
 A project goes from an idea to an accepted plan to its releases through three skills: the plan is a gate that checks what was asked for is what was understood, accepting it readies the forge before any task is worked, and every release archive has its own README. v0.3.0 is released with six skills.
 
 ### T-044: Make idea-to-plan end in a private repository with the plan
 Depends on: none
 Done when:
-- [ ] In new mode, `idea-to-plan` ends by creating the repository, always private, with no visibility question, and committing the plan, its decision records and a `.project/config.yml` to the default branch, after a dry run and a yes (admin tier)
-- [ ] In an existing repository (adopt or revise mode), it opens a `docs/plan` change request instead, as it does today
-- [ ] Conventions §5 gives the plan a `Status:` line under its title, `draft` or `accepted <date>`, and `scripts/check-plan.sh` rejects a plan without a valid one, with fixtures for both. Revise mode sets it back to `draft`
-- [ ] Conventions §5 lets a milestone carry a `Release: vX.Y.Z` line under its heading, which `check-plan.sh` validates
-- [ ] Conventions §10 names the only commits made straight to the default branch: `idea-to-plan`'s first commit, and `accept-the-plan`'s setup before the branch rules exist
-- [ ] This repository's plan has a `Status:` line, and each release milestone a `Release:` line
+- [x] In new mode, `idea-to-plan` ends by creating the repository, always private, with no visibility question, and committing the plan, its decision records and a `.project/config.yml` to the default branch, after a dry run and a yes (admin tier)
+- [x] In an existing repository (adopt or revise mode), it opens a `docs/plan` change request instead, as it does today
+- [x] Conventions §5 gives the plan a `Status:` line under its title, `draft` or `accepted <date>`, and `scripts/check-plan.sh` rejects a plan without a valid one, with fixtures for both. Revise mode sets it back to `draft`
+- [x] Conventions §5 lets a milestone carry a `Release: vX.Y.Z` line under its heading, which `check-plan.sh` validates
+- [x] Conventions §10 names the only commits made straight to the default branch: `idea-to-plan`'s first commit, and `accept-the-plan`'s setup before the branch rules exist
+- [x] This repository's plan has a `Status:` line, and each release milestone a `Release:` line
 
 ### T-045: Add accept-the-plan: setup and CI
 Depends on: T-044

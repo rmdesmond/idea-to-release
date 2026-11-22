@@ -29,7 +29,7 @@ All optional. Pass them as `key=value`.
 1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
 2. Run `scripts/check-plan.sh` on the project's plan. The script belongs to the idea-to-release skill set, next to `conventions.md`, not to the project. If the check fails, stop and show the problems. The plan must be fixed first, through a change request.
 3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
-4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
+4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading, after its `Release:` line if it has one). For each task, note:
    - ID, title and milestone
    - `Depends on:` and `Issue:`
    - the *Done when* checklist
