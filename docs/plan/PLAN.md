@@ -400,5 +400,5 @@ Done when:
 ### T-041: Fix the changelog group for a breaking removal
 Depends on: none
 Done when:
-- [ ] Conventions §12 says that a breaking change whose summary starts with "remove" or "drop" goes under **Removed**, marked **Breaking:**, and not under **Changed**
-- [ ] `cut-release`'s changelog step says the same, and its dry-run example shows such an entry
+- [x] Conventions §12 says that a breaking change whose summary starts with "remove" or "drop" goes under **Removed**, marked **Breaking:**, and not under **Changed**
+- [x] `cut-release`'s changelog step says the same, and its dry-run example shows such an entry

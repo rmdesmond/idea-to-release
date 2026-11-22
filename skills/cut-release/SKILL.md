@@ -59,7 +59,7 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
 - **Gates now:** `pipeline.status` on the default branch's head. Every required stage must pass. Don't prepare a release from a red branch.
 - **Included change requests:** `cr.list`, keeping those whose `merge_commit` lies in `<last-tag>..origin/<default>` (or all of the default branch's history, for the first release). Leave out any earlier `chore(release):` change request.
 - **Version:** apply conventions §12 to their titles. If nothing bumps, report "nothing to release" and stop. Use the `version` argument if given, after checking it's valid and higher.
-- **Changelog section:** group the titles as §12 says. Leave out a group that has no entries. The heading is `## [<X.Y.Z>] - <release date>`. Add the link reference at the end of the file, from the forge adapter's *Release and changelog links*. Keep `## [Unreleased]` at the top, emptied.
+- **Changelog section:** put each title in the first group that matches, in §12's order (Removed, Changed, Fixed, Added). A breaking removal goes under Removed, marked **Breaking:**. List the groups as Added, Changed, Fixed, Removed, and leave out a group that has no entries. The heading is `## [<X.Y.Z>] - <release date>`. Add the link reference at the end of the file, from the forge adapter's *Release and changelog links*. Keep `## [Unreleased]` at the top, emptied.
 - **Tasks delivered** (conventions §6), from the included change requests and one `issue.list state=all`:
   - **With a change request:** each issue in an included change request's `closes` whose body has a `Plan-Task: <ID>` line. Its change requests are the included ones that close it.
   - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. List these in the dry run so the user can check them.
@@ -76,7 +76,8 @@ Repository: owner/repo   Last release: v0.1.0 (or none)   Target: agent-skills
 Version:      v0.2.0 (derived: feat in #85, #88)
 Gates now:    build pass, unit pass, integration pass (placeholder)
 Included:     7 change requests (#82, #83, ...); not listed in the changelog: 3 (docs, chore)
-CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3
+CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3, Removed 1
+                Removed: - **Breaking:** Remove the ledger (#104)
 Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
 Tasks:        T-024 (#34, CR #81), T-025 (#35, CR #83) (2 tasks, M5)
               closed without a change request: T-001 (#20)

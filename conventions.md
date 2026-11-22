@@ -249,12 +249,13 @@ A disabled stage has a `reason` instead of a `run`.
 - **The version bump** comes from their titles (Conventional Commits): a breaking change (`!` after the type, or a `BREAKING CHANGE:` footer) → major; `feat` → minor; `fix` → patch. Other types don't bump. If nothing bumps, there's nothing to release.
 - **The first release,** with no earlier tag, is `0.1.0`, unless the user names another version. A named version must be valid and higher than the last tag.
 - **The release date** is the UTC date the release change request is prepared. The changelog heading uses it.
-- **`CHANGELOG.md`** follows the Keep a Changelog layout. Its entries are the change request titles, without the type prefix, followed by the change request reference (`- Add the release skill (#82)`). They're grouped like this:
-  - **Added:** `feat`
-  - **Changed:** `refactor`, `perf`, and any breaking change, marked **Breaking:**
-  - **Fixed:** `fix`
-  - **Removed:** a title whose summary starts with "remove" or "drop"
-  - Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed.
+- **`CHANGELOG.md`** follows the Keep a Changelog layout. Its entries are the change request titles, without the type prefix, followed by the change request reference (`- Add the release skill (#82)`). Each entry goes in the **first** group that matches, in this order:
+  1. **Removed:** a title whose summary starts with "remove" or "drop", of any type except `fix`. A breaking one is marked **Breaking:** (`refactor!: remove the ledger` → Removed, **Breaking:**).
+  2. **Changed:** any other breaking change, marked **Breaking:**; then `refactor` and `perf`.
+  3. **Fixed:** `fix`, including one whose summary starts with "remove" (it removes a defect, not a feature).
+  4. **Added:** `feat`.
+
+  Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed. The changelog lists the groups as Added, Changed, Fixed, Removed (Keep a Changelog's order), leaving out empty ones.
 - **Release notes** list each included task with its issue and change requests, grouped by milestone and found through the links in section 6, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
 - **Version files.** If the code holds its own version number (a `--version` string, `package.json`, `Cargo.toml`), the config lists it under `release.version_files` as `"<path>:<marker>"`. For example, `"bin/slug:SLUG_VERSION="` means the line in `bin/slug` that contains `SLUG_VERSION=`, with the version written right after the marker, optionally in quotes. The marker must be on exactly one line. The release change request writes the new version there, without the tag prefix. The task that first puts a version in the code adds its entry.
 - **The release change request** carries the changelog and version-file updates. Branch `chore/release-<version>` (the exception to section 10's pattern), title `chore(release): <version>`. The tag goes on its merge commit.
