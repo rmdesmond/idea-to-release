@@ -1,34 +1,29 @@
 # Tutorial: from an idea to a first release
 
-This tutorial follows one small project, `dedupe`, from an empty folder to its first published release, using the idea-to-release skills in the order you'd use them. Every prompt and reply below comes from a real run of the Claude Code plugin `i2r`.
+This tutorial follows one small project, `revwords`, from an empty folder to its first published release, through the three gates of the idea-to-release skills: the plan, its acceptance, and working it. Every prompt and reply below comes from a real run of the Claude Code plugin `i2r`.
 
-- **Names:** the run used `rmdesmond/dedupe`. Here it's `you/dedupe`, and the licence holder is `Your Name`. Use your own account and name. The install at the end ran with a throw-away home folder, shown here as `$HOME`.
+- **Names:** the run used `rmdesmond/revwords`. Here it's `you/revwords`, and the licence holder is `Your Name`. Use your own account and name. The install at the end ran with a throw-away home folder, shown here as `$HOME`.
+- **Answers up front:** the run was headless, so each prompt gives its answers and its yeses in advance ("I confirm the dry run in advance"). Run interactively, the skills ask you instead: they show each dry run and wait for your yes, and you can leave those sentences out.
 - **Replies are shortened:** `…` marks a cut. An agent words things a little differently each time, so your replies won't match exactly, but they'll have the same steps, dry runs and questions.
 
-**The project:** `dedupe` is a bash command that removes repeated lines and keeps the first copy of each, in their original order:
+**The project:** `revwords` is a bash command that reverses the order of the words in each line:
 
 ```console
-$ printf 'b\na\nb\nA\n' | dedupe
-b
-a
-A
-$ printf 'b\na\nb\nA\n' | dedupe --ignore-case
-b
-a
+$ revwords one two three
+three two one
+$ printf 'the quick  brown fox\njumps over\n' | revwords
+fox brown quick the
+over jumps
 ```
 
 **The steps:**
 
 | Step | Skill | What it does |
 |---|---|---|
-| 1 | `idea-to-plan` | Interviews you and writes the plan |
-| 2 | `repo-bootstrap` | Creates the repository and its standard files |
-| 3 | `plan-to-issues` | Turns the plan into milestones and issues |
-| 4 | `work-issue` | Takes the first task to a pull request |
-| 5 | `ci-setup` | Adds CI that runs the plan's checks |
-| 6 | `repo-governance` | Protects `main` with branch rules |
-| 7 | `work-issue` | Takes the remaining tasks |
-| 8 | `cut-release` | Tags, packages and publishes the release |
+| 1 | `idea-to-plan` | Writes the plan with you, and saves it in a new private repository |
+| 2 | `accept-the-plan` | Readies the repository in one dry run, and marks the plan accepted |
+| 3–5 | `work-the-plan` | Takes the tasks one at a time, then cuts the release |
+| 6 | | Installs the release and uses it |
 
 **How the skills behave.** Two habits run through every step:
 - **Dry run first.** Before a skill changes anything outside your working folder, it shows a dry run: a list of every write it's about to make. It waits for your yes before anything that's hard to undo: creating the repository, changing settings or rules, tagging and publishing.
@@ -52,496 +47,346 @@ $ claude plugin install i2r@i2r
 ✔ Successfully installed plugin: i2r@i2r (scope: user)
 ```
 
-- **Names:** the skills are now typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. In their own replies, the skills name each other without the prefix ("run plan-to-issues next"). In Claude Code, that's `/i2r:plan-to-issues`.
+- **Names:** the skills are now typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-the-plan` and so on. In their own replies, the skills name each other without the prefix ("run accept-the-plan"). In Claude Code, that's `/i2r:accept-the-plan`.
 - **Updates** come with releases: `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`.
 - **Other agents** (Codex, Copilot, Gemini CLI) use the release archive and its `install.sh` instead. See the README's *Installing* section.
 
 Make an empty folder for the project, and start Claude Code there:
 
 ```sh
-mkdir dedupe && cd dedupe && claude
+mkdir revwords && cd revwords && claude
 ```
 
-## 1. Plan: `idea-to-plan`
+## 1. The plan: `idea-to-plan`
 
-**Start it** with your idea, in as much or as little detail as you have:
+**Start it** with your idea, and where the project should live. It goes through seven topics (goal, scope, constraints, release target, milestones, tasks, verification), proposing an answer for each. This run gave every answer in the prompt:
 
-> /i2r:idea-to-plan My idea: dedupe, a tiny command-line tool in bash that removes repeated lines from its input and keeps the first time each line appears, in order (unlike sort -u, it doesn't reorder). It reads files named as arguments, or stdin when there are none. An --ignore-case option treats lines that differ only in case as the same. Keep it to one milestone with at most three tasks. It lives on GitHub as you/dedupe, private, MIT. Installed with an install.sh into ~/.local/bin.
+> /i2r:idea-to-plan idea="revwords: a small command-line tool that reverses the order of the words in each line of its input, read from its arguments or from standard input." owner=you repo=revwords
+>
+> I am running you headless, so I can't answer questions as we go. Here are my answers to your topics:
+> - Goal: as in the idea, for people who script text in a shell.
+> - Scope: in, the revwords command with --help and --version, reading arguments or stdin. Out, other text transforms and file arguments.
+> - Constraints: bash 3.2 and standard tools only, on macOS and Linux. No deadline.
+> - Release target: shell-cli, the revwords command installed into a bin folder.
+> - Milestones: one, a walking skeleton, which ends in release v0.1.0.
+> - Tasks: the command itself, then a test harness (tests/run.sh) with unit tests.
+> - Verification: lint with shellcheck, unit tests through the harness once it exists, no build and no integration stage.
+>
+> Propose anything else yourself and record it under Assumptions. The description is "Reverse the order of words in each line". I confirm in advance the dry run for creating the repository.
 
-**What it asks.** It looks at the folder first:
-
-```
-- **The directory is empty.** It isn't a git repository yet and has no `.project/config.yml`. I'd
-  suggest running `/i2r:repo-bootstrap` first, since it creates `you/dedupe` (private, MIT) and
-  writes the config. I can still write the plan now, but until the config exists I can't update its
-  `pipeline` block or open a change request.
-…
-I'll go through the seven planning topics one at a time. Here's the first.
-```
-
-> The goal is right. Plan now; I'll run repo-bootstrap after. Next topic.
-
-It goes through seven topics, one at a time, proposing an answer for each and waiting for you to confirm or change it:
-
-1. **Goal**
-2. **Scope**: what's in, and what's explicitly out
-3. **Constraints**: language, versions, hosting, licence
-4. **Release target**: how a release is packaged and installed
-5. **Milestones**
-6. **Tasks**: each with a *Done when* checklist and its dependencies
-7. **Verification strategy**: test levels, and the command for each pipeline stage
-
-It raises the decisions you might not have thought about. From the scope topic:
+**What it changes:** it creates a private repository on GitHub, and saves the plan there in one commit, so you can read what it understood before anything else happens:
 
 ```
-Does that match what you want? In particular, are you happy with two choices:
-- repeats are removed across all the files together, not file by file
-- `--ignore-case` keeps the first copy's original case
-```
+The plan is saved in a new private repository: **https://github.com/you/revwords**. Its first commit is
+`a928345 docs(plan): plan revwords` on `main`, and the plan passes `check-plan.sh`. The plan is a draft,
+so nothing can be worked until you accept it.
 
-> Yes to both. Scope confirmed; next topic.
+**The plan** (`docs/plan/PLAN.md`)
+- **M1: Walking skeleton**, ending in release v0.1.0. It has two tasks, and neither is done yet. …
+  - **T-001: Add the revwords command.** It covers reading arguments or stdin, `--help`, `--version`,
+    and the version entry in the config.
+  - **T-002: Add the test harness and unit tests for revwords.** It depends on T-001, adds
+    `tests/run.sh` and `tests/revwords_test.sh`, and turns on the `unit` stage.
+- **Release target:** `shell-cli`, the `revwords` command installed into a `bin` folder.
+- **Pipeline stages:**
 
-From the constraints topic:
-
-```
-Does that work for you? I especially want to check two things:
-- Is bash 3.2 compatibility (stock macOS) a requirement?
-- Is using `awk` inside the script OK, or do you want pure bash?
-```
-
-> Bash 3.2 is required, and awk is fine. No deadline. Next topic.
-
-From the release-target topic:
-
-```
-Target: `shell-cli` - a `dedupe` command, installed into `~/.local/bin` by the release archive's `install.sh`
-
-The skill set's `shell-cli` adapter fits what you described:
-- Each release ships `dedupe-<version>.tar.gz`, containing `bin/dedupe`, `install.sh`, `VERSION`,
-  `LICENSE` and `README.md`.
-- The adapter supplies `install.sh` itself. It installs into `~/.local/bin` by default, and `--prefix`
-  changes the location. …
-- So the project doesn't need to write its own `install.sh`, and no task is needed for that.
-- The project should also provide a `tests/smoke.sh`. The adapter runs it against the installed
-  command when verifying a release, and I'd make it part of the integration task.
-```
-
-The tasks it proposed, each with a *Done when* list:
-
-```
-**T-001: Set up the test runner and lint**
-Depends on: none
-…
-**T-002: Add the dedupe command**
-Depends on: T-001
-…
-- [ ] `--help` prints usage. `--version` prints `dedupe <version>` from a `DEDUPE_VERSION=` line, and
-  `.project/config.yml` gets `release.version_files: ["bin/dedupe:DEDUPE_VERSION="]`
-- [ ] Unit tests in `tests/unit/dedupe_test.sh` cover each item above
-
-**T-003: Add the install smoke test and integration tests**
-Depends on: T-002
-…
-```
-
-And the verification strategy:
-
-```
-| Stage | Enabled | Run command, or reason if disabled |
+| Stage | Enabled | Run command, or reason |
 |---|---|---|
-| lint | yes | `shellcheck $(git ls-files 'bin/*' '*.sh')` |
-| build | no | Bash scripts run as they are; there's nothing to compile, and the `shell-cli` target packages the release |
-| unit | yes | `tests/run.sh unit` |
-| integration | yes | `tests/run.sh integration` |
-…
-**When each command starts passing:**
-- The lint command uses `git ls-files` instead of fixed paths. It lints whatever shell files exist,
-  so it passes from T-001 on, before `bin/dedupe` exists.
-- `tests/run.sh` is created in T-001. Both test commands pass from then on, and the integration suite
-  reports "no tests" until T-003.
-```
-
-> Confirmed.
-
-**What it changes:** only files in your folder:
-
-```
-I've written the plan to `docs/plan/PLAN.md`, and `check-plan.sh` passes it: 1 milestone, 3 tasks.
-Nothing is committed yet, because the directory isn't a git repository and has no
-`.project/config.yml`. …
-**Decision record**
-- `docs/decisions/0001-bash-3-2-with-awk.md` (accepted): the script must run on bash 3.2 and uses
-  `awk`. It also records that `--ignore-case` only works reliably for plain ASCII letters.
-…
-**Next steps:**
-1. Run `/i2r:repo-bootstrap` to create `you/dedupe` (private, MIT). It should pick up the two files
-   already here.
+| lint | yes | `git ls-files -z 'bin/*' '*.sh' \| xargs -0 -r shellcheck` (passes on an empty repo; I checked) |
+| build | no | Shell scripts run as they are; nothing to compile |
+| unit | from T-002 | `tests/run.sh` (switched off until then: "not set up yet: T-002 adds it") |
+| integration | no | One command with no external interfaces |
 …
 ```
 
-## 2. Create the repository: `repo-bootstrap`
+- **The plan's `Release:` line** (`M1 … ending in release v0.1.0`) is what tells `work-the-plan` to cut a release when M1's tasks are done.
+- **A pending stage:** `unit` has no command until T-002 writes the test harness. Until then it's a passing placeholder, and T-002 switches it on.
 
-> /i2r:repo-bootstrap Create you/dedupe: private, MIT licence, description 'Remove repeated lines, keeping the first'. Use the stage settings the plan's verification strategy gives.
-
-**What it asks:** nothing up front. It reads the plan, checks the forge, and shows a dry run, grouped by how much each change matters:
-
-```
-Mode: create   Repository: you/dedupe (private)
-
-Admin (needs your confirmation):
-  repo.create     gh repo create you/dedupe --private
-                  --description "Remove repeated lines, keeping the first"
-                  (created empty, then remote origin = git@github.com:you/dedupe.git)
-  repo.configure  merge methods: GitHub default (squash, merge, rebase) → squash only
-                  squash commit message → PR title + description
-                  delete branch on merge: off → on
-                  wiki: on → off      projects: on → off      issues: on (kept)
-Write:
-  local git       git init -b main (this folder isn't a git repo yet)
-  label.ensure    create 10 labels (type:*, priority:*, ready, blocked, needs-decision); 0 present; 0 differ
-  files           create .project/config.yml, CHANGELOG.md, LICENSE (MIT, 2026 Your Name),
-                  .gitignore (OS/editor block only), README.md,
-                  .github/pull_request_template.md, .github/ISSUE_TEMPLATE/task.md
-                  keep docs/plan/PLAN.md (exists)
-  decisions       keep 0001-bash-3-2-with-awk.md
-                  create 0002-licence-mit.md, 0003-visibility-private.md,
-                         0004-merge-strategy.md, 0005-review-rule.md
-  commit          "chore: bootstrap repository" directly on main, pushed
-                  (create mode only: the repo has no history yet)
-```
-
-It also says which defaults it chose for what you didn't specify, and why:
+**What it leaves to you:** the choices it made itself. It records them as decisions, and the one you haven't confirmed is `proposed`:
 
 ```
-- `review: {required_approvals: 0, code_owners: false}`. On a new repo you're the only person who can
-  write, and GitHub never counts an author's own approval, so 1 would block every merge. The core
-  checks gate merges, and your merge counts as the review. …
-```
+**Decision records**
+- 0001, accepted: bash 3.2 and standard tools only, on macOS and Linux.
+- 0002, accepted: no file arguments and no other text transforms.
+- 0003, accepted: the command comes before its test harness. This is your task order, which differs
+  from the usual rule that the test setup comes first.
+- 0004, **proposed**: how words, lines and options are handled.
 
-> Yes, go ahead with all of it.
-
-**What it changes:**
-- **On GitHub:** it creates the repository, its settings and the 10 labels.
-- **In the repository:** the files listed above, in one commit pushed to `main`. That's the only commit that ever goes straight to `main`; everything after it goes through a pull request.
-
-The plan and the stage settings go in with that first commit:
-
-```
-- `.project/config.yml`:
-  - `target: shell-cli` and `required_approvals: 0`.
-  - The pipeline comes from the plan's verification strategy: lint, unit and integration are enabled
-    with the plan's commands, and build is disabled with the plan's reason.
+**Assumptions I made, which you need to confirm before T-001:**
+- **Words, lines and options (record 0004):**
+  - A word is a run of characters other than spaces and tabs.
+  - Words come out joined by single spaces.
+  - Empty lines are kept.
+  - Arguments are joined into one line, like `echo`, and then stdin isn't read.
+  - Options only count as the first argument, and `--` ends them.
+  - An unknown option exits with status 2.
 …
-**Not changed:** `docs/plan/PLAN.md` and `docs/decisions/0001-bash-3-2-with-awk.md` already existed
-and went into the first commit as they were. The plan check passes on it (1 milestone, 3 tasks).
+**Next:** review the plan in the repository. If it's not right, change it with this skill. When it is,
+run **accept-the-plan**, and accept or change record 0004 before T-001 starts.
 ```
 
-**Already have a repository?** Run `/i2r:repo-bootstrap` in it. It switches to *adopt* mode, keeps what's there, and only adds what's missing.
+**Not right?** Run `/i2r:idea-to-plan` again with what to change. It revises the plan without renumbering its tasks.
 
-## 3. Create the issues: `plan-to-issues`
+## 2. Accept the plan: `accept-the-plan`
 
-> /i2r:plan-to-issues
+> /i2r:accept-the-plan licence=mit
+>
+> I am running you headless, so I can't answer as we go: use the defaults for anything not given, and I confirm the dry run in advance.
 
-**What it asks:** only for a yes on its dry run:
+**What it asks:** for a yes on one dry run that covers the whole setup, and for your answer on each `proposed` decision record: accept it as written, or leave it proposed.
 
-```
-Repository: you/dedupe   Plan: 1 milestone, 3 tasks (0 done, 0 dropped)
-
-milestone.ensure  create M1: Usable dedupe
-issue.create      "T-001: Set up the test runner and lint"                       type:chore   priority:normal ready    M1
-                  "T-002: Add the dedupe command"                                type:feature priority:normal blocked  M1
-                  "T-003: Add the install smoke test and integration tests"      type:chore   priority:normal blocked  M1
-issue.update      none
-issue.link        T-002 blocked-by T-001
-                  T-003 blocked-by T-002
-issue.close       none
-labels            none
-
-Reported, not changed: none
-```
-
-- **Labels:** each issue gets a type, a priority and a state. `ready` means nothing blocks the task; `blocked` means a task it depends on isn't finished.
-- **Issue bodies:** each one has the task's *Done when* list, copied from the plan, and a `Plan-Task: T-002` line. That line is how every later step finds the task again.
-
-> Yes, go ahead as shown.
-
-**What it changes:**
+**What it changes:** everything a task needs, before any task starts:
 
 ```
-| Issue | Task | Labels | Blocked by |
-|---|---|---|---|
-| #1 | T-001: Set up the test runner and lint | `type:chore` `priority:normal` `ready` | none |
-| #2 | T-002: Add the dedupe command | `type:feature` `priority:normal` `blocked` | #1 |
-| #3 | T-003: Add the install smoke test and integration tests | `type:chore` `priority:normal` `blocked` | #2 |
+I've set up the repository and opened the acceptance change request, **[PR #3](https://github.com/you/revwords/pull/3)**.
+The plan becomes accepted when you merge it. I haven't merged it, as the skill requires.
 
-- **Milestone:** I created `M1: Usable dedupe` (milestone #1), with the plan's M1 summary as its
-  description. All three issues are in it.
+**What I changed**
+- **Settings:** merges are now squash-only, and a squashed commit takes the PR's title and description.
+  Branches are deleted after merging, and the wiki and projects are turned off.
+- **Labels:** created the 10 standard labels. GitHub's default labels are still there.
+- **Files:** one setup commit pushed straight to `main`, `057894e`, which was allowed because no branch
+  rules existed yet. It adds:
+  - `LICENSE` (MIT, 2026 Your Name)
+  - `CHANGELOG.md` and `README.md`
+  …
+  - decision records 0005 (licence), 0006 (private visibility), 0007 (squash merges, releases from
+    `main`) and 0008 (0 required approvals while you're the only maintainer)
+- **Pipeline:** added `.github/workflows/pipeline.yml`.
+  - `lint` runs shellcheck.
+  - `unit` is a passing placeholder until T-002 adds the tests.
+  - `build` and `integration` are passing placeholders because the project doesn't need them.
+  …
+- **Issues:**
+  - milestone M1: Walking skeleton
+  - [#1](https://github.com/you/revwords/issues/1) T-001: Add the revwords command, labelled feature,
+    normal priority, ready
+  - [#2](https://github.com/you/revwords/issues/2) T-002: Add the test harness and unit tests for
+    revwords, labelled chore, normal priority, blocked. It's linked as blocked by #1.
+- **PR #3:** changes the plan's status from `draft` to `accepted 2026-11-22`. All four checks passed on
+  it, `lint` included, and it closes no issue.
+- **Branch rules:** the `idea-to-release` ruleset now protects `main`, with no exceptions for admins.
+  - Deleting `main`, force-pushing and pushing to it directly are blocked.
+  - PRs need 0 approvals.
+  - lint, build, unit and integration must pass before a merge.
+  …
 ```
 
-The repository's files don't change: the plan stays the only source of the tasks.
+- **The setup commit** is the last one that goes straight to `main`. From here on, every change comes through a pull request, and the four checks gate it.
+- **Issue bodies** carry the task's *Done when* list, copied from the plan, and a `Plan-Task: T-001` line. That line is how every later step finds the task again.
+- **On a private repository,** branch rules need a paid GitHub plan. This run's account had one. On a free account, GitHub refuses the rules. Then `accept-the-plan` writes a decision record that says which rules aren't enforced and what replaces them (`work-issue` never opens a red pull request, and you only merge green ones). Making the repository public, or upgrading the plan, lets a later run enforce the rules.
 
-**Run it again whenever the plan changes.** It changes only what differs. With no changes, it reports "Issues match the plan; no changes".
-
-## 4. The first task: `work-issue`
-
-> /i2r:work-issue
-
-**What it asks:** which issue to take. With no issue named, it proposes the first `ready` one:
+**A proposed record is still open.** This prompt didn't answer for decision 0004, so the skill left it alone:
 
 ```
-**Proposed issue: #1, T-001: Set up the test runner and lint** (`ready`, M1, `type:chore`,
-`priority:normal`). No change request is open for it.
-
-It's the only `ready` issue, so there are no other candidates:
-
-- #2, T-002: Add the dedupe command is `blocked` by #1, which is still open.
-- #3, T-003: Add the install smoke test and integration tests is `blocked` by #2.
+**Left alone**
 …
-Should I go ahead with #1?
+- Decision 0004 (word and line handling) is still `proposed`. Accepting the plan doesn't accept it,
+  and you need to accept or change it before T-001 starts.
 ```
 
-> Yes, go ahead.
+Run it again with your answer. Every skill checks what's already done before it acts, so a second run changes only what's left:
 
-**What it changes:**
-- **Locally:** it creates the branch, does the work, and runs every enabled stage.
-- **On GitHub:** if every stage passes, it pushes and opens a pull request that closes exactly that issue. It also ticks the task's *Done when* boxes in the plan, in the same pull request.
+> /i2r:accept-the-plan licence=mit
+>
+> I am running you headless, so I can't answer as we go: use the defaults for anything not given, and I confirm the dry run in advance. My answer for decision record 0004: accept it as written.
 
 ```
-I've opened PR #4 for T-001 (issue #1). The lint, unit and integration stages all pass locally.
+Decision record 0004 is now accepted, and the acceptance pull request #3 is ready for you to merge.
+This was a re-run: an earlier run had already done the rest of the setup, so 0004 was the only thing
+left to change.
 
-**PR:** https://github.com/you/dedupe/pull/4, titled `test: add the test runner and assertion helpers`
-- **Status:** open, mergeable (`CLEAN`), no review required. It closes #1 and nothing else.
-- **CI checks:** none. The repo has no pipeline yet because ci-setup hasn't been run.
+**What changed this run**
+- In `docs/decisions/0004-word-and-line-handling.md`, I changed `Status: proposed` to
+  `Status: accepted`, as you answered. I committed it as `docs(decisions): accept decision 0004` and
+  pushed it to the open pull request's branch, `docs/accept-plan`, instead of opening a second one.
 …
-- **`docs/plan/PLAN.md`:** T-001's four boxes are ticked, and `check-plan.sh` passes.
+**Already in place, no change**
+- **Plan:** it passes `check-plan.sh`, with 1 milestone ("M1: Walking skeleton"), 2 tasks, release
+  v0.1.0 and target `shell-cli`. Its `Status: accepted 2026-11-22` line is in #3 and takes effect when
+  you merge.
 …
-- Your review rule needs 0 approvals, so nothing stops a merge. I haven't approved or merged it;
-  that's yours to do.
+**Next:** merge https://github.com/you/revwords/pull/3, which accepts the plan and decision 0004. Then
+run **work-the-plan**, which starts with T-001 (#1).
 ```
+
+Merge #3. **Run `accept-the-plan` again whenever the plan changes**, or the pipeline, the rules, visibility or access. It changes only what differs.
+
+## 3. The first task: `work-the-plan`
+
+> /i2r:work-the-plan
+>
+> I am running you headless, so I can't answer as we go: I confirm in advance that you should take the first task you propose, and the stale-label change if there is one. Take only that one task.
+
+**What it asks:** whether to take the next task in plan order. It refuses a plan that isn't accepted, and skips a task that depends on a decision record that's still `proposed`.
+
+**What it changes:** it takes the task through `work-issue`: a branch, the work, every enabled stage run locally, and a pull request that closes exactly that issue. The task's *Done when* boxes are ticked in the plan, in the same pull request:
+
+```
+I took T-001 (#1) and opened **PR #4**, "feat: add the revwords command"
+(https://github.com/you/revwords/pull/4). All four checks pass on CI, it merges cleanly, it closes only
+#1, and no review is required. It's waiting for your merge; I haven't approved or merged it.
+
+**Checks before starting:**
+- The plan is accepted, no change request was open, and no release is due yet.
+- T-001 was `ready`, and decision 0004 is now `accepted`.
+- There was no stale label to change: #2 (T-002) is correctly `blocked`, since #1 is still open.
+
+**What's in the PR:**
+- **`bin/revwords`:** the command itself. It reverses the words from its arguments or, with none, from
+  standard input, following decision 0004. It handles `--help`, `--version` (`revwords 0.0.0`) and
+  `--`, and exits 2 on an unknown option.
+- **`.project/config.yml`:** now lists `"bin/revwords:REVWORDS_VERSION="` as a version file, so the
+  release can set the version.
+- **The plan:** T-001's boxes are ticked.
+…
+**For your review:**
+- `revwords --` with nothing after it reads standard input. Decision 0004 doesn't cover that case, so
+  it's my choice.
+…
+Run work-the-plan again after you merge PR #4, and it will move on to T-002.
+```
+
+**What it leaves to you:** the review, and the choices it made where the plan was silent. Review the pull request, and merge it.
 
 **When a check fails,** `work-issue` stops before pushing, and never opens a pull request with a failing stage. If the cause is outside its task (a wrong run command in the config, say), it won't fix it there: it says where the fix belongs. See *When a step stops* below.
 
-Review the pull request, and merge it.
+## 4. The next task: `work-the-plan` again
 
-## 5. CI: `ci-setup`
+Run the same prompt again after the merge:
 
-> /i2r:ci-setup
+> /i2r:work-the-plan
+>
+> I am running you headless, so I can't answer as we go: I confirm in advance that you should take the first task you propose, and the stale-label change if there is one. Take only that one task.
 
-**What it asks:** for a yes on its dry run. It runs the enabled stages locally first, so the CI it adds starts green:
-
-```
-Pipeline: 4 core stages (3 enabled, 1 placeholder), 0 extra stages
-  lint         run: shellcheck $(git ls-files 'bin/*' '*.sh')
-  build        placeholder: Bash scripts run as they are; nothing to compile, and the shell-cli target packages releases
-  unit         run: tests/run.sh unit
-  integration  run: tests/run.sh integration
-Files:     create .github/workflows/pipeline.yml (no CI files exist on main yet)
-Local run: lint pass (3 files), unit pass (1 passed), integration pass ("no tests" yet)
-Change request: branch chore/ci → main, "chore(ci): render the pipeline from the config"
-```
-
-> Go ahead.
-
-**What it changes:** one file, `.github/workflows/pipeline.yml`, in pull request #5. It waits for CI to run on that pull request:
+When T-001 merged, #2's blocker closed, but its label still said `blocked`. `work-the-plan` noticed, and with your yes moved it to `ready`. This task also switches on the pending `unit` stage:
 
 ```
-| Stage | Result on the change request |
-|---|---|
-| lint | pass |
-| build | pass (placeholder; the log shows its `skipped:` message) |
-| unit | pass (1 passed, 0 failed) |
-| integration | pass, but it checks nothing yet ("integration: no tests") |
+I took T-002 (#2, adding the test harness and unit tests), and it's now waiting for your merge in
+**PR #5**: https://github.com/you/revwords/pull/5
+
+**Where the plan stood:** it was accepted, nothing else was waiting for review, and the v0.1.0 release
+wasn't due yet because T-002 was still open. Its `blocked` label was out of date, since its only blocker
+(#1) is closed, so I changed it to `ready` as you'd approved.
+
+**What the PR adds:**
+- **`tests/run.sh`:** runs every `tests/*_test.sh`. …
+- **`tests/revwords_test.sh`:** 25 cases covering decision 0004: …
+- **The `unit` stage is now on:** it's enabled in `.project/config.yml` with `run: tests/run.sh`, and I
+  regenerated the pipeline file with the adapter's renderer.
+- **The plan:** all of T-002's boxes are ticked.
+
+**Verification:**
+- On macOS bash 3.2.57, lint passes and the tests give `25 passed, 0 failed`.
+- On CI (`ubuntu-latest`), all four checks pass, and the unit job's log shows `25 passed, 0 failed`. …
+- When I changed one expected value on purpose, the run printed a `FAIL` line and exited 1. I reverted
+  that change and didn't commit it.
+- The PR closes exactly #2 and can be merged cleanly.
+
+Once you've merged it, run `/i2r:work-the-plan` again: with every M1 task done, it will move on to the
+v0.1.0 release.
 ```
 
-The workflow is generated from the `pipeline` block in `.project/config.yml`. To change it, edit the config and run `ci-setup` again; don't edit the file by hand. Merge #5.
+The pipeline is generated from the `pipeline` block in `.project/config.yml`. To change a stage outside a task, change the plan's verification strategy with `idea-to-plan`, which keeps the config in step, then run `accept-the-plan`; don't edit the workflow file by hand. Merge #5.
 
-## 6. Protect `main`: `repo-governance`
+## 5. The release: `work-the-plan` at the end of M1
 
-> /i2r:repo-governance
+With every task in M1 merged, M1's `Release: v0.1.0` line is due. `work-the-plan` runs `cut-release`, and first offers `write-tutorial`, for a project that should ship a tutorial of its own. This run said no with `tutorial=no`:
 
-**What it asks:** for a yes on its dry run. It checks first that the four checks it will require have run on GitHub, so the rules can't lock the repository:
-
-```
-Repository: you/dedupe (private)   Default branch: main
-Visibility:    private (no change; matches config and decision 0003)
-Access:        you admin; 1 person can write; no pending invitations; grants: none
-Branch rules (new ruleset "idea-to-release" on ~DEFAULT_BRANCH, enforcement active, no bypass actors):
-  protect      deletion: allowed → blocked; force push: allowed → blocked; direct push: allowed → blocked (pull requests only)
-  reviews      required approvals: none → 0; code owners: off (decision 0005)
-  checks       required: none → lint, build, unit, integration (GitHub Actions only, strict off)
-               all four reported success on PR #5; on main 3bb4472, build/unit/integration passed and lint skipped (it only runs on PRs)
-Other rulesets: none.   Classic branch protection: none.
-Fallback:      none needed
-```
-
-> Yes, apply it.
-
-**What it changes:** a ruleset on `main`, and no files, so there's no pull request:
-
-```
-- **Protection:** `main` can't be deleted, force-pushed to or pushed to directly. Every change has
-  to come through a pull request.
-- **Reviews:** no approvals are required and code-owner review is off, per decision 0005.
-- **Checks:** `lint`, `build`, `unit` and `integration` must pass before a pull request can merge,
-  and only GitHub Actions can report them.
-- **Who it applies to:** the ruleset is active with no bypass actors, so it applies to you as admin
-  too.
-…
-- If a pull request is blocked, `gh pr merge` may suggest `--admin`. Don't use it: that skips the
-  gates.
-```
-
-**On a private repository**, branch rules need a paid GitHub plan. This run's account had one. On a free account, GitHub refuses the rules. Then `repo-governance` writes a decision record that says which rules aren't enforced and what replaces them (`work-issue` never opens a red pull request, and you only merge green ones), and opens a pull request for it. Making the repository public, or upgrading the plan, lets a later run enforce the rules.
-
-## 7. The remaining tasks: `work-issue`
-
-> /i2r:work-issue
-
-When T-001 merged, #2's blocker closed, but its label still said `blocked`. `work-issue` noticed:
-
-```
-No issue is labelled `ready`, so I looked for a `blocked` label that's out of date. I found one.
-
-**Proposed: #2 — T-002: Add the dedupe command** (M1, `type:feature`, `priority:normal`)
-- Its label says `blocked`, but its only blocker, #1 (T-001), is closed. The label is stale.
-- If you confirm, I'll first change #2's label from `blocked` to `ready`, then branch
-  `feat/2-add-dedupe-command` from `main` and do the work.
-…
-There are no other candidates. Shall I take #2?
-```
-
-> Yes, go ahead.
-
-It opened pull request #6, which closes #2. That task added `--version`, so it also added `bin/dedupe:DEDUPE_VERSION=` to `release.version_files`. **What it leaves to you:** the choices it made where the plan was silent, listed for your review:
-
-```
-**Decisions for you to check in review**
-- **Version:** `--version` prints `dedupe 0.0.0` for now. The first release will set the real number.
-- **Bad files:** when one file is bad, the others are still read and printed, as `cat` does, and the
-  exit status is still 1. If every file is bad, it doesn't fall back to reading stdin.
-- **File names with `=`:** a file named something like `a=b` is read as a file. Without a fix, `awk`
-  would treat that name as a variable assignment.
-```
-
-Merge it, then run `/i2r:work-issue` once more. It offers #3 the same way (its `blocked` label is out of date too), and opens pull request #7 for T-003. Merge that too:
-
-```
-Merging is your call. Once #7 merges, every task in M1 is done.
-```
-
-**A `blocked` issue whose blockers are still open is never taken.** If you name one (`/i2r:work-issue issue=3`), `work-issue` refuses and names what it's waiting for.
-
-## 8. Release: `cut-release`
-
-With every task in M1 merged:
-
-> /i2r:cut-release
-
-`cut-release` runs in stages, and you run it once per stage. Each run picks up where the last one stopped.
+> /i2r:work-the-plan tutorial=no
+>
+> I am running you headless, so I can't answer as we go. If a release is due, I confirm in advance each step cut-release asks me to confirm: the release change request, creating the tag, and publishing. Stop wherever it needs my merge.
 
 **Run 1: the release pull request.** It works out the version and the changelog from the pull requests merged since the last release, and the plan tasks they delivered:
 
 ```
-I've opened the release change request: **https://github.com/you/dedupe/pull/8** (`chore(release): v0.1.0`).
-
-- **Version:** v0.1.0. It's the first release, so it starts at 0.1.0. #6 (`feat: add the dedupe
-  command`) is the change that justifies a release.
-- **`CHANGELOG.md`:** adds `## [0.1.0] - 2026-11-22` with one entry under Added, "Add the dedupe
-  command (#6)", and a link to the release page. `## [Unreleased]` stays at the top, empty. The other
-  three change requests (#4, #5, #7) are test and CI chores, which the changelog doesn't list.
-- **`bin/dedupe`:** `DEDUPE_VERSION=0.0.0` → `0.1.0`.
-- **Tasks delivered (M1: Usable dedupe):**
-  - T-001: test runner and lint (#1, change request #4)
-  - T-002: the dedupe command (#2, change request #6)
-  - T-003: install smoke test and integration tests (#3, change request #7)
-  - No task was closed without a change request.
+Release v0.1.0 is due, and its release change request is open: **#6 `chore(release): v0.1.0`**
+(https://github.com/you/revwords/pull/6). It needs your merge before the release can go on.
 …
+**What the release change request contains**
+- **`CHANGELOG.md`:** a new `## [0.1.0] - 2026-11-22` section with one entry under Added: "Add the
+  revwords command (#4)". It also gets a link to the release page. #3 is a docs change and #5 is a test
+  change, so neither goes in the changelog.
+- **`bin/revwords`:** the version goes from `REVWORDS_VERSION="0.0.0"` to `"0.1.0"`.
+- **Checks:** lint, build, unit and integration all pass on the change request. …
+…
+After you merge #6, run `/i2r:work-the-plan` again. That run will tag `v0.1.0` on the merge commit,
+wait for the release stages to pass on the tag, build and check the archive, draft the release, and
+publish it. You've already said yes to the tag and the publish. It will stop if the merge commit isn't
+the newest commit on `main`, or if a release check fails.
 ```
 
 - **The version** comes from the pull request titles: a `feat` raises the minor version, a `fix` the patch.
 - **The changelog** is written from those titles too. So write a pull request's title as you'd want it in the changelog.
 
-Merge #8, then:
+Merge #6, then:
 
-> I merged #8. Run /i2r:cut-release again.
+> /i2r:work-the-plan tutorial=no
+>
+> I am running you headless, so I can't answer as we go. I confirm in advance each step cut-release asks me to confirm: creating the tag, and publishing the release.
 
-**Run 2: the tag.** It checks that `main`'s head is the release pull request's merge commit, and that its checks pass, then asks:
-
-```
-**Dry run of `tag.create`:**
-
-git tag -a v0.1.0 9a6de45dc4563f749a59c79c2ad06748d0d7fef9 -m "v0.1.0"
-git push origin refs/tags/v0.1.0
-
-Pushing the tag starts the release checks (build, unit, integration). Once they pass, I'll package
-the archive (`dedupe-0.1.0.tar.gz`), test that it installs, and create a draft release. Publishing
-needs a separate yes from you.
-
-Tags are permanent and never moved. If a release check fails after the push, v0.1.0 stays as it is,
-and the fix would go out as v0.1.1.
-
-**Do you want me to create and push the `v0.1.0` tag?**
-```
-
-> Yes, create and push the tag.
-
-**What it changes:**
-- **Tag and package:** it pushes the tag, waits for the release checks, then builds the archive from a clean copy of the tag. It installs the archive somewhere temporary and tests it.
-- **Draft:** it saves the release as a draft:
+**Run 2: the tag and the release.** Run interactively, it shows a dry run of the tag and asks first, then asks again before it publishes. Tags are permanent: if a release check fails after the tag, the fix goes out as a patch release.
 
 ```
-- **Tag:** `v0.1.0` → `9a6de45`, the merge commit of #8.
-- **Checks on the tag:** build passed (placeholder), unit and integration passed, and lint was
-  skipped because it only runs on pull requests. Overall: pass.
-- **Asset:** `dedupe-v0.1.0.tar.gz`, 3,095 bytes. I built it from a clean copy of the tag and tested
-  the install: `dedupe` installed, `tests/smoke.sh` passed, 6 checks passed.
+I published v0.1.0, and with it the plan is complete.
+
+**Release:** https://github.com/you/revwords/releases/tag/v0.1.0
+- **Tag:** `v0.1.0` on `3199d43`, the merge commit of the release change request (#6). The checks
+  passed on that commit before tagging and on the tag afterwards (lint doesn't run on tags or merges).
+- **Asset:** `revwords-v0.1.0.tar.gz` (3046 bytes). The install check on it passed all 9 checks. It
+  only covers installing, because the project has no `tests/smoke.sh`.
+- **Published** at 2026-11-22 18:09 UTC, and it's marked as the latest release.
+- **Tasks delivered (M1: Walking skeleton):**
+  - T-001: Add the revwords command (issue #1, change request #4)
+  - T-002: Add the test harness and unit tests for revwords (issue #2, change request #5)
+- **Changelog:** Added "Add the revwords command (#4)".
 …
-**Do you want me to publish v0.1.0?** If you say no, the draft stays as it is, and a later
-`/i2r:cut-release` run picks it up at this step.
-```
-
-> Yes, publish v0.1.0.
-
-```
-**dedupe v0.1.0 is published:** https://github.com/you/dedupe/releases/tag/v0.1.0
-
-- **Published:** 2026-11-22 04:31 UTC. It's marked as the latest release.
-- **Tag:** `v0.1.0` still points at `9a6de45`, the merge commit of #8. Publishing didn't move it.
+**Plan status:** M1 is the only milestone. Both its tasks are done and its release line, v0.1.0, has
+its tag and a published release.
 …
+What comes next is up to you. To start a new milestone, run **idea-to-plan** in revise mode, then
+**accept-the-plan**.
 ```
 
-The release notes list the plan tasks it delivered, the changelog section, and how to install it. Installed from the archive:
+## 6. Install and use the release
+
+The release notes list the plan tasks it delivered, the changelog section, and how to install it. The archive has its own `README.md`, with the same install steps and the command's `--help`. Installed from the archive:
 
 ```console
-$ tar -xzf dedupe-v0.1.0.tar.gz && cd dedupe-v0.1.0 && ./install.sh
-Installed dedupe v0.1.0 in $HOME/.local/bin: dedupe
+$ tar -xzf revwords-v0.1.0.tar.gz && cd revwords-v0.1.0 && ./install.sh
+Installed revwords v0.1.0 in $HOME/.local/bin: revwords
 Note: $HOME/.local/bin isn't on your PATH. Add it, for example: export PATH="$HOME/.local/bin:$PATH"
 ```
 
 Then, with it on your `PATH`:
 
 ```console
-$ printf 'b\na\nb\nA\n' | dedupe
-b
-a
-A
-$ printf 'b\na\nb\nA\n' | dedupe --ignore-case
-b
-a
-$ dedupe --version
-dedupe 0.1.0
+$ revwords one two three
+three two one
+$ printf 'the quick  brown fox\njumps over\n' | revwords
+fox brown quick the
+over jumps
+$ revwords --version
+revwords 0.1.0
+```
+
+A wrong option says what to do, and exits with status 2:
+
+```console
+$ revwords -x
+revwords: unknown option: -x
+Try 'revwords --help' for more information.
 ```
 
 ## What's next: the next feature
 
-After the first release, every change goes round the same loop:
+After the first release, every change goes through the same gates:
 
-1. `/i2r:idea-to-plan` with what you want to change. In *revise* mode, it adds milestones and tasks without renumbering the old ones. If the change contradicts the plan's scope, it says so, and records the reversal in a decision record.
-2. `/i2r:plan-to-issues` creates the new issues.
-3. `/i2r:work-issue`, once per task.
-4. `/i2r:cut-release` when there's a `feat` or `fix` worth releasing.
+1. `/i2r:idea-to-plan` with what you want to change. In *revise* mode, it adds milestones and tasks without renumbering the old ones, and proposes the revised plan as a pull request. If the change contradicts the plan's scope, it says so, and records the reversal in a decision record.
+2. `/i2r:accept-the-plan` accepts the revision, and creates the new issues.
+3. `/i2r:work-the-plan`, after each merge, until the next milestone's release is published.
 
-`ci-setup` and `repo-governance` only need running again when the pipeline stages or the rules change. Optionally, `/i2r:write-tutorial` writes your project's own `docs/tutorial.md` from a real run, before a release that should ship one.
+`work-issue` also works alone, for a single issue: `/i2r:work-issue issue=12`.
 
 ## When a step stops
 
@@ -549,13 +394,13 @@ The skills stop rather than guess, and say why. The common cases:
 
 | It says | Why | What to do |
 |---|---|---|
-| A stage fails locally, and the cause isn't the task's code | A run command or the config is wrong | Fix it through `idea-to-plan`, which changes the plan and the config together, merge, then tell `work-issue` to carry on |
+| The plan isn't accepted | `work-the-plan` only works an accepted plan | Run `accept-the-plan`, and merge its pull request |
+| A task waits on a decision record | The record is still `proposed` | Answer it in `accept-the-plan`, or change it through `idea-to-plan` |
+| A change request is open | It takes one task at a time | Review and merge it, then run `work-the-plan` again |
+| A stage fails locally, and the cause isn't the task's code | A run command or the config is wrong | Fix it through `idea-to-plan`, which changes the plan and the config together, then `accept-the-plan`, and carry on |
 | A stage fails because of the task's code | The work isn't finished | Let `work-issue` fix it. It doesn't open a red pull request |
-| No issue is `ready` | Every open issue waits on another | Merge the open pull requests. `work-issue` then offers the first issue whose blockers have all closed |
-| An issue is `blocked` | A blocker is still open | Finish the blocker first |
-| Standard labels are missing | The repository wasn't bootstrapped | Run `repo-bootstrap`, which adds only what's missing |
 | `check-plan.sh` fails | The plan's format is broken | Fix the plan through `idea-to-plan` |
-| GitHub refuses the branch rules | A private repository on a free plan | `repo-governance` records the gap in a decision record. Go public or upgrade to enforce them |
+| GitHub refuses the branch rules | A private repository on a free plan | `accept-the-plan` records the gap in a decision record. Go public or upgrade to enforce them |
 | `main` moved after the release pull request | Something merged in between | `cut-release` asks: prepare again, or tag the release commit itself |
 | A release check fails on the tag | The tag's build or tests fail | Fix it in a new pull request, then cut a patch release. Tags are never moved |
 
@@ -568,4 +413,4 @@ You can stop at any confirmation and come back later. Every skill checks what's 
 - `skills/<name>/SKILL.md`: each skill's full procedure
 - `docs/decisions/`: why things are the way they are
 
-Outputs from a recorded run from 2026-11-22.
+Outputs from a run of e81b79e (2026-11-22) and a recorded run from 2026-11-22.

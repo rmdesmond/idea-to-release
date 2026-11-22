@@ -511,7 +511,7 @@ Done when:
 ### T-051: Update the tutorial for the three gates
 Depends on: T-049, T-050
 Done when:
-- [ ] `write-tutorial` rewrites `docs/tutorial.md` from T-050's recorded run, with `idea-to-plan`, `accept-the-plan` and `work-the-plan` as its steps
+- [x] `write-tutorial` rewrites `docs/tutorial.md` from T-050's recorded run, with `idea-to-plan`, `accept-the-plan` and `work-the-plan` as its steps
 
 ### T-052: Release v0.3.0
 Depends on: T-049, T-050, T-051
