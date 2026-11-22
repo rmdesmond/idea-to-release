@@ -53,6 +53,7 @@ adapters/
 conventions.md       # shared rules every skill reads first
 .claude-plugin/      # plugin.json and marketplace.json: the Claude Code plugin i2r
 docs/
+  tutorial.md        # from an idea to a first release, step by step
   plan/PLAN.md       # the plan for this project
   decisions/         # decision records
 .project/
@@ -65,6 +66,8 @@ This repository is built with its own skills and follows its own conventions, so
 ## Installing
 
 The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code.
+
+New to the skills? [The tutorial](docs/tutorial.md) takes a small project from an idea to its first release, one skill at a time, with the prompts and replies from a real run.
 
 ### Claude Code: the plugin `i2r`
 

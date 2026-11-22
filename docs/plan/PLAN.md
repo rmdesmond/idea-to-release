@@ -386,10 +386,10 @@ Done when:
 ### T-039: Write a tutorial for the skills
 Depends on: T-037
 Done when:
-- [ ] `docs/tutorial.md` takes a new user through a small example project from idea to its first release: installing the plugin, then `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance` and `cut-release`, in the order they're used
-- [ ] For each skill it shows how to start it, what it asks, the dry run it shows and what the user confirms, and what it changes in the repository and on the tracker
-- [ ] Its commands and outputs come from the end-to-end run in T-037, not from memory, and it says what to do when a step stops (a failing check, a blocked issue, a private repository's branch rules)
-- [ ] The README links to it from "Installing"
+- [x] `docs/tutorial.md` takes a new user through a small example project from idea to its first release: installing the plugin, then `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance` and `cut-release`, in the order they're used
+- [x] For each skill it shows how to start it, what it asks, the dry run it shows and what the user confirms, and what it changes in the repository and on the tracker
+- [x] Its commands and outputs come from the end-to-end run in T-037, not from memory, and it says what to do when a step stops (a failing check, a blocked issue, a private repository's branch rules)
+- [x] The README links to it from "Installing"
 
 ### T-040: Fix the unticked boxes of tasks done before work-issue ticked them
 Depends on: none
