@@ -15,7 +15,7 @@ In (first release, v0.1.0):
 In (v0.2.0, M6):
 - The skills as a Claude Code plugin, `i2r`, installed from this repository (decision 0019)
 - No stored ledger: the trail from task to release is read from the plan, the issues, the change requests and the tags (decision 0018)
-- Fixes for what the end-to-end runs found
+- The fix for the stale `blocked` labels found end to end
 
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
@@ -340,7 +340,7 @@ Done when:
 
 ## M6: Plugin release
 
-The ledger is gone, the skills install as the Claude Code plugin `i2r`, the bugs found end to end are fixed, and v0.2.0 is released with the plugin.
+The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, and v0.2.0 is released with the plugin.
 
 ### T-034: Remove the ledger
 Depends on: none
@@ -359,15 +359,7 @@ Done when:
 - [ ] On confirmation it moves that issue from `blocked` to `ready` before starting, and reports it
 - [ ] Conventions §8 says which skills may change state labels
 
-### T-036: Let a shell-cli project name its archive
-Depends on: none
-Issue: #87
-Done when:
-- [ ] A project can set `release.package` (for example `slug`), defaulting to `repo`
-- [ ] The shell-cli `build.sh`, `install.describe` and `cut-release`'s dry run use it
-- [ ] `tests/script-shell-cli.sh` covers both the default and a set name
-
-### T-037: Offer the skills as the Claude Code plugin i2r
+### T-036: Offer the skills as the Claude Code plugin i2r
 Depends on: T-034
 Issue: #82
 Done when:
@@ -377,15 +369,15 @@ Done when:
 - [ ] The `agent-skills` target's `package.publish` and `install.describe`, and the README's Installing section, describe the plugin; `install.sh` stays for other agents
 - [ ] Decision 0019 records the name and the layout
 
-### T-038: End-to-end test through the plugin
-Depends on: T-035, T-036, T-037
+### T-037: End-to-end test through the plugin
+Depends on: T-035, T-036
 Done when:
 - [ ] On a scratch repository, the plugin's skills take a small task through `work-issue` and cut a release with `cut-release`
-- [ ] The release's archive uses the project's package name, installs from its notes, and no ledger file is written
+- [ ] The release's archive installs from its notes, and no ledger file is written
 - [ ] Problems found are fixed in the skills, or filed as issues
 
-### T-039: Release v0.2.0
-Depends on: T-038
+### T-038: Release v0.2.0
+Depends on: T-037
 Done when:
 - [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
