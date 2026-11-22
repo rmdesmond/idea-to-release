@@ -73,11 +73,11 @@ Propose the next task in plan order: the earliest milestone, then the order of t
 - `ready`, or
 - `blocked`, with every blocker closed: a stale label. Say so (work-issue moves it to `ready` once the user confirms).
 
-Skip `needs-decision` issues: they wait for the user's decision. Show the task, its *Done when* list, and the next two candidates, then wait for a yes, or for the user to pick another.
+Skip `needs-decision` issues: they wait for the user's decision. Also skip a task whose plan text (its *Done when* list, or the assumption it depends on) names a decision record whose own `Status:` line still says `proposed` (read the record, not the plan's wording): it waits until the record is accepted, which accept-the-plan asks about, or superseded through idea-to-plan. Say which record it's waiting on. Show the task, its *Done when* list, and the next two candidates, then wait for a yes, or for the user to pick another.
 
 On a yes, follow **work-issue** with `issue=<n>`. It ends with the change request open: stop there. Say that running this skill again after the merge carries on.
 
-**Nothing to take:** if no task is ready, list the open tasks with what each is waiting on (its open blockers, or the decision it needs), and stop.
+**Nothing to take:** if no task is ready, list the open tasks with what each is waiting on (its open blockers, the decision it needs, or a proposed decision record), and stop.
 
 ### 5. Plan complete
 
