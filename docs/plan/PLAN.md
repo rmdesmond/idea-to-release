@@ -502,11 +502,11 @@ Done when:
 ### T-050: Test plan, accept and work end to end
 Depends on: T-047, T-048
 Done when:
-- [ ] Through the plugin, on a new scratch repository named after its deliverable, `idea-to-plan` from an empty folder leaves a private repository holding a draft plan
-- [ ] `accept-the-plan` leaves a passing placeholder pipeline, active branch rules and the issues, and marks the plan accepted, all before any task is worked
-- [ ] `work-the-plan` works every task, stopping at each change request, and the task that creates a stage's command enables that stage
-- [ ] At the release milestone it runs `cut-release`, and the archive's README has its four sections
-- [ ] Every problem found is fixed in this milestone or filed as an issue
+- [x] Through the plugin, on a new scratch repository named after its deliverable, `idea-to-plan` from an empty folder leaves a private repository holding a draft plan
+- [x] `accept-the-plan` leaves a passing placeholder pipeline, active branch rules and the issues, and marks the plan accepted, all before any task is worked
+- [x] `work-the-plan` works every task, stopping at each change request, and the task that creates a stage's command enables that stage
+- [x] At the release milestone it runs `cut-release`, and the archive's README has its four sections
+- [x] Every problem found is fixed in this milestone or filed as an issue
 
 ### T-051: Update the tutorial for the three gates
 Depends on: T-049, T-050

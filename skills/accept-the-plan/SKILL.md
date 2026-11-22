@@ -42,7 +42,8 @@ All optional. Pass them as `key=value`.
 - `repo.describe`. If the repository doesn't exist on the forge, stop, and say to run idea-to-plan.
 - Make sure the working tree is clean, and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). Never stash or discard someone's changes.
 - `docs/plan/PLAN.md` must pass `scripts/check-plan.sh`. A plan that fails can't be accepted: list the problems, and say to fix them with idea-to-plan.
-- **Show the plan being accepted:** its status, its milestones with task counts and releases, the release target, the verification strategy and the assumptions. Accepting it is the point of this skill, so the user sees what they're accepting before anything else. Assumptions with `Status: proposed` decision records are listed, since accepting the plan doesn't accept them.
+- **Show the plan being accepted:** its status, its milestones with task counts and releases, the release target, the verification strategy and the assumptions. Accepting it is the point of this skill, so the user sees what they're accepting before anything else.
+- **Proposed decision records.** An assumption made without the user has a decision record with `Status: proposed` (idea-to-plan, step 8). Accepting the plan doesn't accept them. For each one, show what it decides and ask, one record at a time: accept it as written, or leave it proposed (to change it, revise the plan with idea-to-plan). Only the user's own answer counts, and a `non-interactive` run, even with `confirm`, leaves them proposed. Each one accepted is set to `Status: accepted` in the acceptance change request (step 6). A task that depends on one still proposed waits for it: work-the-plan won't take it.
 - Read the branch rules on the default branch (the read step in `rules.md`). **None yet** means a new repository: the setup can go straight to the default branch (conventions §10). **Some** means every file change goes through the acceptance change request.
 
 ### 2. Work out every difference
@@ -82,7 +83,7 @@ Write:
                   create .github/workflows/pipeline.yml; local run: lint pass
   commit          chore: set up the repository → main (no branch rules yet); then wait for its pipeline
   issues          create M1: Walking skeleton; create T-001 (ready), T-002 (blocked); link T-002 blocked-by T-001
-  acceptance      Status: draft → accepted 2026-11-22
+  acceptance      Status: draft → accepted 2026-11-22; 0004-word-handling.md: proposed → accepted (your yes)
                   change request docs/accept-plan → main, "docs(plan): accept the plan"
 No change:
   issues enabled, description, visibility private, access (you admin)
@@ -110,7 +111,7 @@ Apply `issues.md`: milestones, new issues, updates, links and closures, in its o
 ### 6. Open the acceptance change request
 
 1. Create branch `docs/<issue>-accept-plan` (or `docs/accept-plan` with no issue) from the default branch.
-2. Set the plan's `Status: accepted <date>`. With branch rules already in place, add the files from step 4 too.
+2. Set the plan's `Status: accepted <date>`, and `Status: accepted` on each proposed decision record the user accepted (step 1). In the plan's *Assumptions* section, change that assumption's note from proposed to accepted by the user, with the date, so the plan and the record agree. With branch rules already in place, add the files from step 4 too.
 3. Commit `docs(plan): accept the plan`, with a `Refs: #<issue>` footer if there's an issue. Push, then `cr.open`:
    - **What changed:** the plan accepted (milestones, task counts, releases), and the setup, pipeline and issues this run applied, with numbers.
    - **How it was verified:** `check-plan.sh`, the local run of the enabled stages, and the setup commit's pipeline result.
