@@ -1,6 +1,6 @@
 # Plan: idea-to-release
 
-idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the release that shipped it, and that history lives in the repository as plain files so it survives a change of forge. It's for developers working with a coding agent (built and tested with Claude Code).
+idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
 ## Scope
 
@@ -12,6 +12,11 @@ In (first release, v0.1.0):
 - Installation instructions, and an install script that puts the skills where each Agent Skills tool looks for them
 - This repository built and released with its own skills, ending in tag `v0.1.0`
 
+In (v0.2.0, M6):
+- The skills as a Claude Code plugin, `i2r`, installed from this repository (decision 0019)
+- No stored ledger: the trail from task to release is read from the plan, the issues, the change requests and the tags (decision 0018)
+- The fix for the stale `blocked` labels found end to end
+
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
 - Testing on agents other than Claude Code (the install script knows their skill folders, but only Claude Code is tested)
@@ -19,7 +24,11 @@ Out (first release):
 - Projects spread across several repositories
 - Anything outside the agent: no separate CLI, app or hosted service
 
-See decisions 0007 and 0013.
+Out (v0.2.0):
+- The Agent Plugins package for Cursor, Copilot and Codex: a later release, tracked in its own issue
+- Packaging projects other than this one with the `agent-skills` target. It packages this repository only, and won't be generalised
+
+See decisions 0007, 0013, 0018 and 0019.
 
 ## Constraints
 
@@ -328,3 +337,48 @@ Done when:
 - [x] `repo-governance` is run after its own confirmation and applies the branch rules to `main`, with a decision record superseding 0012
 - [x] A direct push and a force push to `main` are rejected, and a change request with a failing core check can't be merged
 - [x] The README's "How `main` is protected" section and roadmap describe the enforced rules
+
+## M6: Plugin release
+
+The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, and v0.2.0 is released with the plugin.
+
+### T-034: Remove the ledger
+Depends on: none
+Done when:
+- [ ] No skill, adapter or script reads or writes `.project/ledger.yml`; the file, `scripts/check-ledger.sh` and its tests are deleted, and the lint stage no longer runs the check
+- [ ] Conventions §6 becomes "Traceability": task → issue by the `Plan-Task:` footer, issue → change requests by `closes`, change request → release by its merge commit in the tag range
+- [ ] `cut-release` builds "Plan tasks delivered" from the change requests in the release, their issues and the plan, and lists tasks closed as completed with no change request
+- [ ] A `cut-release` dry run on this repository's history gives the same "Plan tasks delivered" as v0.1.0's notes
+- [ ] Decision 0018 records the removal, and #97 is closed as resolved
+
+### T-035: Refresh a stale blocked label in work-issue
+Depends on: none
+Issue: #88
+Done when:
+- [ ] When no issue is `ready`, `work-issue` proposes the first `blocked` issue, in plan order, whose blockers are all closed, and says its label is stale
+- [ ] On confirmation it moves that issue from `blocked` to `ready` before starting, and reports it
+- [ ] Conventions §8 says which skills may change state labels
+
+### T-036: Offer the skills as the Claude Code plugin i2r
+Depends on: T-034
+Issue: #82
+Done when:
+- [ ] The repository root is the plugin `i2r` and its own marketplace (`.claude-plugin/plugin.json` and `marketplace.json`), and `claude plugin validate --strict` passes
+- [ ] Installed from the marketplace, the seven skills load as `/i2r:<skill>` and find their shared files in the installed copy
+- [ ] The plugin's version follows releases: `cut-release` bumps it through `release.version_files`
+- [ ] The `agent-skills` target's `package.publish` and `install.describe`, and the README's Installing section, describe the plugin; `install.sh` stays for other agents
+- [ ] Decision 0019 records the name and the layout
+
+### T-037: End-to-end test through the plugin
+Depends on: T-035, T-036
+Done when:
+- [ ] On a scratch repository, the plugin's skills take a small task through `work-issue` and cut a release with `cut-release`
+- [ ] The release's archive installs from its notes, and no ledger file is written
+- [ ] Problems found are fixed in the skills, or filed as issues
+
+### T-038: Release v0.2.0
+Depends on: T-037
+Done when:
+- [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
+- [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
+- [ ] The README roadmap says v0.2.0 is out
