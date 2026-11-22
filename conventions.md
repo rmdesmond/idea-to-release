@@ -226,6 +226,8 @@ A **stage** is a named step of the pipeline. A **gate** is a stage that is requi
 
 Enabling it later means filling in the stage, with no change to branch rules. Disabling a stage that was enabled needs a decision record.
 
+**Pending stages.** A stage whose command a task will create (a test runner, say) is disabled until that task, with `reason: "not set up yet: T-NNN adds it"`. So the pipeline passes from its first run, and every core check exists before the branch rules require it. The task's *Done when* list includes enabling the stage: its change request sets `enabled: true` and the `run` command, and renders the pipeline again, so it's the first change request the real check runs on.
+
 **Extra stages.** A project may add stages under `pipeline.extra_stages`. Each declares a name, when it runs (`change_request`, `merge`, `release`, or `schedule`), and whether it is `required` or `advisory`:
 
 ```yaml
@@ -240,7 +242,7 @@ Typical candidates: security scanning, dependency audit, licence compliance, doc
 **Run commands.** Every enabled stage, core or extra, has a `run` command in the config: one shell command, run from the repository root, that exits 0 when the stage passes. It is the single definition of the stage:
 
 - work-issue runs it locally before opening a change request. Required stages must pass; advisory stages are reported. If an advisory stage's tool isn't installed, it is reported as skipped.
-- ci-setup renders the same command into the pipeline, so local and CI results can't drift apart.
+- accept-the-plan (or ci-setup) renders the same command into the pipeline, so local and CI results can't drift apart.
 
 A disabled stage has a `reason` instead of a `run`.
 

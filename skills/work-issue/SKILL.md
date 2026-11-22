@@ -11,7 +11,7 @@ Takes one `ready` issue to an open change request that does what its *Done when*
 
 Before doing anything, read `conventions.md`, especially §8 (labels), §9 (issues), §10 (branches, commits and change requests), §11 (pipeline stages and `run` commands) and §13 (safety).
 
-**Verbs used:** `issue.list`, `issue.update` (tracker); `cr.open`, `cr.update`, `cr.status` (forge). Look each one up in the adapters named in `.project/config.yml`.
+**Verbs used:** `issue.list`, `issue.update` (tracker); `cr.open`, `cr.update`, `cr.status`, `pipeline.render` (forge). Look each one up in the adapters named in `.project/config.yml`.
 
 ## Arguments
 
@@ -71,6 +71,8 @@ Make a checklist from the *Done when* items. Each item will need evidence (step 
 
 Make the changes the task needs, and only those. Work discovered along the way that isn't part of this task gets its own issue (conventions §9); mention it to the user rather than folding it in.
 
+**A task that enables a stage.** If the *Done when* list says to enable a pending stage (conventions §11), do it in this change request, once the work has created the stage's command: in `.project/config.yml`, set the stage's `enabled: true` and its `run` command, and remove its `reason`. Then render the pipeline with `pipeline.render` over the committed CI files. Step 6 runs the new command with the others.
+
 Commit in small, coherent steps. Use Conventional Commits, `<type>(<scope>): <summary>`, 72 characters or fewer, with a `Refs: #<n>` footer (conventions §10).
 
 ### 6. Verify
@@ -123,7 +125,7 @@ Then run `cr.status`. Check that `closes` is **exactly** the issue being worked:
 
 In either case, fix the body with `cr.update` and read `cr.status` again. GitHub can take a few seconds to parse a new body, so read it again before deciding it's wrong.
 
-**Wait for the pipeline.** If the project has CI (ci-setup has run), wait for the change request's checks to finish, and report `pipeline.status`:
+**Wait for the pipeline.** If the project has CI (accept-the-plan or ci-setup has run), wait for the change request's checks to finish, and report `pipeline.status`:
 
 - **A required check fails on CI** although it passed locally: the environments differ (tools, shell, operating system). Fix it on the branch as in resume mode (step 9), and wait again. Don't hand over a red change request without saying so.
 - **The branch rules block merging** (`cr.status` mergeable reason `BLOCKED`) for any reason other than a pending review: report why.
