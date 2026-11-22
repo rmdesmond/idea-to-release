@@ -11,7 +11,7 @@ Takes one `ready` issue to an open change request that does what its *Done when*
 
 Before doing anything, read `conventions.md`, especially §8 (labels), §9 (issues), §10 (branches, commits and change requests), §11 (pipeline stages and `run` commands) and §13 (safety).
 
-**Verbs used:** `issue.list` (tracker); `cr.open`, `cr.update`, `cr.status` (forge). Look each one up in the adapters named in `.project/config.yml`.
+**Verbs used:** `issue.list`, `issue.update` (tracker); `cr.open`, `cr.update`, `cr.status` (forge). Look each one up in the adapters named in `.project/config.yml`.
 
 ## Arguments
 
@@ -35,7 +35,7 @@ Run `issue.list` once with `state=open`.
 **With `issue` given,** check it:
 
 - **Closed:** refuse. There's nothing to do.
-- **`blocked`:** refuse, and name its open blockers.
+- **`blocked`:** if any of its blockers is still open, refuse, and name them. If every blocker is closed, the label is stale: say so, and offer to take it as below.
 - **`needs-decision`:** refuse, and say what the issue asks to decide, unless the user states the decision when invoking the skill. In that case, go ahead and say so. The task's work is then to record that decision, as a decision record (conventions §7) for a "Decide ..." task, and to make the changes that follow from it. The change request quotes the decision as the user gave it. Only the user's own words count: never go ahead on the agent's own proposal, or in a non-interactive run. The label stays as it is; closing the issue on merge ends it.
 - **No state label:** ask before going on. It may not be fully specified (conventions §8).
 - **It already has an open change request** (`cr.status` on the branch `<type>/<n>-*`, or a pull request that closes it): switch to **resume mode** (step 9).
@@ -45,9 +45,12 @@ Run `issue.list` once with `state=open`.
 - from the open issues labelled `ready`, take the earliest milestone in plan order (M2 before M10, not by title), then the highest priority, then the lowest task ID
 - skip any with an open change request
 - show the choice and the next two candidates, and wait for the user to confirm or pick another
-- if no issue is `ready` (or every one already has an open change request), say so, list the open `blocked` and `needs-decision` issues with what each is waiting on, and stop
+- if no issue is `ready` (or every one already has an open change request), look for a **stale `blocked` label**: the first `blocked` issue, in the same order, whose blockers are all closed. Propose it, and say its label is stale and which blockers closed it
+- if there's no such issue either, say so, list the open `blocked` and `needs-decision` issues with what each is waiting on, and stop
 
-Also look at the `blocked` issues. If all of an issue's blockers are closed, its label is stale. List these and suggest running plan-to-issues to refresh labels. Don't relabel them here; labels are plan-to-issues' job.
+**An issue's blockers** are the issues it's linked to as `blocked-by` (the check in `issue.link`). For a plan task with no links, use the issues of the tasks on its `Depends on:` line.
+
+**Taking an issue with a stale `blocked` label:** when the user confirms it, first `issue.update` it from `blocked` to `ready` (the change plan-to-issues would make, conventions §8), and report the change. Then carry on as for any `ready` issue. Change only that one issue's label. Other stale labels are listed, and left for plan-to-issues.
 
 ### 3. Read the task
 

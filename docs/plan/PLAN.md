@@ -355,9 +355,9 @@ Done when:
 Depends on: none
 Issue: #88
 Done when:
-- [ ] When no issue is `ready`, `work-issue` proposes the first `blocked` issue, in plan order, whose blockers are all closed, and says its label is stale
-- [ ] On confirmation it moves that issue from `blocked` to `ready` before starting, and reports it
-- [ ] Conventions §8 says which skills may change state labels
+- [x] When no issue is `ready`, `work-issue` proposes the first `blocked` issue, in plan order, whose blockers are all closed, and says its label is stale
+- [x] On confirmation it moves that issue from `blocked` to `ready` before starting, and reports it
+- [x] Conventions §8 says which skills may change state labels
 
 ### T-036: Offer the skills as the Claude Code plugin i2r
 Depends on: T-034

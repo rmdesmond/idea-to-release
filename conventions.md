@@ -172,7 +172,9 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 | State | `ready`, `blocked`, `needs-decision` | Zero or one |
 | Area | `area:<name>` | Optional, project-defined |
 
-`ready` means the issue is fully specified and nothing blocks it; work-issue only picks up `ready` issues. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
+`ready` means the issue is fully specified and nothing blocks it; work-issue only picks up `ready` issues.
+
+**Who changes state labels:** plan-to-issues sets them, refreshes them as dependencies finish, and removes them from closed issues. work-issue changes one, and only on the issue it's about to take: `blocked` → `ready`, when every blocker is closed and the user has confirmed taking it. No other skill changes them. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
 
 ## 9. Issues
 
