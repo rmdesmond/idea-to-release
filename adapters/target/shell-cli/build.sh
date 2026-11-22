@@ -8,6 +8,7 @@
 #     bin/<command> ...
 #     VERSION
 #     LICENSE, README.md     if the project has them
+#     docs/tutorial.md       if the project has one (decision 0020)
 #
 # <name> is the project's repo name, from .project/config.yml.
 #
@@ -38,6 +39,7 @@ top="$work/$name-$version"
 mkdir -p "$top/bin"
 for f in "$src"/bin/*; do [[ -f $f && -x $f ]] && cp -p "$f" "$top/bin/"; done
 for f in LICENSE README.md; do [[ -f $src/$f ]] && cp "$src/$f" "$top/"; done
+if [[ -f $src/docs/tutorial.md ]]; then mkdir -p "$top/docs" && cp "$src/docs/tutorial.md" "$top/docs/"; fi
 printf '%s %s\n' "$name" "$version" > "$top/VERSION"
 cp "$here/install.sh" "$top/install.sh"
 chmod +x "$top/install.sh"

@@ -6,19 +6,21 @@ Skills call the verbs by name. The commands live in `adapters/target/shell-cli/`
 
 ## What's shipped
 
-One archive per release, `<repo>-<version>.tar.gz`, with `<repo>` taken from `.project/config.yml`:
+One archive per release, `<repo>-<tag>.tar.gz`, with `<repo>` taken from `.project/config.yml` and `<tag>` the release tag, prefix included: `dedupe-v0.1.0.tar.gz`.
 
 ```
-<repo>-<version>/
+<repo>-<tag>/
   install.sh
   bin/<command> ...       every executable file in the project's bin/
-  VERSION                 "<repo> <version>"
+  VERSION                 "<repo> <tag>"
   LICENSE, README.md      if the project has them
+  docs/tutorial.md        if the project has one (decision 0020)
 ```
 
 ## What the project provides
 
 - **`bin/`:** the commands, executable, each with no dependency on the rest of the repository once installed.
+- **Optionally, `docs/tutorial.md`:** the project's tutorial, written by write-tutorial. It's shipped as it is.
 - **Optionally, `tests/smoke.sh`:** a short test of the *installed* commands. `package.verify` runs it from an empty folder, with the installed commands first on `PATH`, so it can't reach the repository's own copies. It should exit 0 when they work.
 
 ## Prerequisites
@@ -58,6 +60,7 @@ One archive per release, `<repo>-<version>.tar.gz`, with `<repo>` taken from `.p
   - `tests/smoke.sh` passes, if the project has one
   - a second install replaces the first
   - a file another package installed is never replaced
+  - the archive ships the project's `docs/tutorial.md` unchanged, if it has one
 - **Output:** `ok: … installs N command(s); …; M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
 
 ### package.publish
@@ -71,13 +74,13 @@ One archive per release, `<repo>-<version>.tar.gz`, with `<repo>` taken from `.p
 ### install.describe
 
 - **Tier:** read
-- **Inputs:** the repo name, version and the release URL
-- **Command:** print this text, with `<repo>`, `<version>` and `<url>` filled in:
+- **Inputs:** the repo name, the tag (`v0.1.0`) and the release URL
+- **Command:** print this text, with `<repo>`, `<tag>` and `<url>` filled in:
   ```markdown
-  Download `<repo>-<version>.tar.gz` from <url>, then:
+  Download `<repo>-<tag>.tar.gz` from <url>, then:
 
-      tar -xzf <repo>-<version>.tar.gz
-      cd <repo>-<version>
+      tar -xzf <repo>-<tag>.tar.gz
+      cd <repo>-<tag>
       ./install.sh                      # into ~/.local/bin
       ./install.sh --prefix /usr/local  # or anywhere else: commands go in <prefix>/bin
 

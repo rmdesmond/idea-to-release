@@ -7,6 +7,7 @@
 #     skills/<skill>/SKILL.md ...
 #     skills/idea-to-release/     conventions.md, adapters/, scripts/check-*.sh,
 #                                 LICENSE, VERSION (no SKILL.md: not a skill)
+#     docs/tutorial.md            if the repository has one (decision 0020)
 #
 # Usage: build.sh <version> <out-dir> [source-root]
 #   version      e.g. v0.1.0
@@ -46,6 +47,7 @@ cp -R "$src/adapters" "$shared/adapters"
 cp "$src"/scripts/check-*.sh "$shared/scripts/"
 printf '%s\n' "$version" > "$shared/VERSION"
 cp "$src/adapters/target/agent-skills/install.sh" "$top/install.sh"
+if [[ -f $src/docs/tutorial.md ]]; then mkdir -p "$top/docs" && cp "$src/docs/tutorial.md" "$top/docs/"; fi
 chmod +x "$top/install.sh" "$shared"/scripts/*.sh
 
 mkdir -p "$out"
