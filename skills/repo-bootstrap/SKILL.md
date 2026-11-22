@@ -114,6 +114,8 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 | Merge method and release strategy | `NNNN-merge-strategy.md` |
 | Review rule | `NNNN-review-rule.md`: how many approvals, why (who can write), and what changes when a second maintainer joins |
 
+Write only what this run knows. In particular, don't say what the owner's plan allows on a private repository (branch rules, draft change requests): that depends on the account, and repo-governance checks it and records any gap.
+
 Before writing a record, look for `docs/decisions/*-licence-*.md` (or `*-visibility-*.md`, `*-merge-strategy.md`, `*-review-rule*.md`) with `Status: accepted`. If one exists, skip that record. If it records a different choice from the current inputs, that's a conflict: stop and ask (conventions §13). Number new records from the next free four-digit number.
 
 ### 5. Dry run and confirmation
