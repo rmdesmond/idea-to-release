@@ -37,7 +37,7 @@ All optional. Pass them as `key=value`.
 
   If `issue.list` fails (for example, the repository isn't on the forge yet), say so and continue with git history only.
 
-If there's no `.project/config.yml`, say so and suggest running repo-bootstrap first. The skill can still write the plan, but it can't update the pipeline block or open a change request.
+If there's no `.project/config.yml`, say so and suggest running repo-bootstrap first. The skill can still write the plan, but it can't update the pipeline block or open a change request. If the user plans first anyway, write the plan and stop there: repo-bootstrap then commits the plan and decision records, and takes the stages from the plan's verification strategy, in its first commit. So the next step is repo-bootstrap, then plan-to-issues; there's no need to run idea-to-plan again.
 
 ### 2. Understand the idea
 

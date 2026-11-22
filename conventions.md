@@ -47,6 +47,7 @@ Verbs ending in `ensure` are idempotent: create if missing, leave alone if prese
 docs/
   plan/PLAN.md      # the plan (section 5)
   decisions/        # decision records (section 7)
+  tutorial.md       # optional: a worked example, written by write-tutorial from real runs (decision 0020)
 CHANGELOG.md
 README.md
 LICENSE
