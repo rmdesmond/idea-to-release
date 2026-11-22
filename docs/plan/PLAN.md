@@ -417,6 +417,6 @@ Done when:
 ### T-043: Ship the tutorial with releases
 Depends on: T-042
 Done when:
-- [ ] When `docs/tutorial.md` exists, the `shell-cli` and `agent-skills` archives include it, and their `package.verify` checks it's there
-- [ ] `cut-release`'s notes link to the tutorial at the release's tag, and its dry run warns when the tutorial was last changed before change requests in the release. It never requires a tutorial
-- [ ] On a scratch repository, `write-tutorial` writes a tutorial through a change request, and the next `cut-release` ships it in the archive and links it from the notes
+- [x] When `docs/tutorial.md` exists, the `shell-cli` and `agent-skills` archives include it, and their `package.verify` checks it's there
+- [x] `cut-release`'s notes link to the tutorial at the release's tag, and its dry run warns when the tutorial was last changed before change requests in the release. It never requires a tutorial
+- [x] On a scratch repository, `write-tutorial` writes a tutorial through a change request, and the next `cut-release` ships it in the archive and links it from the notes

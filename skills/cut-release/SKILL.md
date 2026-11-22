@@ -64,6 +64,7 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
   - **With a change request:** each issue in an included change request's `closes` whose body has a `Plan-Task: <ID>` line. Its change requests are the included ones that close it.
   - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. Leave out a task whose *Done when* boxes were all ticked in the plan at the last tag: it shipped in an earlier release, and its issue was only created and closed afterwards, for example by plan-to-issues adopting a project that had already released. List both kinds in the dry run so the user can check them.
   - Take each task's title and milestone from the plan. If the plan has no such task, or its issue's title starts with a different ID, stop and ask (conventions §13).
+- **Tutorial** (optional, decision 0020): if `docs/tutorial.md` exists on the default branch, find the last commit that changed it (`git log -1 --format=%H origin/<default> -- docs/tutorial.md`). The included `feat` and `fix` change requests, and any breaking one, whose merge commit isn't an ancestor of that commit (`git merge-base --is-ancestor`) were merged after the tutorial last changed, so it may not show them. If there are any, warn in the dry run, list them, and suggest running write-tutorial first. Never stop for it: a tutorial is never required. With no tutorial, just say so in the dry run.
 - **Version files:** in each `release.version_files` entry, replace the first `X.Y.Z` after the marker on its line with the new version. Everything around it (quotes, a `v` prefix) stays as it is.
 - **The release commit's files:** `CHANGELOG.md` and the version files. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
 
@@ -80,6 +81,7 @@ CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3, Removed 1
                 Removed: - **Breaking:** Remove the ledger (#104)
 Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
 Tasks:        T-024 (#34, CR #81), T-025 (#35, CR #83) (2 tasks, M5)
+Tutorial:     docs/tutorial.md, last changed by #80; merged after it: #85, #88 (feat). Consider write-tutorial first
               closed without a change request: T-001 (#20)
               left out, done in the plan at v0.1.0: T-002 to T-009 (#21 to #28)
 Change request: branch chore/release-v0.2.0, "chore(release): v0.2.0"
@@ -118,6 +120,10 @@ This step only writes a branch and opens a change request, so it's write tier: s
   ## Install
 
   <install.describe for this version>
+
+  ## Tutorial
+
+  <only if docs/tutorial.md exists at the tag: one line linking to it at the tag (the forge adapter's file-at-a-release link)>
   ```
 
 - **`release.draft`** with the title `<tag>`, the notes, and the artifacts. Show its URL, the asset names and sizes, and the notes.

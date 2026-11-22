@@ -26,6 +26,7 @@ idea-to-release-<version>/
       scripts/check-*.sh
       LICENSE
       VERSION
+  docs/tutorial.md          if the repository has one (decision 0020)
 ```
 
 ## Prerequisites
@@ -66,6 +67,7 @@ idea-to-release-<version>/
   - a second install replaces the first; `--user`, `--dest` and each `--agent` install where they should
   - name clashes (decision 0015): a same-named folder idea-to-release didn't install is never replaced, even with `--force`, and a same-named personal skill stops a project install unless `--force` is given
   - every install runs with a throw-away `HOME`, so the real personal skills never affect the result
+  - with the tag's copy: the archive ships its `docs/tutorial.md` unchanged, if it has one
   - with the tag's copy: `plugin.json`'s `version` and the marketplace's `ref` match the archive's version, and `claude plugin validate --strict` passes on it, when `claude` is installed
 - **Output:** `ok: … installs N skill(s); M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
 

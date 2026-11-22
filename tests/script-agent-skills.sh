@@ -26,6 +26,11 @@ src="$work/src"; mkdir "$src"
 v=$(grep -F '"version":' "$src/.claude-plugin/plugin.json" | sed -E 's/[^0-9]*([0-9]+[.][0-9]+[.][0-9]+).*/\1/')
 match=$("$t/build.sh" "v$v" "$work/match" "$src")
 "$t/verify.sh" "$match" "$src" >/dev/null || { echo "verify failed with matching plugin manifests"; "$t/verify.sh" "$match" "$src"; exit 1; }
+tar -tzf "$match" | grep -qx "idea-to-release-v$v/docs/tutorial.md" || { echo "the archive doesn't ship docs/tutorial.md"; exit 1; }
+printf '# edited\n' >> "$src/docs/tutorial.md"
+if out=$("$t/verify.sh" "$match" "$src" 2>&1); then echo "verify accepted an archive without the current tutorial"; exit 1; fi
+grep -q "doesn't ship it" <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }
+(cd "$root" && cat docs/tutorial.md) > "$src/docs/tutorial.md"
 sed -i.bak "s/\"version\": \"$v\"/\"version\": \"9.9.9\"/" "$src/.claude-plugin/plugin.json" && rm "$src/.claude-plugin/plugin.json.bak"
 if out=$("$t/verify.sh" "$match" "$src" 2>&1); then echo "verify accepted a plugin.json with the wrong version"; exit 1; fi
 grep -q "plugin.json's version isn't $v" <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }

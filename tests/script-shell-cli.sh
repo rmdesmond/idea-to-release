@@ -29,3 +29,14 @@ printf '#!/usr/bin/env bash\necho "goodbye"\n' > "$p/bin/hello"
 archive=$("$t/build.sh" v1.2.4 "$work/out" "$p")
 if out=$("$t/verify.sh" "$archive" "$p" 2>&1); then echo "verify accepted a broken command"; exit 1; fi
 grep -q 'tests/smoke.sh failed against the installed commands' <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }
+
+# A project with a tutorial (decision 0020): the archive ships it, and verify
+# fails if the archive's copy doesn't match the project's.
+printf '#!/usr/bin/env bash\necho "hello, ${1:-world}"\n' > "$p/bin/hello"
+mkdir -p "$p/docs" && printf '# Tutorial\n' > "$p/docs/tutorial.md"
+archive=$("$t/build.sh" v1.2.5 "$work/out" "$p")
+tar -tzf "$archive" | grep -qx 'hello-cli-v1.2.5/docs/tutorial.md' || { echo "the archive doesn't ship docs/tutorial.md"; exit 1; }
+"$t/verify.sh" "$archive" "$p" >/dev/null || { echo "verify failed with a shipped tutorial"; "$t/verify.sh" "$archive" "$p"; exit 1; }
+printf '# Tutorial, edited\n' > "$p/docs/tutorial.md"
+if out=$("$t/verify.sh" "$archive" "$p" 2>&1); then echo "verify accepted an archive without the current tutorial"; exit 1; fi
+grep -q "doesn't ship it" <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }

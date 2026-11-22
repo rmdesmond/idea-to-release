@@ -485,6 +485,7 @@ Keys are SPDX identifiers in lower case: `mit`, `apache-2.0`, `gpl-3.0`, `bsd-3-
 ### Release and changelog links
 
 - A release page: `https://github.com/{o}/{r}/releases/tag/<tag>`
+- A file at a release, for the notes' tutorial link: `https://github.com/{o}/{r}/blob/<tag>/<path>`
 - The changes in a release, for the changelog's link references: `https://github.com/{o}/{r}/compare/<previous-tag>...<tag>`. For the first release, which has no previous tag, use the release page.
 
 ### Owner display name
