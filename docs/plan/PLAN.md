@@ -380,9 +380,9 @@ Done when:
 ### T-038: Release v0.2.0
 Depends on: T-037, T-039, T-040, T-041, T-042, T-043
 Done when:
-- [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
-- [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
-- [ ] The README roadmap says v0.2.0 is out
+- [x] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
+- [x] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
+- [x] The README roadmap says v0.2.0 is out
 
 ### T-039: Write a tutorial for the skills
 Depends on: T-037
