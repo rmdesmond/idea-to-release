@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-22
+
+### Added
+- Refresh a stale blocked label in work-issue (#109)
+- Offer the skills as the Claude Code plugin i2r (#112)
+- Add the write-tutorial skill (#119)
+- Ship the tutorial with releases (#120)
+
+### Fixed
+- Tick the boxes of T-006 to T-011 (#110)
+- Put a breaking removal under Removed (#111)
+- Fix three problems found end to end through the plugin (#113)
+- Fix two problems found by the tutorial run (#114)
+
+### Removed
+- **Breaking:** Remove the ledger (#104)
+
 ## [0.1.0] - 2026-11-21
 
 ### Added
@@ -43,3 +60,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update version files in the release change request, found end to end (#89)
 
 [0.1.0]: https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0
+[0.2.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.1.0...v0.2.0
