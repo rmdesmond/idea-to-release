@@ -1,17 +1,17 @@
 ---
 name: plan-to-issues
-description: Turn the project plan (docs/plan/PLAN.md) into tracker milestones and dependency-linked issues, adopt issues that already exist for plan tasks, close issues for dropped tasks, and record everything in the ledger (.project/ledger.yml). Use after writing or revising the plan, or to bring issue labels and links back in step with it. Re-runnable; a second run with no plan changes reports no changes.
+description: Turn the project plan (docs/plan/PLAN.md) into tracker milestones and dependency-linked issues, adopt issues that already exist for plan tasks, and close issues for dropped tasks. Use after writing or revising the plan, or to bring issue labels and links back in step with it. Re-runnable; a second run with no plan changes reports no changes.
 ---
 
 # plan-to-issues
 
-Makes the tracker match the plan: one milestone per plan milestone, one issue per task, dependencies as links, and a ledger entry for each task.
+Makes the tracker match the plan: one milestone per plan milestone, one issue per task, and dependencies as links. Each issue carries its task's `Plan-Task:` line, which is how the task is found again (conventions §6).
 
 **Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
 
-Before doing anything, read `conventions.md`, especially §5 (plan), §6 (ledger), §8 (labels), §9 (issues) and §13 (safety).
+Before doing anything, read `conventions.md`, especially §5 (plan), §6 (traceability), §8 (labels), §9 (issues) and §13 (safety).
 
-**Verbs used:** `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker); `cr.open` (forge). Look each one up in the adapters named in `.project/config.yml`.
+**Verbs used:** `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker). Look each one up in the adapters named in `.project/config.yml`.
 
 ## Arguments
 
@@ -19,7 +19,6 @@ All optional. Pass them as `key=value`.
 
 | Argument | Default | Notes |
 |---|---|---|
-| `issue` | none | Issue number for the ledger change request's branch and footer |
 | `non-interactive` | off | Don't ask. Use the inferred labels, and stop at any conflict |
 | `confirm` | off | Only with `non-interactive`: the caller confirms the dry run in advance. Without it, a non-interactive run stops after the dry run |
 
@@ -28,7 +27,7 @@ All optional. Pass them as `key=value`.
 ### 1. Read and check the inputs
 
 1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
-2. Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. The scripts belong to the idea-to-release skill set, next to `conventions.md`, not to the project. If either check fails, stop and show the problems. The plan or ledger must be fixed first, through a change request. One exception: failures that are only `missing title` mean a ledger written before titles existed. Carry on, and add the titles in the ledger step.
+2. Run `scripts/check-plan.sh` on the project's plan. The script belongs to the idea-to-release skill set, next to `conventions.md`, not to the project. If the check fails, stop and show the problems. The plan must be fixed first, through a change request.
 3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
 4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading). For each task, note:
    - ID, title and milestone
@@ -36,23 +35,20 @@ All optional. Pass them as `key=value`.
    - the *Done when* checklist
    - whether it's **dropped** (the heading ends in `(dropped)`), and the reason on its `Dropped` line
    - whether it's **done** (every *Done when* box ticked)
-5. Read the ledger.
-6. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
+5. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
 
 ### 2. Find each task's issue
 
 For each task, look in this order and stop at the first match:
 
-1. the ledger's `issue`
-2. the plan's `Issue:` line
-3. an issue whose body has the line `Plan-Task: <ID>` (the check in `issue.create`)
+1. the plan's `Issue:` line
+2. an issue whose body has the line `Plan-Task: <ID>` (the check in `issue.create`)
 
 Then check that the sources agree. **Stop and ask** (conventions §13) if:
 
-- the ledger and the `Issue:` line name different issues
-- an issue named by the ledger or an `Issue:` line doesn't exist on the forge
+- the `Issue:` line names an issue that doesn't exist on the forge, or one whose `Plan-Task:` line names another task
 - more than one issue carries the same `Plan-Task:` line
-- an issue's `Plan-Task:` line names a different task than the one the ledger or plan links it to, or its title starts with a different task ID
+- an issue's `Plan-Task:` line names a different task than the one the plan links it to, or its title starts with a different task ID
 - a live task's issue is closed as `not planned` (the plan says the work is wanted; the tracker says it was abandoned)
 
 Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
@@ -121,14 +117,6 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Whenever an issue is closed,** remove its state label (`ready`, `blocked` or `needs-decision`) in the same step. State labels only describe open work (conventions §8).
 - **Closed issues outside the plan** (no `Plan-Task:` line: fixes, follow-ups, chores) get the same clean-up. Remove any state label from them too. That's the only change this skill makes to an issue outside the plan. It never adds, relabels, links or closes one.
 
-**Ledger.** For every task with an issue (created or adopted), the entry has:
-
-- `milestone`: from the plan
-- `issue`: the number
-- `created`: the issue's creation date, in UTC (`YYYY-MM-DD`, conventions §1)
-
-Leave `change_requests`, `merged`, `released_in` and `released` alone; the cut-release skill fills those in. Update `milestone` if the task moved. Dropped tasks keep their entries.
-
 ### 4. Dry run and confirmation
 
 Show one summary. List every write, and every difference reported but not changed:
@@ -144,13 +132,12 @@ issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title p
 issue.link        #14 blocked-by #12, #13   (+ 31 more)
 issue.close       none
 labels            remove ready from closed #39, #44 (outside the plan)
-ledger            add 27 entries; refresh titles 0 → branch chore/11-ledger, change request "chore(ledger): record issues for the plan"
 
 Reported, not changed:
   #12 (T-007): title differs from the plan
 ```
 
-Issues that don't exist yet have no number, so refer to them by task ID: list their links as `T-003 blocked-by T-001, T-002`, and count their ledger entries. A dry run must account for every write the apply step will make. Never write "after it is created" in place of the actual links.
+Issues that don't exist yet have no number, so refer to them by task ID: list their links as `T-003 blocked-by T-001, T-002`. A dry run must account for every write the apply step will make. Never write "after it is created" in place of the actual links.
 
 If nothing would change, say "Issues match the plan; no changes" and stop.
 
@@ -165,18 +152,12 @@ In this order, stopping at the first failure and reporting what was done:
 3. `issue.update` for existing issues
 4. `issue.link` for every dependency. All issue numbers are known by now.
 5. `issue.close` for done and dropped tasks, as above
-6. **Ledger:**
-   - write `.project/ledger.yml` in the shape from conventions §6, with tasks in ID order
-   - every entry's `title` is the plan's task title (without ` (dropped)`), double-quoted with `\"` and `\\` escapes. Add it to entries that lack it, and refresh it where the plan's title has changed. Keep every other field as it is: release owns those.
-   - run `scripts/check-ledger.sh`. It must pass with no warnings
-   - commit on branch `chore/<issue>-ledger`, or `chore/ledger-<YYYYMMDD>` (today's UTC date) with no issue, with the message `chore(ledger): record issues for the plan` and a `Refs: #<issue>` footer if there is an issue
-   - push, then `cr.open`. The body lists the tasks added or changed. Don't merge it.
 
 If a run stops partway, running it again is safe. Issues already created are found by their `Plan-Task:` line, and every other verb checks before it acts.
 
 ### 6. Report
 
-List the milestones created, issues created or adopted (with numbers), links added, issues closed, differences left for the user, and the ledger change request link.
+List the milestones created, issues created or adopted (with numbers), links added, issues closed, and differences left for the user.
 
 ## Re-running
 
@@ -186,4 +167,4 @@ Every step checks first, so a second run with no plan changes reports "Issues ma
 
 - Writing or changing the plan: **idea-to-plan**
 - Working an issue: **work-issue**
-- Recording change requests, merges and releases in the ledger: **cut-release**
+- Listing which tasks a release delivered: **cut-release**

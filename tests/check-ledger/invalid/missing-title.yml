@@ -1,6 +1,0 @@
-# expect: T-001: missing title
-tasks:
-  T-001:
-    milestone: M1
-    issue: 12
-    created: 2026-11-20

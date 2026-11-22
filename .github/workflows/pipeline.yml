@@ -21,7 +21,7 @@ jobs:
       - name: lint
         shell: bash
         run: |
-          scripts/check-adapters.sh && scripts/check-plan.sh && scripts/check-ledger.sh
+          scripts/check-adapters.sh && scripts/check-plan.sh
 
   build:
     name: build

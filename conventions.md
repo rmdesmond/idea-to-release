@@ -21,7 +21,7 @@ Skills use only these neutral terms. Adapters map them to forge-specific names.
 | gate | A stage that must pass before a merge or release | required status check | required pipeline job |
 | release | Published, tagged version with notes | release | release |
 
-**Dates.** Every date in these conventions is a UTC date, written `YYYY-MM-DD` (`YYYYMMDD` in a branch name). That covers ledger fields, `chore/ledger-<YYYYMMDD>` branches, `Dropped <date>` lines and decision record `Date:` lines. Take a forge timestamp's date after converting it to UTC (GitHub's timestamps already are). Take today's date with `date -u +%Y-%m-%d`, not the local date, so that runs in different timezones, and CI, agree.
+**Dates.** Every date in these conventions is a UTC date, written `YYYY-MM-DD` (`YYYYMMDD` in a branch name). That covers `Dropped <date>` lines, decision record `Date:` lines and release dates. Take a forge timestamp's date after converting it to UTC (GitHub's timestamps already are). Take today's date with `date -u +%Y-%m-%d`, not the local date, so that runs in different timezones, and CI, agree.
 
 ## 2. Neutral verbs
 
@@ -44,7 +44,6 @@ Verbs ending in `ensure` are idempotent: create if missing, leave alone if prese
 ```
 .project/
   config.yml        # forge, tracker, and project choices (section 4)
-  ledger.yml        # traceability record (section 6)
 docs/
   plan/PLAN.md      # the plan (section 5)
   decisions/        # decision records (section 7)
@@ -124,35 +123,26 @@ Done when:
 - [ ] Unit test covers argument parsing
 ```
 
-- **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. plan-to-issues adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is the ledger's job (section 6).
+- **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. plan-to-issues adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is read from the tracker and forge (section 6).
 - `scripts/check-plan.sh` checks a plan against this section.
 
 Changes to the plan after issues exist go through a change request like any other change, so the plan's git history shows how scope moved. Ticking a task's boxes when it's done is part of that task's own change request (section 10).
 
-## 6. Ledger
+## 6. Traceability
 
-`.project/ledger.yml` connects each plan task to what happened to it. It is what makes the history portable: it survives a move to another forge.
+Each plan task can be followed to the release that shipped it. Nothing stores this trail. It's read from the tracker, the forge and git when it's needed (decision 0018):
 
-```yaml
-tasks:
-  T-001:
-    title: "Add command-line entry point"   # the plan's task title
-    milestone: M1
-    issue: 12                # tracker's issue identifier
-    change_requests: [15]
-    released_in: v0.1.0
-    created: 2026-11-20
-    merged: 2026-11-21
-    released: 2026-11-24
-```
+| Link | Where it's read from |
+|---|---|
+| task → issue | the issue whose body ends with `Plan-Task: <ID>` (section 9). The `<ID>: ` title prefix is a cross-check, and the plan's `Issue:` line names an issue to adopt (section 5) |
+| issue → change requests | the merged change requests whose `closes` includes the issue (`cr.list`) |
+| change request → release | the release tag range that holds its merge commit: after the previous `<tag_prefix>X.Y.Z` tag, up to and including the release's tag |
 
 Rules:
 
-- **Only two skills write the ledger.** plan-to-issues adds entries when it creates issues. cut-release fills in `change_requests`, `merged`, `released_in` and `released` by reconciling against the forge. work-issue does not touch it, which avoids merge conflicts between parallel branches.
-- **Each entry carries its task's title**, copied from the plan, so the ledger reads on its own and release notes can name tasks. The plan stays the source: plan-to-issues writes the title and refreshes it when the plan's title changes. A dropped task keeps its title, without ` (dropped)`. `scripts/check-ledger.sh` warns, but doesn't fail, when a title differs from the plan. A plan change that renames a task must still pass, and the next plan-to-issues run brings the ledger back in step.
-- The ledger is the idempotency check: before creating an issue for a task, look the task up. If it already has an issue, update that issue instead of creating another.
-- Ledger changes are committed on the default branch through a change request titled `chore(ledger): ...`. They often have no issue of their own. Then the branch is `chore/ledger-<YYYYMMDD>`, the one exception to the branch pattern in section 10.
-- The ledger keeps exactly the shape shown above: two-space indent for task IDs, four for fields, one `key: value` per line, `title` first and always double-quoted (with `\"` and `\\` escapes), and lists written inline (`[15, 16]`). An empty ledger is `tasks: {}`. This lets `scripts/check-ledger.sh` check it without a YAML library. The check also confirms that every task exists in the plan, with the same milestone.
+- **No skill writes a ledger file.** A leftover `.project/ledger.yml` from an earlier version is ignored, and can be deleted.
+- **Idempotency:** before creating an issue for a task, look for it: the plan's `Issue:` line, then an issue carrying the task's `Plan-Task:` line. If one exists, update it instead of creating another.
+- **A task closed with no change request** (work done before the tracker was used, or closed by hand as completed) is delivered by the first release after its issue was closed.
 
 ## 7. Decision records
 
@@ -194,7 +184,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 ## 10. Branches, commits and change requests
 
-**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. Two exceptions: `chore/ledger-<YYYYMMDD>` (section 6) and `chore/release-<version>` (section 12). The default branch always stays releasable. Nobody, human or agent, pushes directly to it.
+**Branches:** `<type>/<issue-id>-<short-slug>`, with type one of `feat`, `fix`, `chore`, `docs`. Example: `feat/12-cli-entry-point`. One exception: `chore/release-<version>` (section 12). The default branch always stays releasable. Nobody, human or agent, pushes directly to it.
 
 **Commits:** Conventional Commits. `<type>(<optional scope>): <summary>`, imperative, 72 characters or fewer. Breaking changes use `!` after the type and a `BREAKING CHANGE:` footer. Each commit references its issue in a footer: `Refs: #12`.
 
@@ -204,7 +194,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 - Title follows the commit format, since with squash merges it becomes the commit on the default branch and feeds the changelog.
 - Body: what changed, how it was verified, and the adapter's closing reference to the issue (on GitHub, `Closes #12`).
 - A CR includes the tests named in its task's "done when" list. work-issue does not open a CR without them.
-- A CR for a plan task also ticks that task's *Done when* boxes in `docs/plan/PLAN.md`. Merging the CR then closes the issue and marks the task done together, and the plan, the tracker and the ledger stay in step.
+- A CR for a plan task also ticks that task's *Done when* boxes in `docs/plan/PLAN.md`. Merging the CR then closes the issue and marks the task done together, and the plan and the tracker stay in step.
 - Merge only when every gate passes (section 11) and required approvals are in. The agent that wrote a CR does not approve it.
 
 ## 11. Pipeline stages and gates
@@ -256,16 +246,16 @@ A disabled stage has a `reason` instead of a `run`.
 - **What's in a release:** the change requests merged to the default branch since the last release tag, found with `cr.list`, whose merge commits lie between that tag and the release commit.
 - **The version bump** comes from their titles (Conventional Commits): a breaking change (`!` after the type, or a `BREAKING CHANGE:` footer) → major; `feat` → minor; `fix` → patch. Other types don't bump. If nothing bumps, there's nothing to release.
 - **The first release,** with no earlier tag, is `0.1.0`, unless the user names another version. A named version must be valid and higher than the last tag.
-- **The release date** is the UTC date the release change request is prepared. The changelog heading and the ledger's `released` use it.
+- **The release date** is the UTC date the release change request is prepared. The changelog heading uses it.
 - **`CHANGELOG.md`** follows the Keep a Changelog layout. Its entries are the change request titles, without the type prefix, followed by the change request reference (`- Add the release skill (#82)`). They're grouped like this:
   - **Added:** `feat`
   - **Changed:** `refactor`, `perf`, and any breaking change, marked **Breaking:**
   - **Fixed:** `fix`
   - **Removed:** a title whose summary starts with "remove" or "drop"
   - Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed.
-- **Release notes** list each included task with its issue and change requests, grouped by milestone and taken from the ledger, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
+- **Release notes** list each included task with its issue and change requests, grouped by milestone and found through the links in section 6, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
 - **Version files.** If the code holds its own version number (a `--version` string, `package.json`, `Cargo.toml`), the config lists it under `release.version_files` as `"<path>:<marker>"`. For example, `"bin/slug:SLUG_VERSION="` means the line in `bin/slug` that contains `SLUG_VERSION=`, with the version written right after the marker, optionally in quotes. The marker must be on exactly one line. The release change request writes the new version there, without the tag prefix. The task that first puts a version in the code adds its entry.
-- **The release change request** carries the changelog, ledger and version-file updates. Branch `chore/release-<version>` (an exception to section 10's pattern, like the ledger's), title `chore(release): <version>`. The tag goes on its merge commit.
+- **The release change request** carries the changelog and version-file updates. Branch `chore/release-<version>` (the exception to section 10's pattern), title `chore(release): <version>`. The tag goes on its merge commit.
 - **Order:** release change request merged → release gates pass on its commit → tag (`tag.create`) → release gates pass on the tag → package (`package.build`, `package.verify`) → draft (`release.draft`) → the user confirms → publish (`package.publish`, `release.publish`).
 - **Confirmation:** a release is drafted first and published only after the user confirms, and only when every release gate passes. Creating the tag and publishing each need a person's explicit yes.
 - **Tags are permanent.** A release found to be wrong after tagging is fixed with a new patch release, never by moving the tag.
@@ -285,8 +275,8 @@ Always:
 - Never force-push to, delete, or rewrite the history of the default branch or a release tag.
 - Never delete issues, branches with unmerged work, or releases. Close or supersede instead.
 - Never write secrets or tokens into the repo, issues, or logs.
-- Be re-runnable: check for existing state (ledger, then forge) before creating anything, so running a skill twice does not create duplicates.
-- Stop and ask when the forge's state contradicts the ledger or the plan. Do not pick a side silently.
+- Be re-runnable: check for existing state (the plan, then the forge) before creating anything, so running a skill twice does not create duplicates.
+- Stop and ask when the forge's state contradicts the plan. Do not pick a side silently.
 
 ## 14. Fallbacks
 

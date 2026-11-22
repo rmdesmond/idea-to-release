@@ -1,7 +1,0 @@
-# expect: T-001: title must be a double-quoted string
-tasks:
-  T-001:
-    title: First
-    milestone: M1
-    issue: 12
-    created: 2026-11-20
