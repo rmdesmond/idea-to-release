@@ -4,7 +4,7 @@ Agent skills that take a software project from a rough idea to an official relea
 
 The skills cover planning, repository setup, access and branch rules, ticket creation, day-to-day issue work, CI, and releases. They share one set of conventions, so each step links to the one before it: plan → issues → change requests → release notes.
 
-> **Status: first release.** [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0) has all seven skills, the GitHub adapters and the `agent-skills` and `shell-cli` targets. It's early: expect the conventions to change between minor versions until 1.0.
+> **Status: v0.2.0.** [v0.2.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.2.0) installs as the Claude Code plugin `i2r`, adds the eighth skill, `write-tutorial`, and drops the ledger. It has the GitHub adapters and the `agent-skills` and `shell-cli` targets. It's early: expect the conventions to change between minor versions until 1.0.
 
 ## Why
 
@@ -72,7 +72,7 @@ New to the skills? [The tutorial](docs/tutorial.md) takes a small project from a
 
 ### Claude Code: the plugin `i2r`
 
-From v0.2.0, the repository is also a Claude Code plugin marketplace:
+Since v0.2.0, the repository is also a Claude Code plugin marketplace:
 
 ```sh
 claude plugin marketplace add rmdesmond/idea-to-release
@@ -136,6 +136,7 @@ Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an e
 10. First tagged release of the skill set: done, [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0), cut with `cut-release`
 11. Branch rules enforced on `main`, with the repository kept private: done
 12. `write-tutorial`: done, and used for this repository's tutorial
+13. The Claude Code plugin `i2r`: done, released in [v0.2.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.2.0)
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 
