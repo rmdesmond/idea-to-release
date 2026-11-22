@@ -457,12 +457,12 @@ Done when:
 ### T-045: Add accept-the-plan: setup and CI
 Depends on: T-044
 Done when:
-- [ ] `skills/accept-the-plan/SKILL.md` refuses a plan that fails `check-plan.sh`, and shows one dry run of everything it will do, asking for one yes
-- [ ] It applies the rest of `repo-bootstrap`'s setup (standard files, labels, settings, licence, changelog, templates), kept as a supporting file in the skill's folder
-- [ ] It renders the pipeline with `ci-setup`'s procedure, kept as a supporting file: every core stage is present, and a stage whose command a task creates is a passing placeholder that names the task (conventions §11, `reason: "not set up yet: T-NNN adds it"`)
-- [ ] The first pipeline run on the default branch passes before it goes on
-- [ ] `idea-to-plan` writes "enable the `<stage>` stage and render the pipeline again" into the *Done when* of the task that creates a stage's command, and `work-issue` renders the pipeline in that task's change request
-- [ ] On a scratch repository, a new plan's setup and placeholder pipeline pass, and a second run reports no changes
+- [x] `skills/accept-the-plan/SKILL.md` refuses a plan that fails `check-plan.sh`, and shows one dry run of everything it will do, asking for one yes
+- [x] It applies the rest of `repo-bootstrap`'s setup (standard files, labels, settings, licence, changelog, templates), kept as a supporting file in the skill's folder
+- [x] It renders the pipeline with `ci-setup`'s procedure, kept as a supporting file: every core stage is present, and a stage whose command a task creates is a passing placeholder that names the task (conventions §11, `reason: "not set up yet: T-NNN adds it"`)
+- [x] The first pipeline run on the default branch passes before it goes on
+- [x] `idea-to-plan` writes "enable the `<stage>` stage and render the pipeline again" into the *Done when* of the task that creates a stage's command, and `work-issue` renders the pipeline in that task's change request
+- [x] On a scratch repository, a new plan's setup and placeholder pipeline pass, and a second run reports no changes
 
 ### T-046: Add accept-the-plan: branch rules, issues and acceptance
 Depends on: T-045

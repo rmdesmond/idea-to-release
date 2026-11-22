@@ -80,7 +80,10 @@ Follow conventions §5:
     The user decides.
   - **Nothing is ever shipped** (a website deployed elsewhere, say): `Target: none - <why>`.
 - **Version in the code:** if a task makes the code hold its own version number (`--version`, `package.json`, …), its *Done when* list adds the `release.version_files` entry for that file to `.project/config.yml` (conventions §12). Then cut-release updates it in every release.
-- **Run commands:** every enabled stage, core or extra, needs a `run` command (conventions §11): one shell command, run from the repository root, that exits 0 when the stage passes. Propose one from the constraints and the test infrastructure task, for example `npm test`, `go test ./...`, `cargo clippy` or `tests/run.sh`, and confirm it with the user as part of the verification strategy topic. A command that a task will create (a test runner, say) is fine: name that task. Every change request must pass every enabled stage, the first task's included, so a command must pass once the first task (the one with no dependencies) is done. Don't name files that later tasks create: `shellcheck bin/tool tests/*.sh` fails until `bin/tool` exists, while `shellcheck $(git ls-files 'bin/*' '*.sh')` lints whatever is there. Never enable a stage without a command, because work-issue stops on it.
+- **Run commands:** every enabled stage, core or extra, needs a `run` command (conventions §11): one shell command, run from the repository root, that exits 0 when the stage passes. Propose one from the constraints and the test infrastructure task, for example `npm test`, `go test ./...`, `cargo clippy` or `tests/run.sh`, and confirm it with the user as part of the verification strategy topic. Every enabled stage must pass from the pipeline's first run, before any task is done, and on every change request after it. So:
+  - **A command that a task will create** (a test runner, say) makes the stage **pending** (conventions §11): disabled in the config with `reason: "not set up yet: T-NNN adds it"`, naming that task. The task's *Done when* list gets an item: ``Enable the `<stage>` stage with `run: <command>`, and render the pipeline again``. In the verification strategy table, write `from T-NNN` in the *Enabled* column, and the command in the last.
+  - **A command that works on an empty repository** is enabled now. Don't name files that later tasks create, and make sure the command passes when there's nothing to check yet: `shellcheck bin/tool tests/*.sh` fails until `bin/tool` exists, and `shellcheck $(git ls-files '*.sh')` fails with no files at all, while `git ls-files -z 'bin/*' '*.sh' | xargs -0 -r shellcheck` lints whatever is there, including nothing.
+  - Never enable a stage without a command, because work-issue stops on it.
 
 ### 4. Record work already done
 
@@ -166,6 +169,7 @@ Compare the verification strategy with the `pipeline` block of `.project/config.
 - the defaults for the rest: `merge_method: squash`, `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, and `review: {required_approvals: 0, code_owners: false}`. Only the owner can write to a new repository, and a required approval would block every merge, since nobody can approve their own change request
 
 - **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.
+- **A pending stage:** `enabled: false` with `reason: "not set up yet: T-NNN adds it"`. Its command is in the plan, and its task enables it.
 - **Disabling a stage that is currently enabled:** conventions §11 requires a decision record. Ask first. If the user agrees, write the record. If not, keep the stage enabled and update the plan to match.
 
 ### 8. Decision records
@@ -193,6 +197,8 @@ Show the user, in both cases:
 
 The change request body lists the summary above and says it was checked with `scripts/check-plan.sh`. Don't merge it: plan changes go through review like any other change (§5).
 
+After the change request merges, the plan is a draft again: run **accept-the-plan** to accept it.
+
 ### 10. Save the plan in a new repository
 
 Only when step 1 found no repository.
@@ -204,7 +210,7 @@ Only when step 1 found no repository.
    Repository: you/titlecase   create, private
    Commit:     docs(plan): plan titlecase   → main, the repository's first commit
                docs/plan/PLAN.md (Status: draft), docs/decisions/0001-…, .project/config.yml
-   Next:       repo-bootstrap, then plan-to-issues
+   Next:       review the plan, then accept-the-plan
    ```
 
    The repository is always created **private**. That isn't a question: the plan is a draft, and going public later is a separate, deliberate change (repo-governance). A `non-interactive` run stops after the dry run.
@@ -213,7 +219,7 @@ Only when step 1 found no repository.
    2. `repo.create` with `visibility: private`, which also sets the `origin` remote.
    3. Commit the plan, the decision records and the config on `main`: `docs(plan): <summary>`. This is one of the two commits made straight to the default branch, before any branch rules exist (conventions §10).
    4. Push `main`.
-4. **Report** the repository's address, and what comes next: **repo-bootstrap** adopts the repository for the rest of the standard setup (labels, settings, licence, changelog, templates), and keeps the plan and config it finds. Then **plan-to-issues**.
+4. **Report** the repository's address, and what comes next: review the plan, change it with this skill if it's not right, and when it is, run **accept-the-plan**. That's the user accepting the plan, and it readies the repository for work.
 
 ## Re-running
 
@@ -221,6 +227,6 @@ If nothing changed (same plan, same config, no new completed work), report "Plan
 
 ## Out of scope
 
-- The rest of a new repository's setup (labels, settings, standard files): **repo-bootstrap**
+- Accepting the plan, and the rest of the repository's setup (labels, settings, standard files, the pipeline): **accept-the-plan**
 - Creating issues and milestones: **plan-to-issues**
 - Writing CI files: **ci-setup**
