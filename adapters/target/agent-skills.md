@@ -8,6 +8,11 @@ Skills call the verbs by name. The commands live in `adapters/target/agent-skill
 
 ## What's shipped
 
+Two channels per release:
+
+- **The Claude Code plugin `i2r`** (decision 0019). The repository root is the plugin and its own marketplace: `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`. The marketplace's entry points at this repository at the release tag (`"ref": "v<version>"`), so users get released versions only. `cut-release` bumps both manifests through `release.version_files`.
+- **An archive for every agent**, described below.
+
 One archive per release, `idea-to-release-<version>.tar.gz`. Its layout is the installed layout (decision 0014):
 
 ```
@@ -51,7 +56,7 @@ idea-to-release-<version>/
 - **Check existing state:** not applicable.
 - **Command:**
   ```sh
-  adapters/target/agent-skills/verify.sh <archive>
+  adapters/target/agent-skills/verify.sh <archive> <clean copy of the tag>
   ```
   It installs into a throw-away project with `install.sh --agent claude` and checks:
   - every skill folder has a `SKILL.md` whose `name` matches the folder
@@ -61,6 +66,7 @@ idea-to-release-<version>/
   - a second install replaces the first; `--user`, `--dest` and each `--agent` install where they should
   - name clashes (decision 0015): a same-named folder idea-to-release didn't install is never replaced, even with `--force`, and a same-named personal skill stops a project install unless `--force` is given
   - every install runs with a throw-away `HOME`, so the real personal skills never affect the result
+  - with the tag's copy: `plugin.json`'s `version` and the marketplace's `ref` match the archive's version, and `claude plugin validate --strict` passes on it, when `claude` is installed
 - **Output:** `ok: … installs N skill(s); M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
 
 ### package.publish
@@ -68,9 +74,11 @@ idea-to-release-<version>/
 - **Tier:** admin
 - **Inputs:** the archive and the release
 - **Check existing state:** not applicable.
-- **Command:** none. The archive is published with the forge release: `release.draft` attaches it, and `release.publish` makes it public.
-- **Output:** "published with the forge release".
-- **Notes:** no other channel yet. A Claude Code plugin marketplace entry, or another tool's skill registry, would be added here (decision 0013).
+- **Command:** none.
+  - **The archive** is published with the forge release: `release.draft` attaches it, and `release.publish` makes it public.
+  - **The plugin** is published by the tag itself. The release change request bumped the manifests, so once the tag exists, the marketplace on the default branch points at it, and `claude plugin marketplace update` finds the new version.
+- **Output:** "published with the forge release; plugin i2r <version> follows the tag".
+- **Notes:** other agents' plugin formats (Agent Plugins, for Cursor, Copilot and Codex) would be added here.
 
 ### install.describe
 
@@ -78,12 +86,19 @@ idea-to-release-<version>/
 - **Inputs:** version and the release URL
 - **Command:** print this text, with `<version>` and `<url>` filled in:
   ```markdown
-  Download `idea-to-release-<version>.tar.gz` from <url>, then:
+  **Claude Code:** install the plugin `i2r`:
+
+      claude plugin marketplace add rmdesmond/idea-to-release
+      claude plugin install i2r@i2r
+
+  The skills are then `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. To update after a new release: `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`. While the repository is private, you need read access and git credentials for GitHub (`gh auth setup-git`, or an SSH key).
+
+  **Other agents:** download `idea-to-release-<version>.tar.gz` from <url>, then:
 
       tar -xzf idea-to-release-<version>.tar.gz
       cd idea-to-release-<version>
-      ./install.sh --agent claude --project /path/to/your/project   # or --user, for every project
+      ./install.sh --agent codex --project /path/to/your/project   # or --user, for every project
 
-  `--agent` also takes `codex`, `copilot` or `gemini`. For any other agent, use `--dest <its skills folder>`. Each skill goes in its own folder, and the shared files go in `idea-to-release/` beside them. Re-running replaces an earlier install. If a skill of the same name is already there, or in your personal skills, the script stops and names it.
+  `--agent` takes `claude`, `codex`, `copilot` or `gemini`. For any other agent, use `--dest <its skills folder>`. Each skill goes in its own folder, and the shared files go in `idea-to-release/` beside them. Re-running replaces an earlier install. If a skill of the same name is already there, or in your personal skills, the script stops and names it.
   ```
 - **Output:** the Markdown, for the release notes and the README.

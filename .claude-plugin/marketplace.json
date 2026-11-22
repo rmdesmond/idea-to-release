@@ -1,0 +1,18 @@
+{
+  "name": "i2r",
+  "owner": {
+    "name": "Randall Desmond"
+  },
+  "description": "The idea-to-release skills for Claude Code, as the plugin i2r.",
+  "plugins": [
+    {
+      "name": "i2r",
+      "description": "idea-to-release: plan, issues, change requests, CI, branch rules and releases, as seven skills.",
+      "source": {
+        "source": "github",
+        "repo": "rmdesmond/idea-to-release",
+        "ref": "v0.1.0"
+      }
+    }
+  ]
+}

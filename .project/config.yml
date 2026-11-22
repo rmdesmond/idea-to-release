@@ -10,7 +10,9 @@ release:
   versioning: semver
   strategy: trunk
   tag_prefix: v
-  version_files: []
+  version_files:          # the Claude Code plugin's manifests (decision 0019)
+    - '.claude-plugin/plugin.json:"version":'
+    - '.claude-plugin/marketplace.json:"ref":'
 review:
   required_approvals: 0   # single maintainer: merge is review (decision 0011)
   code_owners: false

@@ -51,6 +51,7 @@ adapters/
   tracker/           # one file per tracker
   target/            # one file per release target: how a project's releases are packaged and installed
 conventions.md       # shared rules every skill reads first
+.claude-plugin/      # plugin.json and marketplace.json: the Claude Code plugin i2r
 docs/
   plan/PLAN.md       # the plan for this project
   decisions/         # decision records
@@ -63,7 +64,24 @@ This repository is built with its own skills and follows its own conventions, so
 
 ## Installing
 
-The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code. Each [release](https://github.com/rmdesmond/idea-to-release/releases) has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
+The skills use the open [Agent Skills](https://agentskills.io) format, so any agent that reads `SKILL.md` folders can load them. They're developed and tested with Claude Code.
+
+### Claude Code: the plugin `i2r`
+
+From v0.2.0, the repository is also a Claude Code plugin marketplace:
+
+```sh
+claude plugin marketplace add rmdesmond/idea-to-release
+claude plugin install i2r@i2r
+```
+
+The skills are then typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. The short name saves typing ([decision 0019](docs/decisions/0019-claude-code-plugin-i2r.md)). Plugin skills are namespaced, so they never clash with skills of the same name. The plugin follows releases: to update, run `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`. While the repository is private, you need read access and git credentials for GitHub (`gh auth setup-git`, or an SSH key).
+
+In the skills' own text, they name each other without the prefix ("then run `plan-to-issues`"). In Claude Code, that's `/i2r:plan-to-issues`.
+
+### Any agent: the archive and `install.sh`
+
+Each [release](https://github.com/rmdesmond/idea-to-release/releases) has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
 
 ```sh
 tar -xzf idea-to-release-<version>.tar.gz

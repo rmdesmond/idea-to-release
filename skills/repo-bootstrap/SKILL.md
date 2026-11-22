@@ -7,7 +7,7 @@ description: Create a repository, or adopt an existing one, and give it the idea
 
 Takes a project from "no repository" or "a bare repository" to the standard starting point every other idea-to-release skill expects.
 
-**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit.
 
 Before doing anything, read `conventions.md`. Every rule there applies, especially §13 (safety). This skill uses only neutral verbs. Look up each verb in the adapters named by the project config, or, without a config, in the adapter inferred in step 1.
 
