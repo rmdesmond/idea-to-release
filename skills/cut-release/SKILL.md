@@ -37,7 +37,7 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
   - If a verb above is `not yet implemented`, stop and say which one.
   - **No target, or no adapter for it:** carry on without artifacts (decision 0013), and say so in the dry run.
 - Run `scripts/check-plan.sh` on the project's plan. If it fails, stop: it's fixed through a change request first.
-- `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree.
+- `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree. If you make a temporary worktree or copy (for the release branch, or the clean copy of the tag), remove it before the run stops, including when it stops to wait for a merge or a confirmation.
 
 ### 2. Find the stage
 
@@ -62,7 +62,7 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
 - **Changelog section:** put each title in the first group that matches, in §12's order (Removed, Changed, Fixed, Added). A breaking removal goes under Removed, marked **Breaking:**. List the groups as Added, Changed, Fixed, Removed, and leave out a group that has no entries. The heading is `## [<X.Y.Z>] - <release date>`. Add the link reference at the end of the file, from the forge adapter's *Release and changelog links*. Keep `## [Unreleased]` at the top, emptied.
 - **Tasks delivered** (conventions §6), from the included change requests and one `issue.list state=all`:
   - **With a change request:** each issue in an included change request's `closes` whose body has a `Plan-Task: <ID>` line. Its change requests are the included ones that close it.
-  - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. List these in the dry run so the user can check them.
+  - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. Leave out a task whose *Done when* boxes were all ticked in the plan at the last tag: it shipped in an earlier release, and its issue was only created and closed afterwards, for example by plan-to-issues adopting a project that had already released. List both kinds in the dry run so the user can check them.
   - Take each task's title and milestone from the plan. If the plan has no such task, or its issue's title starts with a different ID, stop and ask (conventions §13).
 - **Version files:** in each `release.version_files` entry, replace the first `X.Y.Z` after the marker on its line with the new version. Everything around it (quotes, a `v` prefix) stays as it is.
 - **The release commit's files:** `CHANGELOG.md` and the version files. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
@@ -81,6 +81,7 @@ CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3, Removed 1
 Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
 Tasks:        T-024 (#34, CR #81), T-025 (#35, CR #83) (2 tasks, M5)
               closed without a change request: T-001 (#20)
+              left out, done in the plan at v0.1.0: T-002 to T-009 (#21 to #28)
 Change request: branch chore/release-v0.2.0, "chore(release): v0.2.0"
 Then (later runs): tag v0.2.0 on the merged commit → release gates → package → draft → publish (each confirmed)
 ```

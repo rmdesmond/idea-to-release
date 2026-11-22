@@ -80,7 +80,7 @@ Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
 - **Type label**, inferred from the title. Most plan tasks add capability, so `type:feature` is the default:
   - first word Fix → `type:bug`
   - first word Write, Document, Draft or Explain → `type:docs`
-  - a test task (title starts with "Integration test", "End-to-end test" or "Test") → `type:chore`
+  - a test task → `type:chore`: the title starts with "Integration test", "End-to-end test" or "Test", or it starts with Add and names tests or a test harness ("Add integration tests for --separator", "Add the test harness and lint script")
   - first word Set up, Configure, Update, Upgrade, Remove, Refactor, Rename, Reorder, Clean, Bump, Decide, Run or Release → `type:chore`
   - anything else → `type:feature`
 - **Priority:** `priority:normal`

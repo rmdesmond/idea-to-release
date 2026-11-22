@@ -372,9 +372,9 @@ Done when:
 ### T-037: End-to-end test through the plugin
 Depends on: T-035, T-036
 Done when:
-- [ ] On a scratch repository, the plugin's skills take a small task through `work-issue` and cut a release with `cut-release`
-- [ ] The release's archive installs from its notes, and no ledger file is written
-- [ ] Problems found are fixed in the skills, or filed as issues
+- [x] On a scratch repository, the plugin's skills take a small task through `work-issue` and cut a release with `cut-release`
+- [x] The release's archive installs from its notes, and no ledger file is written
+- [x] Problems found are fixed in the skills, or filed as issues
 
 ### T-038: Release v0.2.0
 Depends on: T-037, T-039, T-040, T-041
