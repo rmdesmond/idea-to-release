@@ -1,43 +1,22 @@
----
-name: plan-to-issues
-description: Turn the project plan (docs/plan/PLAN.md) into tracker milestones and dependency-linked issues, adopt issues that already exist for plan tasks, and close issues for dropped tasks. Use after writing or revising the plan, or to bring issue labels and links back in step with it. Re-runnable; a second run with no plan changes reports no changes.
----
+# accept-the-plan: the milestones and issues
 
-# plan-to-issues
+Supporting file for `SKILL.md`, steps 2 and 6. It makes the tracker match the plan: one milestone per plan milestone, one issue per task, and dependencies as links. Each issue carries its task's `Plan-Task:` line, which is how the task is found again (conventions §6).
 
-Makes the tracker match the plan: one milestone per plan milestone, one issue per task, and dependencies as links. Each issue carries its task's `Plan-Task:` line, which is how the task is found again (conventions §6).
+**Verbs:** `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker).
 
-**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit.
+## Read the plan and the tracker
 
-Before doing anything, read `conventions.md`, especially §5 (plan), §6 (traceability), §8 (labels), §9 (issues) and §13 (safety).
-
-**Verbs used:** `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker). Look each one up in the adapters named in `.project/config.yml`.
-
-## Arguments
-
-All optional. Pass them as `key=value`.
-
-| Argument | Default | Notes |
-|---|---|---|
-| `non-interactive` | off | Don't ask. Use the inferred labels, and stop at any conflict |
-| `confirm` | off | Only with `non-interactive`: the caller confirms the dry run in advance. Without it, a non-interactive run stops after the dry run |
-
-## Procedure
-
-### 1. Read and check the inputs
-
-1. Read `.project/config.yml` and the adapters it names. If a verb above is `not yet implemented`, stop and say which one.
-2. Run `scripts/check-plan.sh` on the project's plan. The script belongs to the idea-to-release skill set, next to `conventions.md`, not to the project. If the check fails, stop and show the problems. The plan must be fixed first, through a change request.
-3. Check that the labels from conventions §8 exist on the tracker. If any are missing, stop and suggest running repo-bootstrap, which creates them.
-4. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading, after its `Release:` line if it has one). For each task, note:
+1. Read the plan. For each milestone, note its title (`M<n>: <title>`) and its one-sentence summary (the first paragraph under the heading, after its `Release:` line if it has one). For each task, note:
    - ID, title and milestone
    - `Depends on:` and `Issue:`
    - the *Done when* checklist
    - whether it's **dropped** (the heading ends in `(dropped)`), and the reason on its `Dropped` line
    - whether it's **done** (every *Done when* box ticked)
-5. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
+2. Run `issue.list` with `state=all` once, and keep the result. Every later lookup uses it instead of calling the forge again.
 
-### 2. Find each task's issue
+The labels from conventions §8 come from the setup (`setup.md`), which is applied first.
+
+## Find each task's issue
 
 For each task, look in this order and stop at the first match:
 
@@ -53,7 +32,7 @@ Then check that the sources agree. **Stop and ask** (conventions §13) if:
 
 Each task ends up **linked** (it has an issue) or **unlinked** (it needs one).
 
-### 3. Work out the desired state
+## Work out the desired state
 
 **Milestones.** One per plan milestone. The title is `M<n>: <title>`, and the description is the milestone's summary.
 
@@ -98,7 +77,7 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Add anything missing:**
   - the milestone, if it's not set
   - the `Plan-Task: <ID>` line, appended to the body if absent
-  - the `<ID>: ` prefix on the title, if absent. Keep the rest of the title as it is: only the prefix is added. If the title starts with a different task ID, that is a conflict (step 2).
+  - the `<ID>: ` prefix on the title, if absent. Keep the rest of the title as it is: only the prefix is added. If the title starts with a different task ID, that is a conflict (above).
   - a type or priority label, if the issue has none (using the inference above)
 - **Correct, as a stated change in the dry run:**
   - a milestone that doesn't match the plan
@@ -117,35 +96,25 @@ The inferred labels are shown in the dry run, where the user can change any of t
 - **Whenever an issue is closed,** remove its state label (`ready`, `blocked` or `needs-decision`) in the same step. State labels only describe open work (conventions §8).
 - **Closed issues outside the plan** (no `Plan-Task:` line: fixes, follow-ups, chores) get the same clean-up. Remove any state label from them too. That's the only change this skill makes to an issue outside the plan. It never adds, relabels, links or closes one.
 
-### 4. Dry run and confirmation
-
-Show one summary. List every write, and every difference reported but not changed:
+## For the dry run
 
 ```
-Repository: owner/repo   Plan: 5 milestones, 27 tasks (5 done, 0 dropped)
-
-milestone.ensure  create M2: Plan to issues, M3: ..., M4: ..., M5: ...; M1 unchanged
-issue.create      "T-007: Implement the tracker verbs ..."   type:feature priority:normal ready    M2
-                  "T-018: Decide the review rule ..."        type:chore   priority:normal needs-decision M4
-                  "T-001: Draft the shared conventions ..."  → then close as completed
+milestone.ensure  create M1: Walking skeleton, M2: Options
+issue.create      "T-001: Add the rot13 command"     type:feature priority:normal ready
+                  "T-002: Add the test harness"      type:chore   priority:normal blocked
 issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title prefix "T-002: "
-issue.link        #14 blocked-by #12, #13   (+ 31 more)
+issue.link        T-002 blocked-by T-001   (+ 3 more)
 issue.close       none
 labels            remove ready from closed #39, #44 (outside the plan)
-
 Reported, not changed:
   #12 (T-007): title differs from the plan
 ```
 
-Issues that don't exist yet have no number, so refer to them by task ID: list their links as `T-003 blocked-by T-001, T-002`. A dry run must account for every write the apply step will make. Never write "after it is created" in place of the actual links.
+Issues that don't exist yet have no number, so refer to them by task ID: list their links as `T-003 blocked-by T-001, T-002`. The dry run must account for every write the apply step will make. Never write "after it is created" in place of the actual links. Stop at any conflict before the dry run, in a `non-interactive` run too.
 
-If nothing would change, say "Issues match the plan; no changes" and stop.
+## Apply
 
-Wait for explicit confirmation (conventions §13). Non-interactive runs proceed only with `confirm`, and only if there are no conflicts.
-
-### 5. Apply
-
-In this order, stopping at the first failure and reporting what was done:
+In this order, stopping at the first failure:
 
 1. `milestone.ensure` for every milestone
 2. `issue.create` for every new issue, in plan order
@@ -153,18 +122,4 @@ In this order, stopping at the first failure and reporting what was done:
 4. `issue.link` for every dependency. All issue numbers are known by now.
 5. `issue.close` for done and dropped tasks, as above
 
-If a run stops partway, running it again is safe. Issues already created are found by their `Plan-Task:` line, and every other verb checks before it acts.
-
-### 6. Report
-
-List the milestones created, issues created or adopted (with numbers), links added, issues closed, and differences left for the user.
-
-## Re-running
-
-Every step checks first, so a second run with no plan changes reports "Issues match the plan; no changes". After the plan changes (tasks added, dropped, moved, or with new dependencies), a re-run makes only those changes. It also moves `blocked` issues to `ready` once their dependencies finish.
-
-## Out of scope
-
-- Writing or changing the plan: **idea-to-plan**
-- Working an issue: **work-issue**
-- Listing which tasks a release delivered: **cut-release**
+If a run stops partway, running it again is safe. Issues already created are found by their `Plan-Task:` line, and every other verb checks before it acts. After the plan changes (tasks added, dropped, moved, or with new dependencies), a later run makes only those changes. It also moves `blocked` issues to `ready` once their dependencies finish.

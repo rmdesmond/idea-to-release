@@ -28,7 +28,7 @@ All optional. Pass them as `key=value`.
 ### 1. Read what exists
 
 - `docs/plan/PLAN.md`:
-  - **new mode** if it's missing, or is only the repo-bootstrap stub (no milestones)
+  - **new mode** if it's missing, or is only a stub with no milestones
   - **revise mode** otherwise
 - `README.md`, `docs/decisions/*.md`, `.project/config.yml`
 - **Work already done:**
@@ -213,7 +213,7 @@ Only when step 1 found no repository.
    Next:       review the plan, then accept-the-plan
    ```
 
-   The repository is always created **private**. That isn't a question: the plan is a draft, and going public later is a separate, deliberate change (repo-governance). A `non-interactive` run stops after the dry run.
+   The repository is always created **private**. That isn't a question: the plan is a draft, and going public later is a separate, deliberate change (accept-the-plan with `visibility=public`). A `non-interactive` run stops after the dry run.
 3. **Apply,** stopping at the first failure:
    1. `git init -b main` if the folder isn't a git repository yet. Existing local commits are kept, and pushed with the plan.
    2. `repo.create` with `visibility: private`, which also sets the `origin` remote.
@@ -228,5 +228,4 @@ If nothing changed (same plan, same config, no new completed work), report "Plan
 ## Out of scope
 
 - Accepting the plan, and the rest of the repository's setup (labels, settings, standard files, the pipeline): **accept-the-plan**
-- Creating issues and milestones: **plan-to-issues**
-- Writing CI files: **ci-setup**
+- Creating issues and milestones, and writing CI files: **accept-the-plan**

@@ -467,12 +467,12 @@ Done when:
 ### T-046: Add accept-the-plan: branch rules, issues and acceptance
 Depends on: T-045
 Done when:
-- [ ] After the pipeline passes, `accept-the-plan` applies the branch rules with `repo-governance`'s procedure, including the fallback record when the forge can't enforce them, kept as a supporting file
-- [ ] It creates and links the milestones and issues with `plan-to-issues`' procedure, kept as a supporting file, and closes the issues of dropped tasks
-- [ ] It sets the plan's `Status:` to `accepted <date>` through a change request, which is the first change request the branch rules apply to
-- [ ] A second run after a plan revision, or a change to the pipeline or the rules, changes only what differs, and a run with nothing changed reports no changes
-- [ ] `repo-bootstrap`, `ci-setup`, `repo-governance` and `plan-to-issues` are removed, every live mention (conventions, adapters, skills, `install.sh`, tests, README) names `accept-the-plan`, and the tests pass with the new skill set
-- [ ] On a scratch repository, the branch rules are active and the issues exist before any task is worked
+- [x] After the pipeline passes, `accept-the-plan` applies the branch rules with `repo-governance`'s procedure, including the fallback record when the forge can't enforce them, kept as a supporting file
+- [x] It creates and links the milestones and issues with `plan-to-issues`' procedure, kept as a supporting file, and closes the issues of dropped tasks
+- [x] It sets the plan's `Status:` to `accepted <date>` through a change request, which is the first change request the branch rules apply to
+- [x] A second run after a plan revision, or a change to the pipeline or the rules, changes only what differs, and a run with nothing changed reports no changes
+- [x] `repo-bootstrap`, `ci-setup`, `repo-governance` and `plan-to-issues` are removed, every live mention (conventions, adapters, skills, `install.sh`, tests, README) names `accept-the-plan`, and the tests pass with the new skill set
+- [x] On a scratch repository, the branch rules are active and the issues exist before any task is worked
 
 ### T-047: Add work-the-plan
 Depends on: T-046
