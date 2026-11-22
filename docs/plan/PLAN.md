@@ -495,9 +495,9 @@ Done when:
 ### T-049: Clean up the README
 Depends on: T-047, T-048
 Done when:
-- [ ] Phrases left from early planning are gone: "before the first release", contributions welcome "once the first release is out", "branch rules kept by procedure while it's private", "github.md first", and the numbered build-order roadmap with its paragraph on early gaps
-- [ ] A short status section points at the plan, the releases and the changelog instead
-- [ ] The flow diagram and the skills table show the three gates and the six skills, and the README says every release archive has its own README
+- [x] Phrases left from early planning are gone: "before the first release", contributions welcome "once the first release is out", "branch rules kept by procedure while it's private", "github.md first", and the numbered build-order roadmap with its paragraph on early gaps
+- [x] A short status section points at the plan, the releases and the changelog instead
+- [x] The flow diagram and the skills table show the three gates and the six skills, and the README says every release archive has its own README
 
 ### T-050: Test plan, accept and work end to end
 Depends on: T-047, T-048

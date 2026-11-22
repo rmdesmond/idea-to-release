@@ -2,9 +2,7 @@
 
 Agent skills that take a software project from a rough idea to an official release, and keep a record of how it got there.
 
-The skills cover planning, repository setup, access and branch rules, ticket creation, day-to-day issue work, CI, and releases. They share one set of conventions, so each step links to the one before it: plan → issues → change requests → release notes.
-
-> **Status: v0.2.0.** [v0.2.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.2.0) installs as the Claude Code plugin `i2r`, adds the eighth skill, `write-tutorial`, and drops the ledger. It has the GitHub adapters and the `agent-skills` and `shell-cli` targets. It's early: expect the conventions to change between minor versions until 1.0.
+The skills cover planning, repository setup, CI, branch rules, issues, day-to-day issue work, tutorials and releases. They share one set of conventions, so each step links to the one before it: plan → issues → change requests → release notes.
 
 ## Why
 
@@ -16,12 +14,20 @@ Plenty of individual skills exist for creating a repo, turning a plan into issue
 
 ## How it fits together
 
+Three gates take a project from an idea to its releases, each one a skill:
+
 ```
-idea ──► plan ──► repository ──► issues ──► change requests ──► release
-          │           │             │              │               │
-          └──── each task's ID links them: plan → issue → change request → release notes
-                         decision records along the way
+idea ──► idea-to-plan ──────► accept-the-plan ─────────► work-the-plan ──────────► releases
+         a draft plan,        setup, CI, issues,         each task through          at each Release:
+         saved in a new       branch rules; the plan     work-issue, one change     milestone, through
+         private repository   is marked accepted         request at a time          cut-release
 ```
+
+1. **The plan is the first gate.** `idea-to-plan` writes it with you, and saves it in a private repository straight away, so you can check that what you asked for is what was understood.
+2. **Accepting it is the second.** `accept-the-plan` readies the repository in one dry run: the standard setup, a pipeline where every check already exists (a passing placeholder until a task sets it up), the issues, and branch rules that require the checks. No task is worked before all of that is in place.
+3. **Working it is the third.** `work-the-plan` takes the tasks in plan order, stops at each change request for your merge, and cuts a release when a milestone that ends in one is done.
+
+A task's ID links each step to the next: plan → issue → change request → release notes, with decision records along the way. A changed plan goes back through the first two gates.
 
 | Stage | Skill | What it does |
 |---|---|---|
@@ -34,7 +40,7 @@ idea ──► plan ──► repository ──► issues ──► change reque
 
 ## Design principles
 
-- **Forge-agnostic.** Skills are written in neutral terms ("open a change request", "protect the default branch"). Adapters translate those into commands for a specific forge or tracker. GitHub is the first adapter; others can be added without touching the skills.
+- **Forge-agnostic.** Skills are written in neutral terms ("open a change request", "protect the default branch"). Adapters translate those into commands for a specific forge or tracker. There are GitHub adapters today. Others can be added without touching the skills.
 - **One set of conventions.** Labels, branch names, commit style, the plan format and traceability are defined once in [`conventions.md`](conventions.md), and every skill follows it.
 - **The repository is the record.** The plan and decision records are files in the repo. Which release shipped each task is read from the issues, change requests and tags, not stored a second time.
 - **Same pipeline shape everywhere.** Every project has the same four core stages. A stage a project doesn't need stays in place as a no-op that states why, so it can be switched on later without changing branch rules.
@@ -46,7 +52,7 @@ idea ──► plan ──► repository ──► issues ──► change reque
 ```
 skills/              # one folder per skill, each with a SKILL.md
 adapters/
-  forge/             # one file per forge (github.md first)
+  forge/             # one file per forge: github.md
   tracker/           # one file per tracker
   target/            # one file per release target: how a project's releases are packaged and installed
 conventions.md       # shared rules every skill reads first
@@ -70,7 +76,7 @@ New to the skills? [The tutorial](docs/tutorial.md) takes a small project from a
 
 ### Claude Code: the plugin `i2r`
 
-Since v0.2.0, the repository is also a Claude Code plugin marketplace:
+The repository is also a Claude Code plugin marketplace:
 
 ```sh
 claude plugin marketplace add rmdesmond/idea-to-release
@@ -83,7 +89,7 @@ In the skills' own text, they name each other without the prefix ("then run `acc
 
 ### Any agent: the archive and `install.sh`
 
-Each [release](https://github.com/rmdesmond/idea-to-release/releases) has an archive, `idea-to-release-<version>.tar.gz`, with an install script:
+Each [release](https://github.com/rmdesmond/idea-to-release/releases) has an archive, `idea-to-release-<version>.tar.gz`, with an install script and its own `README.md`: the version, what it is, how to install it, and the skills and how to run them:
 
 ```sh
 tar -xzf idea-to-release-<version>.tar.gz
@@ -103,7 +109,7 @@ cd idea-to-release-<version>
 
 **Name clashes.** An agent loads only one skill of a given name, without a warning. In Claude Code, a personal skill wins over a project skill. So `install.sh` never replaces a folder it didn't install, and it stops if one of your personal skills has the same name as one of these. `--force` installs anyway, with a warning ([decision 0015](docs/decisions/0015-skill-name-clashes.md)).
 
-**From a clone,** before the first release or to try unreleased changes, build the archive yourself:
+**From a clone,** to try unreleased changes, build the archive yourself:
 
 ```sh
 git clone https://github.com/rmdesmond/idea-to-release.git && cd idea-to-release
@@ -120,27 +126,17 @@ Start with `idea-to-plan`, for a new idea or an existing repository, then `accep
 
 **A note on permissions.** These skills run commands with your credentials and can change repository settings, access and releases. Read a skill and its adapter before running it, and review the dry run before confirming any admin action.
 
-## Roadmap
+## Status
 
-1. `conventions.md`: done
-2. GitHub forge and tracker adapters: done, every verb implemented except `cr.merge`, which is left to the maintainer
-3. `repo-bootstrap`: done, and used on this repository
-4. `idea-to-plan`: done, and used to write this repository's plan
-5. `plan-to-issues`: done, and used for this repository's issues
-6. `work-issue`: done, and used for this repository's tasks
-7. `ci-setup`: done, and used for this repository's pipeline
-8. `repo-governance`: done, and used on this repository (branch rules kept by procedure while it's private)
-9. Target adapters and `cut-release`: done, with the `agent-skills` and `shell-cli` targets
-10. First tagged release of the skill set: done, [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0), cut with `cut-release`
-11. Branch rules enforced on `main`, with the repository kept private: done
-12. `write-tutorial`: done, and used for this repository's tutorial
-13. The Claude Code plugin `i2r`: done, released in [v0.2.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.2.0)
+Early: expect the conventions to change between minor versions until 1.0. There are GitHub forge and tracker adapters, and two release targets, `agent-skills` (this repository) and `shell-cli` (command-line tools).
 
-The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
+- **Released:** the [releases](https://github.com/rmdesmond/idea-to-release/releases), and what each one changed in [`CHANGELOG.md`](CHANGELOG.md)
+- **Next:** the plan, [`docs/plan/PLAN.md`](docs/plan/PLAN.md), with one issue per task in this repository's milestones
+- **Why things are the way they are:** the [decision records](docs/decisions/)
 
 ## Contributing
 
-Contributions are welcome once the first release is out. Until then, issues with ideas, gaps or corrections are the most useful input.
+Issues with ideas, gaps or corrections are welcome, and so are change requests for an existing issue.
 
 Changes follow [`conventions.md`](conventions.md): one issue per change request, Conventional Commits, and tests included with the change. A new forge or tracker adapter must define every neutral verb or state its fallback.
 
