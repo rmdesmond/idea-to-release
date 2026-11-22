@@ -3,6 +3,10 @@
 #
 # Checks:
 # - a "## Verification strategy" section exists
+# - a plan with milestones has exactly one "Status:" line before its first
+#   "##" section: "Status: draft" or "Status: accepted YYYY-MM-DD"
+# - a milestone has at most one "Release: vX.Y.Z" line, before its first
+#   task, and no two milestones release the same version
 # - an optional "## Release target" section has exactly one "Target:" line:
 #   "Target: none" or "Target: `<adapter-name>`", optionally followed by
 #   " - <what ships>" (conventions §5)
@@ -61,7 +65,27 @@ function visit(t,    n, parts, i, d) {
   colour[t] = 2
 }
 
+!seen_section && /^Status:/ {
+  statuses++
+  if (statuses > 1) { fail(FNR, "more than one \"Status:\" line"); next }
+  if ($0 !~ /^Status: (draft|accepted [0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9])[ \t]*$/)
+    fail(FNR, "\"Status:\" must be \"draft\" or \"accepted YYYY-MM-DD\"")
+  next
+}
+
+in_milestone && /^Release:/ {
+  if (task != "" || ms_tasks > 0) { fail(FNR, m ": \"Release:\" must come before the first task of the milestone"); next }
+  if (ms_release) { fail(FNR, m ": more than one \"Release:\" line"); next }
+  ms_release = 1
+  v = trim(substr($0, length("Release:") + 1))
+  if (v !~ /^v[0-9]+\.[0-9]+\.[0-9]+$/) { fail(FNR, m ": \"Release:\" must be \"vX.Y.Z\""); next }
+  if (v in released) fail(FNR, m ": release " v " is already the release of " released[v])
+  else released[v] = m
+  next
+}
+
 /^## / {
+  seen_section = 1
   close_task()
   close_target()
   in_milestone = 0
@@ -72,7 +96,7 @@ function visit(t,    n, parts, i, d) {
     m = $2; sub(/:$/, "", m)
     if (m in milestones) fail(FNR, "duplicate milestone " m)
     milestones[m] = 1
-    in_milestone = 1
+    in_milestone = 1; ms_release = 0; ms_tasks = 0
   }
   next
 }
@@ -82,6 +106,7 @@ function visit(t,    n, parts, i, d) {
   if (!in_milestone) next
   if ($0 !~ /^### T-[0-9][0-9][0-9]: [^ ]/) { fail(FNR, "heading inside a milestone must be a task: \"### T-NNN: <title>\""); next }
   task = $2; sub(/:$/, "", task)
+  ms_tasks++
   if (task in exists) fail(FNR, "duplicate task ID " task)
   exists[task] = 1; line_of[task] = FNR; task_line = FNR
   if ($0 ~ /\(dropped\)[ \t]*$/) dropped[task] = 1
@@ -136,6 +161,7 @@ END {
   for (t in exists) if (colour[t] == 0) visit(t)
   ntasks = 0; for (t in exists) ntasks++
   nms = 0; for (m in milestones) nms++
+  if (nms > 0 && statuses == 0) fail(1, "missing \"Status:\" line under the title (\"Status: draft\" or \"Status: accepted YYYY-MM-DD\")")
   if (failures > 0) { printf "%d problem(s) in %s\n", failures, FILENAME; exit 1 }
   printf "ok: %s has %d milestone(s) and %d task(s)\n", FILENAME, nms, ntasks
 }

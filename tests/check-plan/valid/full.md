@@ -1,5 +1,7 @@
 # Plan
 
+Status: accepted 2026-11-22
+
 ## Verification strategy
 
 Lint only.
@@ -9,6 +11,8 @@ Lint only.
 Target: `shell-cli` - a `slug` command, installed into a `bin` folder
 
 ## M1: Skeleton
+
+Release: v0.1.0
 
 ### T-001: Entry point
 Depends on: none
