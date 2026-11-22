@@ -19,7 +19,7 @@ Plenty of individual skills exist for creating a repo, turning a plan into issue
 ```
 idea ──► plan ──► repository ──► issues ──► change requests ──► release
           │           │             │              │               │
-          └───────────┴─────────────┴──── ledger ──┴───────────────┘
+          └──── each task's ID links them: plan → issue → change request → release notes
                          decision records along the way
 ```
 
@@ -36,8 +36,8 @@ idea ──► plan ──► repository ──► issues ──► change reque
 ## Design principles
 
 - **Forge-agnostic.** Skills are written in neutral terms ("open a change request", "protect the default branch"). Adapters translate those into commands for a specific forge or tracker. GitHub is the first adapter; others can be added without touching the skills.
-- **One set of conventions.** Labels, branch names, commit style, the plan format and the ledger are defined once in [`conventions.md`](conventions.md), and every skill follows it.
-- **The repository is the record.** The plan, decision records and a ledger mapping tasks to issues, change requests and releases are files in the repo.
+- **One set of conventions.** Labels, branch names, commit style, the plan format and traceability are defined once in [`conventions.md`](conventions.md), and every skill follows it.
+- **The repository is the record.** The plan and decision records are files in the repo. Which release shipped each task is read from the issues, change requests and tags, not stored a second time.
 - **Same pipeline shape everywhere.** Every project has the same four core stages. A stage a project doesn't need stays in place as a no-op that states why, so it can be switched on later without changing branch rules.
 - **Tests are part of the task.** A task's tests ship in the same change request as the work.
 - **People confirm what can't be undone.** Reads run freely, writes are announced, and admin actions (creating a repo, changing access, merging, publishing) show a dry run and wait for confirmation.
@@ -56,7 +56,6 @@ docs/
   decisions/         # decision records
 .project/
   config.yml         # this project's forge, tracker and pipeline choices
-  ledger.yml         # task → issue → change request → release
 CHANGELOG.md
 ```
 

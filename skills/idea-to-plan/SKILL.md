@@ -28,11 +28,10 @@ All optional. Pass them as `key=value`.
 - `docs/plan/PLAN.md`:
   - **new mode** if it's missing, or is only the repo-bootstrap stub (no milestones)
   - **revise mode** otherwise
-- `README.md`, `docs/decisions/*.md`, `.project/config.yml`, `.project/ledger.yml`
+- `README.md`, `docs/decisions/*.md`, `.project/config.yml`
 - **Work already done:**
   - `git log --oneline` on the default branch
   - `issue.list` with `state=all`
-  - the ledger
 
   Any issue or merged change that isn't covered by a task in the plan is a candidate for a completed task (step 4).
 
@@ -181,5 +180,5 @@ If nothing changed (same plan, same config, no new completed work), report "Plan
 
 ## Out of scope
 
-- Creating issues and milestones, and writing the ledger: **plan-to-issues**
+- Creating issues and milestones: **plan-to-issues**
 - Writing CI files: **ci-setup**

@@ -1,15 +1,15 @@
 ---
 name: cut-release
-description: Cut a release of a project that follows the idea-to-release conventions - derive the version from the change requests merged since the last tag, update CHANGELOG.md and the ledger through a release change request, then tag, package through the target adapter, draft the release with notes listing the plan tasks it delivers, and publish only after the user confirms and every release gate passes. Re-runnable; it picks up wherever an earlier run stopped. Use when the default branch has changes worth releasing.
+description: Cut a release of a project that follows the idea-to-release conventions - derive the version from the change requests merged since the last tag, update CHANGELOG.md through a release change request, then tag, package through the target adapter, draft the release with notes listing the plan tasks it delivers, and publish only after the user confirms and every release gate passes. Re-runnable; it picks up wherever an earlier run stopped. Use when the default branch has changes worth releasing.
 ---
 
 # cut-release
 
-Turns what has been merged since the last release into a published, tagged version, with a changelog entry, notes that say which plan tasks shipped, the packaged artifacts, and a complete ledger.
+Turns what has been merged since the last release into a published, tagged version, with a changelog entry, notes that say which plan tasks shipped, and the packaged artifacts.
 
 **Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
 
-Before doing anything, read `conventions.md`, especially §6 (ledger), §11 (gates), §12 (versions and releases), §13 (safety: tagging and publishing are **admin tier**) and §14 (fallbacks).
+Before doing anything, read `conventions.md`, especially §6 (traceability), §11 (gates), §12 (versions and releases), §13 (safety: tagging and publishing are **admin tier**) and §14 (fallbacks).
 
 **Verbs used:** `cr.list`, `cr.open`, `cr.status`, `pipeline.status`, `tag.create`, `release.draft`, `release.publish` (forge); `issue.list` (tracker); `package.build`, `package.verify`, `package.publish`, `install.describe` (target). Look each one up in the adapters named in `.project/config.yml`.
 
@@ -36,7 +36,7 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
   - `strategy: release-branches` isn't supported yet. Stop and say so.
   - If a verb above is `not yet implemented`, stop and say which one.
   - **No target, or no adapter for it:** carry on without artifacts (decision 0013), and say so in the dry run.
-- Run `scripts/check-plan.sh` and `scripts/check-ledger.sh` on the project's plan and ledger. If either fails, stop: they're fixed through a change request first.
+- Run `scripts/check-plan.sh` on the project's plan. If it fails, stop: it's fixed through a change request first.
 - `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree.
 
 ### 2. Find the stage
@@ -60,15 +60,12 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
 - **Included change requests:** `cr.list`, keeping those whose `merge_commit` lies in `<last-tag>..origin/<default>` (or all of the default branch's history, for the first release). Leave out any earlier `chore(release):` change request.
 - **Version:** apply conventions §12 to their titles. If nothing bumps, report "nothing to release" and stop. Use the `version` argument if given, after checking it's valid and higher.
 - **Changelog section:** group the titles as §12 says. Leave out a group that has no entries. The heading is `## [<X.Y.Z>] - <release date>`. Add the link reference at the end of the file, from the forge adapter's *Release and changelog links*. Keep `## [Unreleased]` at the top, emptied.
-- **Ledger:** reconcile every entry against `cr.list` and `issue.list state=all`. Change only these fields, never `title`, `milestone`, `issue` or `created`:
-  - `change_requests`: every merged change request whose `closes` includes the task's issue, sorted. Fill it in for any entry that lacks it, including tasks from earlier releases.
-  - `merged`: the latest of their `merged` dates.
-  - `released_in` and `released`, for each task delivered by this release:
-    - **It has a change request in this release,** and no `released_in` yet.
-    - **Or its issue is closed as completed with no change request,** and no `released_in` yet. That's work done before the tracker was used, and it ships in the first release that includes it. List these in the dry run so the user can check them.
-  - Tasks already released keep their `released_in`.
+- **Tasks delivered** (conventions §6), from the included change requests and one `issue.list state=all`:
+  - **With a change request:** each issue in an included change request's `closes` whose body has a `Plan-Task: <ID>` line. Its change requests are the included ones that close it.
+  - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. List these in the dry run so the user can check them.
+  - Take each task's title and milestone from the plan. If the plan has no such task, or its issue's title starts with a different ID, stop and ask (conventions §13).
 - **Version files:** in each `release.version_files` entry, replace the version after the marker with `<X.Y.Z>`, keeping any quotes.
-- **The release commit's files:** `CHANGELOG.md`, `.project/ledger.yml` and the version files. Run `scripts/check-ledger.sh` on the new ledger. It must pass. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
+- **The release commit's files:** `CHANGELOG.md` and the version files. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
 
 ### 4. Prepare: dry run, then the release change request
 
@@ -81,13 +78,13 @@ Gates now:    build pass, unit pass, integration pass (placeholder)
 Included:     7 change requests (#82, #83, ...); not listed in the changelog: 3 (docs, chore)
 CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3
 Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
-Ledger:       released_in v0.2.0 for T-024, T-025 (2 tasks); change_requests filled in for 21 entries
-              closed without a change request: T-001 (#20) → released in v0.2.0
+Tasks:        T-024 (#34, CR #81), T-025 (#35, CR #83) (2 tasks, M5)
+              closed without a change request: T-001 (#20)
 Change request: branch chore/release-v0.2.0, "chore(release): v0.2.0"
 Then (later runs): tag v0.2.0 on the merged commit → release gates → package → draft → publish (each confirmed)
 ```
 
-This step only writes a branch and opens a change request, so it's write tier: say what will happen, then do it. Commit `chore(release): <version>` on `chore/release-<version>`, then `cr.open` with the changelog section, the ledger summary and, if `issue` was given, `Closes #<issue>`. Run `cr.status`: `closes` must be exactly that issue, or empty.
+This step only writes a branch and opens a change request, so it's write tier: say what will happen, then do it. Commit `chore(release): <version>` on `chore/release-<version>`, then `cr.open` with the changelog section, the tasks delivered and, if `issue` was given, `Closes #<issue>`. Run `cr.status`: `closes` must be exactly that issue, or empty.
 
 **Stop there.** The user reviews and merges the release change request. Then run release again.
 
@@ -102,7 +99,7 @@ This step only writes a branch and opens a change request, so it's write tier: s
 ### 6. Package and draft
 
 - **Package:** take a clean copy of the tag and run `package.build` on it, then `package.verify` on the artifacts. If `verify` fails, it's a failed release gate: stop and report.
-- **Notes:** write them from the ledger and the changelog, not from memory:
+- **Notes:** work out the tasks delivered again, as in step 3, for `<last-tag>..<tag>`, and write the notes from them and the changelog, not from memory:
 
   ```markdown
   <one line: the milestone goals this release completes, from the plan, if any>

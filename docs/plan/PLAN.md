@@ -50,13 +50,13 @@ Target: `agent-skills` - an archive of the skills, conventions and adapters, wit
 ## Verification strategy
 
 Test levels:
-- Format checks on the conventions' artefacts (adapters, plan, ledger)
+- Format checks on the conventions' artefacts (adapters, plan)
 - Fixture tests for each check script: valid files must pass, and invalid files must fail with a stated message
 - End-to-end runs of the skills on scratch repositories, one at the end of each milestone from M2. These need GitHub credentials and a person to confirm admin steps, so they're plan tasks, not pipeline stages.
 
 | Stage | Enabled | Reason |
 |---|---|---|
-| lint | yes | `scripts/check-adapters.sh`, `scripts/check-plan.sh`, and the ledger check from T-008 |
+| lint | yes | `scripts/check-adapters.sh` and `scripts/check-plan.sh` (the ledger check from T-008 was removed in T-034) |
 | build | no | Markdown and shell scripts; nothing to compile |
 | unit | yes | `tests/run.sh`: fixture tests for the check scripts |
 | integration | no | End-to-end runs need GitHub credentials and a person to confirm admin steps; they're plan tasks (T-010, T-014, T-021, T-026), not automated |
@@ -345,11 +345,11 @@ The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-is
 ### T-034: Remove the ledger
 Depends on: none
 Done when:
-- [ ] No skill, adapter or script reads or writes `.project/ledger.yml`; the file, `scripts/check-ledger.sh` and its tests are deleted, and the lint stage no longer runs the check
-- [ ] Conventions §6 becomes "Traceability": task → issue by the `Plan-Task:` footer, issue → change requests by `closes`, change request → release by its merge commit in the tag range
-- [ ] `cut-release` builds "Plan tasks delivered" from the change requests in the release, their issues and the plan, and lists tasks closed as completed with no change request
-- [ ] A `cut-release` dry run on this repository's history gives the same "Plan tasks delivered" as v0.1.0's notes
-- [ ] Decision 0018 records the removal, and #97 is closed as resolved
+- [x] No skill, adapter or script reads or writes `.project/ledger.yml`; the file, `scripts/check-ledger.sh` and its tests are deleted, and the lint stage no longer runs the check
+- [x] Conventions §6 becomes "Traceability": task → issue by the `Plan-Task:` footer, issue → change requests by `closes`, change request → release by its merge commit in the tag range
+- [x] `cut-release` builds "Plan tasks delivered" from the change requests in the release, their issues and the plan, and lists tasks closed as completed with no change request
+- [x] A `cut-release` dry run on this repository's history gives the same "Plan tasks delivered" as v0.1.0's notes
+- [x] Decision 0018 records the removal, and #97 is closed as resolved
 
 ### T-035: Refresh a stale blocked label in work-issue
 Depends on: none

@@ -1,6 +1,6 @@
 ---
 name: repo-bootstrap
-description: Create a repository, or adopt an existing one, and give it the idea-to-release standard setup - repo settings, standard labels, project config, ledger, licence, changelog, .gitignore, templates and decision records. Use when starting a new project, or bringing an existing repository under the idea-to-release conventions. Re-runnable; a second run reports what is already in place.
+description: Create a repository, or adopt an existing one, and give it the idea-to-release standard setup - repo settings, standard labels, project config, licence, changelog, .gitignore, templates and decision records. Use when starting a new project, or bringing an existing repository under the idea-to-release conventions. Re-runnable; a second run reports what is already in place.
 ---
 
 # repo-bootstrap
@@ -73,7 +73,7 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 - delete branch on merge: on
 - features (the optional repo tabs: issues, wiki, projects):
   - issues: on in both modes, because the tracker needs it
-  - wiki and projects, **create mode:** off. The plan, decisions and ledger live as files in the repository, and a wiki or board would be a second place for planning to drift. The forge may turn them on by default when it creates a repo, so set them explicitly.
+  - wiki and projects, **create mode:** off. The plan and decisions live as files in the repository, and a wiki or board would be a second place for planning to drift. The forge may turn them on by default when it creates a repo, so set them explicitly.
   - wiki and projects, **adopt mode:** leave them as they are. If either is on, say so in the dry run, because the owner may be using it. Turn it off only if the user asks.
 - description: only if one was given and it differs
 
@@ -97,7 +97,6 @@ Compare what is wanted with what is there. Nothing is changed in this step.
 | File | Content |
 |---|---|
 | `.project/config.yml` | Conventions §4 shape, filled from the inputs. `target: <name>` if known (else left out), `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, `review: {required_approvals: <from inputs>, code_owners: false}`, `extra_stages: []` |
-| `.project/ledger.yml` | `tasks: {}` |
 | `CHANGELOG.md` | Keep a Changelog header and an empty `## [Unreleased]` section |
 | `LICENSE` | Licence text from the forge adapter, with year and holder filled in. Skipped if `licence=none` |
 | `.gitignore` | Language template (if any) plus the OS and editor block from the forge adapter |
@@ -129,7 +128,7 @@ Admin (needs your confirmation):
                   delete branch on merge: off → on
 Write:
   label.ensure    create 10 labels; 0 already present; 0 differ
-  files           create .project/config.yml, .project/ledger.yml, CHANGELOG.md, LICENSE (MIT), ...
+  files           create .project/config.yml, CHANGELOG.md, LICENSE (MIT), ...
                   keep README.md (exists)
   decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md, 0005-review-rule.md
   change request  branch chore/1-bootstrap → main

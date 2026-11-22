@@ -18,7 +18,7 @@ pipeline:
   stages:
     lint:
       enabled: true
-      run: "scripts/check-adapters.sh && scripts/check-plan.sh && scripts/check-ledger.sh"
+      run: "scripts/check-adapters.sh && scripts/check-plan.sh"
     build:
       enabled: false
       reason: "Markdown and shell scripts; nothing to compile"

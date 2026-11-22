@@ -63,7 +63,7 @@ Every tracker verb has a section here. A verb that is not yet available says `St
 
 - **Tier:** write
 - **Inputs:** `title`, `body`, `labels`, optional `milestone` (title). Relationships are added afterwards with `issue.link`, so there's only one way of creating links.
-- **Check existing state:** the calling skill first looks in the ledger and the plan's `Issue:` line. The adapter then looks on the forge for an issue carrying the same marker line in its body (for plan tasks, `Plan-Task: T-NNN`):
+- **Check existing state:** the calling skill first looks at the plan's `Issue:` line. The adapter then looks on the forge for an issue carrying the same marker line in its body (for plan tasks, `Plan-Task: T-NNN`):
   ```sh
   gh issue list --repo {o}/{r} --state all --limit 1000 --json number,state,body \
     --jq '.[] | select(.body | test("(?m)^Plan-Task: T-007$")) | {number, state}'
