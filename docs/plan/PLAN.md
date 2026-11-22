@@ -18,6 +18,12 @@ In (v0.2.0, M6):
 - The fix for the stale `blocked` labels found end to end
 - An eighth skill, `write-tutorial`: an optional tutorial for a project, from real runs, shipped with its releases (decision 0020)
 
+In (v0.3.0, M7):
+- Three gates, each a skill: `idea-to-plan` ends in a private repository holding the plan, `accept-the-plan` readies the forge (setup, CI with placeholders, branch rules, issues) and marks the plan accepted, and `work-the-plan` works the accepted plan task by task to its releases (decisions 0021 and 0022)
+- Six skills: `idea-to-plan`, `accept-the-plan`, `work-the-plan`, `work-issue`, `write-tutorial` and `cut-release`. `repo-bootstrap`, `ci-setup`, `repo-governance` and `plan-to-issues` are folded into `accept-the-plan`
+- A README in every release archive: version, about, install and usage (decision 0023)
+- This repository's README cleaned of leftovers from early planning
+
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
 - Testing on agents other than Claude Code (the install script knows their skill folders, but only Claude Code is tested)
@@ -29,7 +35,12 @@ Out (v0.2.0):
 - The Agent Plugins package for Cursor, Copilot and Codex: a later release, tracked in its own issue
 - Packaging projects other than this one with the `agent-skills` target. It packages this repository only, and won't be generalised
 
-See decisions 0007, 0013, 0018 and 0019.
+Out (v0.3.0):
+- A usage record of each skill run (which skill, the prompts, the questions and answers): considered and dropped, because the plan gate checks that what was asked for is what was understood, and the plan → issues → change requests → releases trail already records the rest
+- Working several issues at once: `work-the-plan` works one task at a time and stops at each change request for the maintainer's merge
+- The Agent Plugins package (#102)
+
+See decisions 0007, 0013, 0018, 0019, 0021, 0022 and 0023.
 
 ## Constraints
 
@@ -420,3 +431,82 @@ Done when:
 - [x] When `docs/tutorial.md` exists, the `shell-cli` and `agent-skills` archives include it, and their `package.verify` checks it's there
 - [x] `cut-release`'s notes link to the tutorial at the release's tag, and its dry run warns when the tutorial was last changed before change requests in the release. It never requires a tutorial
 - [x] On a scratch repository, `write-tutorial` writes a tutorial through a change request, and the next `cut-release` ships it in the archive and links it from the notes
+
+## M7: Plan, accept, work
+
+A project goes from an idea to an accepted plan to its releases through three skills: the plan is a gate that checks what was asked for is what was understood, accepting it readies the forge before any task is worked, and every release archive has its own README. v0.3.0 is released with six skills.
+
+### T-044: Make idea-to-plan end in a private repository with the plan
+Depends on: none
+Done when:
+- [ ] In new mode, `idea-to-plan` ends by creating the repository, always private, with no visibility question, and committing the plan, its decision records and a `.project/config.yml` to the default branch, after a dry run and a yes (admin tier)
+- [ ] In an existing repository (adopt or revise mode), it opens a `docs/plan` change request instead, as it does today
+- [ ] Conventions §5 gives the plan a `Status:` line under its title, `draft` or `accepted <date>`, and `scripts/check-plan.sh` rejects a plan without a valid one, with fixtures for both. Revise mode sets it back to `draft`
+- [ ] Conventions §5 lets a milestone carry a `Release: vX.Y.Z` line under its heading, which `check-plan.sh` validates
+- [ ] Conventions §10 names the only commits made straight to the default branch: `idea-to-plan`'s first commit, and `accept-the-plan`'s setup before the branch rules exist
+- [ ] This repository's plan has a `Status:` line, and each release milestone a `Release:` line
+
+### T-045: Add accept-the-plan: setup and CI
+Depends on: T-044
+Done when:
+- [ ] `skills/accept-the-plan/SKILL.md` refuses a plan that fails `check-plan.sh`, and shows one dry run of everything it will do, asking for one yes
+- [ ] It applies the rest of `repo-bootstrap`'s setup (standard files, labels, settings, licence, changelog, templates), kept as a supporting file in the skill's folder
+- [ ] It renders the pipeline with `ci-setup`'s procedure, kept as a supporting file: every core stage is present, and a stage whose command a task creates is a passing placeholder that names the task (conventions §11, `reason: "not set up yet: T-NNN adds it"`)
+- [ ] The first pipeline run on the default branch passes before it goes on
+- [ ] `idea-to-plan` writes "enable the `<stage>` stage and render the pipeline again" into the *Done when* of the task that creates a stage's command, and `work-issue` renders the pipeline in that task's change request
+- [ ] On a scratch repository, a new plan's setup and placeholder pipeline pass, and a second run reports no changes
+
+### T-046: Add accept-the-plan: branch rules, issues and acceptance
+Depends on: T-045
+Done when:
+- [ ] After the pipeline passes, `accept-the-plan` applies the branch rules with `repo-governance`'s procedure, including the fallback record when the forge can't enforce them, kept as a supporting file
+- [ ] It creates and links the milestones and issues with `plan-to-issues`' procedure, kept as a supporting file, and closes the issues of dropped tasks
+- [ ] It sets the plan's `Status:` to `accepted <date>` through a change request, which is the first change request the branch rules apply to
+- [ ] A second run after a plan revision, or a change to the pipeline or the rules, changes only what differs, and a run with nothing changed reports no changes
+- [ ] `repo-bootstrap`, `ci-setup`, `repo-governance` and `plan-to-issues` are removed, every live mention (conventions, adapters, skills, `install.sh`, tests, README) names `accept-the-plan`, and the tests pass with the new skill set
+- [ ] On a scratch repository, the branch rules are active and the issues exist before any task is worked
+
+### T-047: Add work-the-plan
+Depends on: T-046
+Done when:
+- [ ] `skills/work-the-plan/SKILL.md` refuses a plan whose `Status:` isn't `accepted`, and says to run `accept-the-plan`
+- [ ] It proposes the next task in plan order whose issue is `ready`, or whose `blocked` label is stale, and on a yes runs `work-issue` on it
+- [ ] It stops when the change request is open, and says to run it again after the merge. A second run with that change request still open says so and stops
+- [ ] When the last task of a milestone with a `Release:` line is merged, it offers `write-tutorial` (optional), then runs `cut-release` with that version, keeping cut-release's confirmations
+- [ ] When every task is done, it reports the plan complete
+- [ ] On a scratch repository, it refuses a draft plan, stops at each change request, and offers the release at the end of a release milestone
+
+### T-048: Give every release archive its own README
+Depends on: none
+Done when:
+- [ ] Conventions §2 adds a target verb, `usage.describe`, and every target adapter implements it: `shell-cli` uses each installed command's `--help`, and `agent-skills` lists each skill with its description and how to invoke it
+- [ ] `cut-release` writes the release README: the version, an about section from the plan's summary, install from `install.describe`, and usage from `usage.describe`, all from real output. `package.build` puts it at the top of the archive in place of the project's README
+- [ ] `package.verify` fails when the README is missing, or lacks one of its four sections
+- [ ] `scripts/check-adapters.sh` covers 30 verbs, and the target tests cover the README, a missing section included
+
+### T-049: Clean up the README
+Depends on: T-047, T-048
+Done when:
+- [ ] Phrases left from early planning are gone: "before the first release", contributions welcome "once the first release is out", "branch rules kept by procedure while it's private", "github.md first", and the numbered build-order roadmap with its paragraph on early gaps
+- [ ] A short status section points at the plan, the releases and the changelog instead
+- [ ] The flow diagram and the skills table show the three gates and the six skills, and the README says every release archive has its own README
+
+### T-050: Test plan, accept and work end to end
+Depends on: T-047, T-048
+Done when:
+- [ ] Through the plugin, on a new scratch repository named after its deliverable, `idea-to-plan` from an empty folder leaves a private repository holding a draft plan
+- [ ] `accept-the-plan` leaves a passing placeholder pipeline, active branch rules and the issues, and marks the plan accepted, all before any task is worked
+- [ ] `work-the-plan` works every task, stopping at each change request, and the task that creates a stage's command enables that stage
+- [ ] At the release milestone it runs `cut-release`, and the archive's README has its four sections
+- [ ] Every problem found is fixed in this milestone or filed as an issue
+
+### T-051: Update the tutorial for the three gates
+Depends on: T-049, T-050
+Done when:
+- [ ] `write-tutorial` rewrites `docs/tutorial.md` from T-050's recorded run, with `idea-to-plan`, `accept-the-plan` and `work-the-plan` as its steps
+
+### T-052: Release v0.3.0
+Depends on: T-049, T-050, T-051
+Done when:
+- [ ] `cut-release` publishes v0.3.0 after both confirmations, with the plugin manifests at 0.3.0
+- [ ] A fresh install of the plugin gets v0.3.0 with six skills
