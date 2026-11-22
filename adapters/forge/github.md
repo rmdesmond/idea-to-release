@@ -98,12 +98,12 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
 
   **Exception:** `gh` rejects `--squash-merge-commit-message` unless `--enable-squash-merge=true` is in the same call. Whenever the message setting is passed, pass `--enable-squash-merge=true` too, even if squash merging is already allowed.
 - **Output:** settings changed, as `name: old → new`.
-- **Visibility:** a separate call, never combined with other settings, and passed only by `repo-governance`:
+- **Visibility:** a separate call, never combined with other settings, and passed only by `accept-the-plan`, for a confirmed visibility change:
   ```sh
   gh repo edit {o}/{r} --visibility <private|public|internal> --accept-visibility-change-consequences
   ```
   `internal` exists only for organisations on GitHub Enterprise. Going public publishes the whole history. Going private removes stars and watchers, and turns off features the plan only allows on public repositories, such as branch rules on a free account. Afterwards GitHub may answer `Repository has been locked` for a few seconds (see *Errors*).
-- **Notes:** repo-bootstrap never passes `visibility`. It sets visibility only when creating a repository.
+- **Notes:** the setup step never passes `visibility`. A new repository gets its visibility when it's created (idea-to-plan, always private).
 - **Fallback:** none needed.
 
 ## Access
@@ -134,7 +134,7 @@ Below, `{o}/{r}` means the resolved `OWNER/REPO`. Always pass it explicitly (`--
   gh api repos/{o}/{r}/collaborators --paginate --jq '.[] | {login, role: .role_name}'
   gh api repos/{o}/{r}/invitations --jq '.[] | {login: .invitee.login, role: .permissions, pending: true}'
   ```
-- **Output:** one line per person: login, role (`read`, `triage`, `write`, `maintain`, `admin`) and whether the invitation is pending. The owner is included as `admin`. Also report how many people can write, because `repo-governance` uses it (decision 0011).
+- **Output:** one line per person: login, role (`read`, `triage`, `write`, `maintain`, `admin`) and whether the invitation is pending. The owner is included as `admin`. Also report how many people can write, because `accept-the-plan` uses it for the review rule (decision 0011).
 - **Fallback:** none needed.
 
 ### Branch rules: one ruleset
@@ -231,7 +231,7 @@ Making the repository public, or upgrading the account, brings the rules back. R
 
 - **Tier:** admin
 - **Inputs:** the check names, normally the four core stages `lint`, `build`, `unit` and `integration` (conventions §11). Advisory extra stages are never required, and required extra stages are added by name.
-- **Check existing state:** steps 1–3 above. Also check that each named check has actually reported on the default branch or a recent change request (`pipeline.status`). A required check that never runs blocks every merge. If one is missing, stop and suggest running `ci-setup` first.
+- **Check existing state:** steps 1–3 above. Also check that each named check has actually reported on the default branch or a recent change request (`pipeline.status`). A required check that never runs blocks every merge. If one is missing, stop and wait: in a new repository, `lint` first reports on accept-the-plan's acceptance change request.
 - **Command:** steps 2 and 4 above, with this entry. `15368` is the GitHub Actions app, so only Actions can satisfy the checks:
   ```json
   { "type": "required_status_checks", "parameters": { "strict_required_status_checks_policy": false, "do_not_enforce_on_create": false, "required_status_checks": [ { "context": "lint", "integration_id": 15368 }, { "context": "build", "integration_id": 15368 }, { "context": "unit", "integration_id": 15368 }, { "context": "integration", "integration_id": 15368 } ] } }

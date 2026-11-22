@@ -50,7 +50,7 @@ Run `issue.list` once with `state=open`.
 
 **An issue's blockers** are the issues it's linked to as `blocked-by` (the check in `issue.link`). For a plan task with no links, use the issues of the tasks on its `Depends on:` line.
 
-**Taking an issue with a stale `blocked` label:** when the user confirms it, first `issue.update` it from `blocked` to `ready` (the change plan-to-issues would make, conventions §8), and report the change. Then carry on as for any `ready` issue. Change only that one issue's label. Other stale labels are listed, and left for plan-to-issues.
+**Taking an issue with a stale `blocked` label:** when the user confirms it, first `issue.update` it from `blocked` to `ready` (the change accept-the-plan would make, conventions §8), and report the change. Then carry on as for any `ready` issue. Change only that one issue's label. Other stale labels are listed, and left for accept-the-plan.
 
 ### 3. Read the task
 
@@ -125,7 +125,7 @@ Then run `cr.status`. Check that `closes` is **exactly** the issue being worked:
 
 In either case, fix the body with `cr.update` and read `cr.status` again. GitHub can take a few seconds to parse a new body, so read it again before deciding it's wrong.
 
-**Wait for the pipeline.** If the project has CI (accept-the-plan or ci-setup has run), wait for the change request's checks to finish, and report `pipeline.status`:
+**Wait for the pipeline.** If the project has CI (accept-the-plan has run), wait for the change request's checks to finish, and report `pipeline.status`:
 
 - **A required check fails on CI** although it passed locally: the environments differ (tools, shell, operating system). Fix it on the branch as in resume mode (step 9), and wait again. Don't hand over a red change request without saying so.
 - **The branch rules block merging** (`cr.status` mergeable reason `BLOCKED`) for any reason other than a pending review: report why.
@@ -148,7 +148,7 @@ Running again on an issue with an open change request resumes it (step 9); it ne
 
 ## Out of scope
 
-- Changing labels, milestones or links: **plan-to-issues**
+- Changing labels, milestones or links: **accept-the-plan**
 - Changing the plan beyond ticking this task's boxes: **idea-to-plan**
-- Writing CI files from the `run` commands: **ci-setup**
+- Rendering the pipeline, except for a task that enables a stage (step 5): **accept-the-plan**
 - Merging: the user. Releasing: **cut-release**

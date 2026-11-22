@@ -25,7 +25,9 @@ Run `pipeline.render` into a temporary location, never straight over the committ
 - **Identical:** the pipeline needs no change.
 - **Different:** show the diff, and work out why.
   - **The config changed** since the CI files were last committed: an ordinary update. Compare commit order, not dates: take the last commit that touched each (`git log -1 --format=%H -- <path>`). The config changed later if the CI files' commit is an ancestor of the config's (`git merge-base --is-ancestor`).
-  - **The config didn't change:** either someone edited a generated file by hand, or the adapter's renderer has changed. Say which you think it is and show the lines. A hand edit means someone needed something: ask whether to carry it into the config (or a stage's `run` script) first, or to replace it. A `non-interactive` run stops here.
+  - **The config didn't change:** either the adapter's renderer has changed (a new skill-set version), or someone edited a generated file by hand. Say which you think it is and show the lines.
+    - **The renderer changed** (the diff is in lines the renderer writes the same way for every project, such as the header): an ordinary update.
+    - **A hand edit** means someone needed something: ask whether to carry it into the config (or a stage's `run` script) first, or to replace it. A `non-interactive` run stops here.
 
 ## 3. Try the run commands locally
 

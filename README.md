@@ -25,12 +25,9 @@ idea ──► plan ──► repository ──► issues ──► change reque
 
 | Stage | Skill | What it does |
 |---|---|---|
-| Idea → plan | `idea-to-plan` | Turns an idea into a plan with milestones, tasks and a verification strategy |
-| Plan → repository | `repo-bootstrap` | Creates or adopts the repository: settings, standard labels and standard files (README, licence, `.gitignore`, templates, project config) |
-| Plan → issues | `plan-to-issues` | Creates milestones and dependency-ordered issues from the plan |
+| Idea → plan | `idea-to-plan` | Turns an idea into a plan with milestones, tasks and a verification strategy, saved in a new private repository (or a change request to an existing one) |
+| Plan → ready repository | `accept-the-plan` | Accepts the plan, and readies its repository in one dry run: settings, labels and standard files, the pipeline (a passing placeholder for each stage a task will set up), the milestones and issues, and branch rules that require the core checks |
 | Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
-| Checks | `ci-setup` | Renders the pipeline: lint, build, unit and integration stages, plus any extras |
-| Repository rules | `repo-governance` | Sets visibility, access, branch rules, required checks and review requirements. Runs after `ci-setup`, so required checks can name real pipeline stages |
 | Tutorial | `write-tutorial` | Optional. Writes `docs/tutorial.md`, a worked example whose every command and output comes from a real run. Run it before a release that should ship one |
 | Changes → release | `cut-release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
@@ -81,7 +78,7 @@ claude plugin install i2r@i2r
 
 The skills are then typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. The short name saves typing ([decision 0019](docs/decisions/0019-claude-code-plugin-i2r.md)). Plugin skills are namespaced, so they never clash with skills of the same name. The plugin follows releases: to update, run `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`. While the repository is private, you need read access and git credentials for GitHub (`gh auth setup-git`, or an SSH key).
 
-In the skills' own text, they name each other without the prefix ("then run `plan-to-issues`"). In Claude Code, that's `/i2r:plan-to-issues`.
+In the skills' own text, they name each other without the prefix ("then run `accept-the-plan`"). In Claude Code, that's `/i2r:accept-the-plan`.
 
 ### Any agent: the archive and `install.sh`
 
@@ -101,7 +98,7 @@ cd idea-to-release-<version>
 | Gemini CLI | `gemini` | `.gemini/skills` | `~/.gemini/skills` |
 | Any other | `--dest DIR` | the folder it reads skills from | |
 
-**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance`, `write-tutorial` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
+**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `accept-the-plan`, `work-issue`, `write-tutorial` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
 
 **Name clashes.** An agent loads only one skill of a given name, without a warning. In Claude Code, a personal skill wins over a project skill. So `install.sh` never replaces a folder it didn't install, and it stops if one of your personal skills has the same name as one of these. `--force` installs anyway, with a warning ([decision 0015](docs/decisions/0015-skill-name-clashes.md)).
 
@@ -116,9 +113,9 @@ adapters/target/agent-skills/build.sh v0.0.0 /tmp/idea-to-release   # prints the
 
 - An agent that reads Agent Skills
 - bash 3.2 or later, `tar`, `git`: the macOS and Linux defaults
-- For the GitHub adapters: the `gh` CLI 2.40 or later, signed in with the `repo` scope (and `workflow` for `ci-setup`)
+- For the GitHub adapters: the `gh` CLI 2.40 or later, signed in with the `repo` scope (and `workflow` for `accept-the-plan`, which writes the pipeline)
 
-Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an existing repository.
+Start with `idea-to-plan`, for a new idea or an existing repository, then `accept-the-plan`.
 
 **A note on permissions.** These skills run commands with your credentials and can change repository settings, access and releases. Read a skill and its adapter before running it, and review the dry run before confirming any admin action.
 

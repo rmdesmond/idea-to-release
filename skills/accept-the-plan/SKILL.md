@@ -1,20 +1,25 @@
 ---
 name: accept-the-plan
-description: Accept a project's plan and ready its repository for work, following the idea-to-release conventions - the standard setup (settings, labels, licence, changelog, templates, decision records) and the CI pipeline, with a passing placeholder for every core stage whose command a task will create - in one dry run and one confirmation, then wait for the first pipeline run to pass. Use after idea-to-plan has saved a plan in a repository, and again whenever the plan, the pipeline or the setup changes. Re-runnable; a run with nothing changed reports no changes.
+description: Accept a project's plan and ready its repository for work, following the idea-to-release conventions - the standard setup (settings, labels, licence, changelog, templates, decision records), the CI pipeline with a passing placeholder for every stage a task will set up, the milestones and dependency-linked issues, and branch rules that require the core checks - in one dry run and one confirmation, ending in a change request that marks the plan accepted. Use after idea-to-plan has saved a plan in a repository, and again after every plan revision or change to the pipeline, the rules, visibility or access. Re-runnable; a run with nothing changed reports no changes.
 ---
 
 # accept-the-plan
 
-The second of three gates (decision 0021). idea-to-plan saved a plan in a repository. Running this skill is the user accepting that plan, and it readies the repository so that no task is worked before the checks exist:
+The second of three gates (decision 0021). idea-to-plan saved a plan in a repository, as a draft. Running this skill is the user accepting that plan, and it readies the repository so that no task is worked before the checks and the rules exist:
 
-- the standard setup: settings, labels, standard files and decision records (`setup.md` in this folder)
-- the pipeline: every core stage, each enabled, or a passing placeholder (`pipeline.md` in this folder)
+- the standard setup: settings, labels, standard files and decision records (`setup.md`)
+- the pipeline: every core stage, each enabled, or a passing placeholder (`pipeline.md`)
+- the milestones and issues, one issue per task (`issues.md`)
+- the branch rules, visibility and access (`rules.md`)
+- the plan's `Status: accepted <date>`, through a change request: the first one the branch rules apply to
 
-**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit. `setup.md` and `pipeline.md` are in this skill's own folder.
+Then the plan is worked with **work-the-plan**, which works only an accepted plan (decision 0022).
 
-Before doing anything, read `conventions.md`, especially §4 (config), §8 (labels), §10 (change requests), §11 (pipeline stages) and §13 (safety).
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit. `setup.md`, `pipeline.md`, `issues.md` and `rules.md` are in this skill's own folder.
 
-**Verbs used:** `repo.describe`, `repo.configure`, `access.list`, `pipeline.render`, `pipeline.status`, `cr.open`, `cr.update`, `cr.status` (forge); `label.ensure` (tracker). The read step of the forge adapter's branch rules tells whether the default branch has any yet. Look each one up in the adapters named in `.project/config.yml`.
+Before doing anything, read `conventions.md`, especially §4 (config), §5 (plan), §6 (traceability), §8 (labels), §9 (issues), §10 (change requests), §11 (pipeline stages), §13 (safety) and §14 (fallbacks).
+
+**Verbs used:** `repo.describe`, `repo.configure`, `access.list`, `access.grant`, `rule.protect-branch`, `rule.require-review`, `rule.require-checks`, `pipeline.render`, `pipeline.status`, `cr.open`, `cr.update`, `cr.status` (forge); `label.ensure`, `milestone.ensure`, `issue.list`, `issue.create`, `issue.update`, `issue.link`, `issue.close` (tracker). Look each one up in the adapters named in `.project/config.yml`.
 
 ## Arguments
 
@@ -23,9 +28,11 @@ All optional. Pass them as `key=value`.
 | Argument | Default | Notes |
 |---|---|---|
 | `licence`, `holder`, `gitignore`, `description` | see `setup.md` | The standard setup's inputs |
-| `issue` | none | Issue number for the branch, commit footer and closing reference, when the setup goes through a change request |
-| `non-interactive` | off | Don't ask questions; use arguments, then defaults |
-| `confirm` | off | Only with `non-interactive`: the caller confirms the dry run in advance. Without it, a non-interactive run stops after the dry run |
+| `visibility` | the config's `visibility` | `private` \| `public` \| `internal`. A value different from the config is a request to change it (`rules.md`) |
+| `grant` | none | `<login>:<role>`, repeatable. Role: `read`, `triage`, `write`, `maintain` or `admin` |
+| `issue` | none | Issue number for the acceptance change request's branch, commit footer and closing reference |
+| `non-interactive` | off | Don't ask questions; use arguments, then defaults. Stop at any conflict |
+| `confirm` | off | Only with `non-interactive`: the caller confirms the dry run in advance. Without it, a non-interactive run stops after the dry run. It never covers a visibility change or an invitation |
 
 ## Procedure
 
@@ -35,70 +42,106 @@ All optional. Pass them as `key=value`.
 - `repo.describe`. If the repository doesn't exist on the forge, stop, and say to run idea-to-plan.
 - Make sure the working tree is clean, and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). Never stash or discard someone's changes.
 - `docs/plan/PLAN.md` must pass `scripts/check-plan.sh`. A plan that fails can't be accepted: list the problems, and say to fix them with idea-to-plan.
-- **Show the plan being accepted:** its milestones with task counts, the release target, the verification strategy and the assumptions. Accepting it is the point of this skill, so the user sees what they're accepting before anything else. Assumptions with `Status: proposed` decision records are listed, since accepting the plan doesn't accept them.
-- Read the branch rules on the default branch (the forge adapter's read step). **None yet** means a new repository: the setup can go straight to the default branch (conventions §10). **Some** means the setup goes through a change request.
+- **Show the plan being accepted:** its status, its milestones with task counts and releases, the release target, the verification strategy and the assumptions. Accepting it is the point of this skill, so the user sees what they're accepting before anything else. Assumptions with `Status: proposed` decision records are listed, since accepting the plan doesn't accept them.
+- Read the branch rules on the default branch (the read step in `rules.md`). **None yet** means a new repository: the setup can go straight to the default branch (conventions §10). **Some** means every file change goes through the acceptance change request.
 
-### 2. Work out the setup
+### 2. Work out every difference
 
-Follow `setup.md`: gather its inputs, then compare the settings, labels, files and decision records with what the repository has. Change nothing yet.
+Change nothing yet. Follow each supporting file in turn:
 
-### 3. Work out the pipeline
+1. `setup.md`: gather its inputs, then compare the settings, labels, files and decision records with what the repository has.
+2. `pipeline.md`: check the config's `pipeline` block, render it and compare, and run the enabled stages' commands locally.
+3. `issues.md`: find each task's issue, and work out the milestones, issues, links and closures. Stop at any conflict it lists.
+4. `rules.md`: read the forge, and work out the branch rules, visibility and access.
+5. **The plan's status:** `Status: accepted <today's UTC date>` if it says `draft`. If it already says `accepted`, and nothing else differs, there's nothing to accept.
 
-Follow `pipeline.md`: check the config's `pipeline` block, render it and compare, and run the enabled stages' commands locally. Change nothing yet.
+### 3. Dry run and confirmation
 
-### 4. Dry run and confirmation
-
-Show one summary of everything, grouped by tier:
+Show one summary of everything, grouped by tier, in the order it will be applied:
 
 ```
-Plan:        titlecase, 2 milestones, 7 tasks, target shell-cli; assumptions: none
-Repository:  you/titlecase (private), no branch rules yet
+Plan:        rot13 (draft), 1 milestone, 2 tasks, release v0.1.0, target shell-cli; assumptions: none
+Repository:  you/rot13 (private), no branch rules yet
 
 Admin (needs your confirmation):
   repo.configure  merge methods: merge, squash, rebase → squash
                   delete branch on merge: off → on; wiki: on → off; projects: on → off
+  branch rules    once every required check has reported on the acceptance change request:
+                    protect: deletion, force push, direct push → blocked
+                    reviews: required approvals → 0 (0005-review-rule.md)
+                    checks:  required → lint, build, unit, integration
 Write:
   label.ensure    create 10 labels; 0 already present; 0 differ
   files           create CHANGELOG.md, LICENSE (MIT), .gitignore, README.md, templates
   decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md, 0005-review-rule.md
   pipeline        4 core stages (1 enabled, 1 pending, 2 not needed)
-                    lint         run: git ls-files -z '*.sh' | xargs -0 -r shellcheck
+                    lint         run: git ls-files -z 'bin/*' '*.sh' | xargs -0 -r shellcheck
                     build        placeholder: Shell scripts; nothing to compile
                     unit         pending: not set up yet: T-002 adds it
                     integration  placeholder: No external interfaces
                   create .github/workflows/pipeline.yml; local run: lint pass
-  commit          chore: set up the repository → main (no branch rules yet)
-Then:
-  wait for the pipeline on main to pass
+  commit          chore: set up the repository → main (no branch rules yet); then wait for its pipeline
+  issues          create M1: Walking skeleton; create T-001 (ready), T-002 (blocked); link T-002 blocked-by T-001
+  acceptance      Status: draft → accepted 2026-11-22
+                  change request docs/accept-plan → main, "docs(plan): accept the plan"
 No change:
-  issues enabled, description
+  issues enabled, description, visibility private, access (you admin)
 ```
 
-If nothing differs anywhere, say "Repository ready; no changes" and stop.
+If nothing differs anywhere, say "Plan accepted and repository ready; no changes" and stop.
 
-Then wait for explicit confirmation (conventions §13). A non-interactive run proceeds only with `confirm`. Labels that differ need their own yes each.
+Then wait for explicit confirmation (conventions §13). A non-interactive run proceeds only with `confirm`. Labels that differ need their own yes each. **A visibility change and each invitation** get their own confirmation too (`rules.md`).
 
-### 5. Apply
+### 4. Set up the repository
 
 In this order, stopping at the first failure and reporting what was done:
 
-1. `repo.configure` with only the settings that differ
+1. `repo.configure` with only the settings that differ (not visibility: that's step 7)
 2. `label.ensure` with the label set
 3. Write the files, the decision records and the rendered pipeline
-4. Commit and publish:
-   - **No branch rules yet:** commit on the default branch, `chore: set up the repository`, and push. This is the setup commit conventions §10 allows before any branch rules exist.
-   - **Branch rules exist:** create branch `chore/<issue>-accept-plan` (or `chore/accept-plan` with no issue) from the default branch, commit `chore: set up the repository` with a `Refs: #<issue>` footer if there's an issue, push, then `cr.open`. The body lists what was added and the local run results, and the closing reference if there's an issue. `cr.status`: `closes` must be exactly that issue, or empty. Don't merge it: the user merges, then runs this skill again.
-5. Wait for the pipeline on that commit (or change request), and check it as `pipeline.md` says under "After the commit".
+4. **The first setup, with no branch rules yet:** commit them on the default branch, `chore: set up the repository`, and push. This is the one setup commit conventions §10 allows before any branch rules exist. Then wait for the pipeline on that commit, and check it as `pipeline.md` says under "After the commit".
 
-### 6. Report
+   **Otherwise** (branch rules exist, or the setup commit is already there from an earlier run): don't commit yet. These files go in the acceptance change request (step 6).
 
-List what was created, changed, skipped (and why), and anything that differs but was left alone, with the pipeline's result. Leave the plan's `Status:` line alone: the plan is marked accepted only once the branch rules and the issues exist too, so that an accepted plan is always ready to work (decision 0022). Then what comes next: **repo-governance** applies the branch rules, now that the core checks exist, and **plan-to-issues** creates the milestones and issues. No task is worked before both have run.
+### 5. Create the issues
+
+Apply `issues.md`: milestones, new issues, updates, links and closures, in its order.
+
+### 6. Open the acceptance change request
+
+1. Create branch `docs/<issue>-accept-plan` (or `docs/accept-plan` with no issue) from the default branch.
+2. Set the plan's `Status: accepted <date>`. With branch rules already in place, add the files from step 4 too.
+3. Commit `docs(plan): accept the plan`, with a `Refs: #<issue>` footer if there's an issue. Push, then `cr.open`:
+   - **What changed:** the plan accepted (milestones, task counts, releases), and the setup, pipeline and issues this run applied, with numbers.
+   - **How it was verified:** `check-plan.sh`, the local run of the enabled stages, and the setup commit's pipeline result.
+   - **Issue:** the closing reference if there's an issue.
+4. `cr.status`: `closes` must be exactly that issue, or empty.
+5. Wait for the change request's checks. Every required check must report and pass, `lint` included: in a new repository, this is the first place it runs (conventions §11).
+
+### 7. Apply the branch rules
+
+Once the acceptance change request's checks have passed, apply `rules.md`: visibility (if confirmed on its own), access, then the branch rules. On the fallback path, write the fallback record and push it to the acceptance change request, then `cr.update` its body to say so.
+
+The acceptance change request is now the first change request the branch rules apply to. **Stop there.** Don't merge it. When the user merges it, the plan is accepted.
+
+### 8. Report
+
+List what was created, changed, skipped (and why), and anything that differs but was left alone: settings, labels, files, the pipeline's results, the issues with their numbers, the branch rules (or the fallback record), and the acceptance change request's link. Then what comes next: merge the acceptance change request, then run **work-the-plan**.
 
 ## Re-running
 
-The skill is safe to run again. Every step checks first: settings by comparison, labels by `label.ensure`, files by existence, decision records by subject, the pipeline by rendering and comparing, and change requests by `cr.open`'s check for an open one on the same branch. Run it again after a plan revision or a pipeline change in the config. A run with nothing changed reports "Repository ready; no changes".
+Run it again after every plan revision (idea-to-plan sets the plan back to `draft`), and after a change to the pipeline block, the review rule, visibility or access. Every step checks first:
+
+- settings by comparison, labels by `label.ensure`, files by existence, decision records by subject
+- the pipeline by rendering and comparing
+- issues by their `Plan-Task:` line, and links and labels by comparison
+- branch rules by each rule verb's check
+- change requests by `cr.open`'s check for an open one on the same branch: if the acceptance change request from an earlier run is still open, push to it and `cr.update` its body instead of opening another
+
+A run with nothing changed reports "Plan accepted and repository ready; no changes".
 
 ## Out of scope
 
 - Writing or changing the plan, the pipeline block or the target: **idea-to-plan**
-- Working tasks: **work-issue**
+- Working tasks: **work-the-plan**, or **work-issue** for a single issue
+- Removing people's access, deleting rulesets other than `idea-to-release`, or merging: **the user**

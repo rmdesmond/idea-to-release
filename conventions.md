@@ -64,7 +64,7 @@ See decisions 0014 and 0019.
 
 ## 4. Project config
 
-`.project/config.yml` is written once, by idea-to-plan when it creates the repository or by repo-bootstrap when it adopts one, and read by every other skill. The exceptions are the `pipeline` block and `target`, which idea-to-plan keeps in step with the plan's verification strategy and release target (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
+`.project/config.yml` is written once, by idea-to-plan, when it saves a plan in a repository that has none, and read by every other skill. The exceptions are the `pipeline` block and `target`, which idea-to-plan keeps in step with the plan's verification strategy and release target (section 5). A skill that finds no config infers the forge from the git remote URL, tells the user what it inferred, and offers to write the file.
 
 ```yaml
 forge: github            # adapter name under adapters/forge/
@@ -129,7 +129,7 @@ Done when:
 - [ ] Unit test covers argument parsing
 ```
 
-- **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. plan-to-issues adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is read from the tracker and forge (section 6).
+- **Work that already has an issue.** A task may carry an `Issue: #N` line after `Depends on:`. It names an issue that already exists for the task, typically work done before the plan was written. accept-the-plan adopts that issue instead of creating one. Work that is already done has every box in its *Done when* list ticked (`- [x]`). The plan records what was agreed; whether a task is merged and released is read from the tracker and forge (section 6).
 - `scripts/check-plan.sh` checks a plan against this section.
 
 Changes to the plan after issues exist go through a change request like any other change, so the plan's git history shows how scope moved. Ticking a task's boxes when it's done is part of that task's own change request (section 10).
@@ -148,7 +148,7 @@ Rules:
 
 - **No skill writes a ledger file.** A leftover `.project/ledger.yml` from an earlier version is ignored, and can be deleted.
 - **Idempotency:** before creating an issue for a task, look for it: the plan's `Issue:` line, then an issue carrying the task's `Plan-Task:` line. If one exists, update it instead of creating another.
-- **A task closed with no change request** (work done before the tracker was used, or closed by hand as completed) is delivered by the first release after its issue was closed, unless the task was already done in the plan at the previous release's tag. Then it shipped earlier, and its issue was only created and closed later, for example when plan-to-issues first runs on a project that has already released.
+- **A task closed with no change request** (work done before the tracker was used, or closed by hand as completed) is delivered by the first release after its issue was closed, unless the task was already done in the plan at the previous release's tag. Then it shipped earlier, and its issue was only created and closed later, for example when accept-the-plan first runs on a project that has already released.
 
 ## 7. Decision records
 
@@ -180,7 +180,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 `ready` means the issue is fully specified and nothing blocks it; work-issue only picks up `ready` issues.
 
-**Who changes state labels:** plan-to-issues sets them, refreshes them as dependencies finish, and removes them from closed issues. work-issue changes one, and only on the issue it's about to take: `blocked` → `ready`, when every blocker is closed and the user has confirmed taking it. No other skill changes them. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
+**Who changes state labels:** accept-the-plan sets them, refreshes them as dependencies finish, and removes them from closed issues. work-issue changes one, and only on the issue it's about to take: `blocked` → `ready`, when every blocker is closed and the user has confirmed taking it. No other skill changes them. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
 
 ## 9. Issues
 
@@ -242,7 +242,7 @@ Typical candidates: security scanning, dependency audit, licence compliance, doc
 **Run commands.** Every enabled stage, core or extra, has a `run` command in the config: one shell command, run from the repository root, that exits 0 when the stage passes. It is the single definition of the stage:
 
 - work-issue runs it locally before opening a change request. Required stages must pass; advisory stages are reported. If an advisory stage's tool isn't installed, it is reported as skipped.
-- accept-the-plan (or ci-setup) renders the same command into the pipeline, so local and CI results can't drift apart.
+- accept-the-plan renders the same command into the pipeline, so local and CI results can't drift apart.
 
 A disabled stage has a `reason` instead of a `run`.
 

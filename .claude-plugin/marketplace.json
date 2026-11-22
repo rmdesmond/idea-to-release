@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "i2r",
-      "description": "idea-to-release: plan, issues, change requests, CI, branch rules, a tutorial and releases, as eight skills.",
+      "description": "idea-to-release: from an idea to an accepted plan to releases - plan, setup, CI, branch rules, issues, change requests, a tutorial and releases.",
       "source": {
         "source": "github",
         "repo": "rmdesmond/idea-to-release",
