@@ -7,7 +7,7 @@ description: Cut a release of a project that follows the idea-to-release convent
 
 Turns what has been merged since the last release into a published, tagged version, with a changelog entry, notes that say which plan tasks shipped, and the packaged artifacts.
 
-**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit.
 
 Before doing anything, read `conventions.md`, especially §6 (traceability), §11 (gates), §12 (versions and releases), §13 (safety: tagging and publishing are **admin tier**) and §14 (fallbacks).
 
@@ -31,7 +31,7 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
 ### 1. Read
 
 - Read `.project/config.yml`: the `release` block (`tag_prefix`, `strategy`, `version_files`), `target`, and the pipeline stages.
-  - **Each version file** (conventions §12) must exist, with its marker on exactly one line. If not, stop and say which entry is wrong.
+  - **Each version file** (conventions §12) must exist, with its marker on exactly one line and an `X.Y.Z` after it. If not, stop and say which entry is wrong.
   - **No `version_files`,** but a file on the default branch that looks like it holds the version (a `--version` string, a `"version":` field, a test that compares the version with the changelog): say so in the dry run, and suggest adding the entry. Don't edit the file without one.
   - `strategy: release-branches` isn't supported yet. Stop and say so.
   - If a verb above is `not yet implemented`, stop and say which one.
@@ -64,7 +64,7 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
   - **With a change request:** each issue in an included change request's `closes` whose body has a `Plan-Task: <ID>` line. Its change requests are the included ones that close it.
   - **With none:** each issue with a `Plan-Task:` line that was closed as completed after the last tag was created (any time, for the first release), and that no merged change request closes. That's work done outside a change request. List these in the dry run so the user can check them.
   - Take each task's title and milestone from the plan. If the plan has no such task, or its issue's title starts with a different ID, stop and ask (conventions §13).
-- **Version files:** in each `release.version_files` entry, replace the version after the marker with `<X.Y.Z>`, keeping any quotes.
+- **Version files:** in each `release.version_files` entry, replace the first `X.Y.Z` after the marker on its line with the new version. Everything around it (quotes, a `v` prefix) stays as it is.
 - **The release commit's files:** `CHANGELOG.md` and the version files. Then run the project's enabled stages locally (their `run` commands), so a release change request never arrives red.
 
 ### 4. Prepare: dry run, then the release change request

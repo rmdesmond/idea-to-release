@@ -55,10 +55,11 @@ LICENSE
 
 **Where the skill set's own files are.** `conventions.md`, `adapters/` and the check scripts (`scripts/check-*.sh`) belong to the skill set, not to the project. A skill finds them relative to its own folder:
 
-- **Installed:** in `idea-to-release/`, a sibling of the skill folders (for example `.claude/skills/idea-to-release/conventions.md` next to `.claude/skills/work-issue/`). The folder has no `SKILL.md`, so agents don't load it as a skill.
+- **The Claude Code plugin `i2r`:** at the plugin's root, which is the repository's root copied as it is. That's `${CLAUDE_PLUGIN_ROOT}`, and two levels up from the skill folder (decision 0019).
 - **In a clone of the idea-to-release repository:** at the repository root, two levels up from the skill folder.
+- **Installed by `install.sh`:** in `idea-to-release/`, a sibling of the skill folders (for example `.claude/skills/idea-to-release/conventions.md` next to `.claude/skills/work-issue/`). The folder has no `SKILL.md`, so agents don't load it as a skill.
 
-See decision 0014.
+See decisions 0014 and 0019.
 
 ## 4. Project config
 
@@ -257,7 +258,7 @@ A disabled stage has a `reason` instead of a `run`.
 
   Other types (`docs`, `chore`, `test`, `ci`, `build`, `style`) aren't listed. The changelog lists the groups as Added, Changed, Fixed, Removed (Keep a Changelog's order), leaving out empty ones.
 - **Release notes** list each included task with its issue and change requests, grouped by milestone and found through the links in section 6, so a release shows which parts of the plan it delivered. They also carry the changelog section, and the install instructions from the target adapter (`install.describe`).
-- **Version files.** If the code holds its own version number (a `--version` string, `package.json`, `Cargo.toml`), the config lists it under `release.version_files` as `"<path>:<marker>"`. For example, `"bin/slug:SLUG_VERSION="` means the line in `bin/slug` that contains `SLUG_VERSION=`, with the version written right after the marker, optionally in quotes. The marker must be on exactly one line. The release change request writes the new version there, without the tag prefix. The task that first puts a version in the code adds its entry.
+- **Version files.** If the code holds its own version number (a `--version` string, `package.json`, `Cargo.toml`), the config lists it under `release.version_files` as `"<path>:<marker>"`. For example, `"bin/slug:SLUG_VERSION="` means the line in `bin/slug` that contains `SLUG_VERSION=`. The version is the first `X.Y.Z` after the marker on that line, so quotes and a tag prefix around it stay as they are: `SLUG_VERSION=0.1.0`, `"version": "0.1.0"` and `"ref": "v0.1.0"` all work. The marker must be on exactly one line, with an `X.Y.Z` after it. The release change request replaces that `X.Y.Z` with the new version. The task that first puts a version in the code adds its entry.
 - **The release change request** carries the changelog and version-file updates. Branch `chore/release-<version>` (the exception to section 10's pattern), title `chore(release): <version>`. The tag goes on its merge commit.
 - **Order:** release change request merged → release gates pass on its commit → tag (`tag.create`) → release gates pass on the tag → package (`package.build`, `package.verify`) → draft (`release.draft`) → the user confirms → publish (`package.publish`, `release.publish`).
 - **Confirmation:** a release is drafted first and published only after the user confirms, and only when every release gate passes. Creating the tag and publishing each need a person's explicit yes.

@@ -11,14 +11,20 @@
 # - name clashes: a same-named folder idea-to-release didn't install is never
 #   replaced, and a same-named personal skill stops a project install unless --force
 # Installs run with a throw-away HOME, so the real personal skills never matter.
+# With a source root (a clean copy of the release tag), it also checks the
+# Claude Code plugin i2r (decision 0019): plugin.json's version and the
+# marketplace's ref match the archive's version, and, when `claude` is on
+# PATH, `claude plugin validate --strict` passes.
 #
-# Usage: verify.sh <archive.tar.gz>
+# Usage: verify.sh <archive.tar.gz> [source-root]
 # Exit status: 0 if every check passes, 1 otherwise.
 
 set -uo pipefail
 
-[[ $# -eq 1 && -f $1 ]] || { echo "usage: verify.sh <archive.tar.gz>" >&2; exit 1; }
+[[ ( $# -eq 1 || $# -eq 2 ) && -f $1 ]] || { echo "usage: verify.sh <archive.tar.gz> [source-root]" >&2; exit 1; }
 archive="$(cd "$(dirname "$1")" && pwd)/$(basename "$1")"
+src=${2:-}
+[[ -z $src || -d $src ]] || { echo "usage: verify.sh <archive.tar.gz> [source-root]" >&2; exit 1; }
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
@@ -74,6 +80,17 @@ check "a foreign folder was changed" grep -qx mine "$work/foreign/work-issue/SKI
 rm -rf "$HOME/.claude/skills" && mkdir -p "$HOME/.claude/skills/cut-release"
 if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" 2>&1); then fail "a same-named personal skill didn't stop the install"; else check "the clash message doesn't name the personal skill: $out" grep -q "$HOME/.claude/skills/cut-release" <<<"$out"; fi
 if out=$("$top/install.sh" --agent claude --project "$work/p-hidden" --force 2>&1) && grep -q '^warning: installed' <<<"$out"; then ok; else fail "--force didn't install with a warning: $out"; fi
+
+if [[ -n $src ]]; then
+  # The first X.Y.Z on the line after the marker (conventions section 12).
+  vfile() { grep -F -- "$2" "$1" 2>/dev/null | head -1 | sed -E 's/.*'"$2"'[^0-9]*([0-9]+[.][0-9]+[.][0-9]+).*/\1/'; }
+  want=${version#v}
+  check "plugin.json's version isn't $want" test "$(vfile "$src/.claude-plugin/plugin.json" '"version":')" = "$want"
+  check "the marketplace's ref isn't v$want" test "$(vfile "$src/.claude-plugin/marketplace.json" '"ref":')" = "$want"
+  if command -v claude >/dev/null 2>&1; then
+    if out=$(claude plugin validate "$src" --strict 2>&1); then ok; else fail "claude plugin validate --strict: $(grep -E '❯|✘' <<<"$out" | head -5)"; fi
+  fi
+fi
 
 if (( failures > 0 )); then
   echo "$failures of $checks check(s) failed for $(basename "$archive")"

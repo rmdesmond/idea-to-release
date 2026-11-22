@@ -7,7 +7,7 @@ description: Turn the project plan (docs/plan/PLAN.md) into tracker milestones a
 
 Makes the tracker match the plan: one milestone per plan milestone, one issue per task, and dependencies as links. Each issue carries its task's `Plan-Task:` line, which is how the task is found again (conventions §6).
 
-**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. When installed, they're in `../idea-to-release/`, next to this skill's folder. In a clone of the idea-to-release repository, they're at its root, `../../` from this skill's folder (conventions §3).
+**Where the skill set's files are.** `conventions.md`, `adapters/` and `scripts/check-*.sh` belong to the idea-to-release skill set, not to the project. In the Claude Code plugin `i2r`, and in a clone of the idea-to-release repository, they're at its root: `${CLAUDE_PLUGIN_ROOT}` in the plugin, and `../../` from this skill's folder in both. When installed by `install.sh`, they're in `../idea-to-release/`, next to this skill's folder (conventions §3). Run the check scripts with `bash <path>`, in case an installed copy lost their executable bit.
 
 Before doing anything, read `conventions.md`, especially §5 (plan), §6 (traceability), §8 (labels), §9 (issues) and §13 (safety).
 

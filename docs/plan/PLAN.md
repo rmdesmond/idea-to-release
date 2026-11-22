@@ -363,11 +363,11 @@ Done when:
 Depends on: T-034
 Issue: #82
 Done when:
-- [ ] The repository root is the plugin `i2r` and its own marketplace (`.claude-plugin/plugin.json` and `marketplace.json`), and `claude plugin validate --strict` passes
-- [ ] Installed from the marketplace, the seven skills load as `/i2r:<skill>` and find their shared files in the installed copy
-- [ ] The plugin's version follows releases: `cut-release` bumps it through `release.version_files`
-- [ ] The `agent-skills` target's `package.publish` and `install.describe`, and the README's Installing section, describe the plugin; `install.sh` stays for other agents
-- [ ] Decision 0019 records the name and the layout
+- [x] The repository root is the plugin `i2r` and its own marketplace (`.claude-plugin/plugin.json` and `marketplace.json`), and `claude plugin validate --strict` passes
+- [x] Installed from the marketplace, the seven skills load as `/i2r:<skill>` and find their shared files in the installed copy
+- [x] The plugin's version follows releases: `cut-release` bumps it through `release.version_files`
+- [x] The `agent-skills` target's `package.publish` and `install.describe`, and the README's Installing section, describe the plugin; `install.sh` stays for other agents
+- [x] Decision 0019 records the name and the layout
 
 ### T-037: End-to-end test through the plugin
 Depends on: T-035, T-036

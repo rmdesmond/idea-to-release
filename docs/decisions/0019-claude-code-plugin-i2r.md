@@ -15,7 +15,7 @@ An installed plugin is a copy, and files outside the plugin directory aren't cop
 
 - The plugin, and its marketplace, are called `i2r`.
 - The repository root is both. `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json` sit at the root, so the skills and shared files are in the plugin as they are in a clone, and `../../` from a skill folder is the root in both.
-- The plugin's version follows releases. cut-release bumps the manifests through `release.version_files`, so users get released versions, not every commit on `main`.
+- The plugin's version follows releases. The marketplace's entry is a `github` source for this repository with `"ref": "v<version>"`, and cut-release bumps it and `plugin.json`'s `version` through `release.version_files`. So users get the tagged release, not every commit on `main`. conventions §12's version-file rule allows the `v` before the number for this.
 - The repository, the release archive (`idea-to-release-<version>.tar.gz`) and `install.sh`'s shared folder keep the full name. `install.sh` stays the route for other agents.
 - Packaging for other agents' plugin formats (Agent Plugins for Cursor, Copilot and Codex) is left for a later release.
 
@@ -25,3 +25,5 @@ An installed plugin is a copy, and files outside the plugin directory aren't cop
 - The plugin copy includes the whole repository (docs, tests). Claude Code has no exclude list. It's small, and it doesn't affect the skills.
 - While the repository is private, installing needs read access and git credentials (`gh auth setup-git`, or SSH).
 - The skills refer to each other by their bare names, which work on every channel.
+- The project's `CLAUDE.md` moves to `.claude/CLAUDE.md`. Claude Code reads it there for work on this repository, and a `CLAUDE.md` at a plugin's root would look like plugin context, which it isn't (`claude plugin validate --strict` warns).
+- The first release with the manifests is v0.2.0. Until it's tagged, the marketplace's `ref` names v0.1.0, which has no plugin manifests, so installing the plugin works from v0.2.0 on.
