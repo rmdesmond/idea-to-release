@@ -340,7 +340,7 @@ Done when:
 
 ## M6: Plugin release
 
-The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, and v0.2.0 is released with the plugin.
+The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, two small defects in the plan and the changelog rules are fixed, and v0.2.0 is released with the plugin.
 
 ### T-034: Remove the ledger
 Depends on: none
@@ -377,7 +377,7 @@ Done when:
 - [ ] Problems found are fixed in the skills, or filed as issues
 
 ### T-038: Release v0.2.0
-Depends on: T-037, T-039
+Depends on: T-037, T-039, T-040, T-041
 Done when:
 - [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
@@ -390,3 +390,15 @@ Done when:
 - [ ] For each skill it shows how to start it, what it asks, the dry run it shows and what the user confirms, and what it changes in the repository and on the tracker
 - [ ] Its commands and outputs come from the end-to-end run in T-037, not from memory, and it says what to do when a step stops (a failing check, a blocked issue, a private repository's branch rules)
 - [ ] The README links to it from "Installing"
+
+### T-040: Fix the unticked boxes of tasks done before work-issue ticked them
+Depends on: none
+Done when:
+- [ ] Every *Done when* box of T-006 to T-011 is ticked, and the change request lists the evidence for each task: its issue closed as completed and the change request that closed it
+- [ ] No other task's issue is closed as completed while the task has unticked boxes, checked across the whole plan
+
+### T-041: Fix the changelog group for a breaking removal
+Depends on: none
+Done when:
+- [ ] Conventions §12 says that a breaking change whose summary starts with "remove" or "drop" goes under **Removed**, marked **Breaking:**, and not under **Changed**
+- [ ] `cut-release`'s changelog step says the same, and its dry-run example shows such an entry
