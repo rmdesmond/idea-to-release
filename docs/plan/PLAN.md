@@ -407,12 +407,12 @@ Done when:
 ### T-042: Add the write-tutorial skill
 Depends on: T-039
 Done when:
-- [ ] `skills/write-tutorial/SKILL.md` writes or updates `docs/tutorial.md` for the project: a small example that goes from installing it through its main uses, each step with what the user types and what comes back
-- [ ] Every command and output in the tutorial comes from a real run, never from memory. Shell steps are run in a clean copy of the default branch. Steps that aren't shell commands (an agent's skills, say) are quoted from a recorded run the user points to. If a step fails or no run exists, the skill stops and says so
-- [ ] It shows the outline before writing, and delivers the tutorial through a change request; it never merges it, and running it again only updates what changed
-- [ ] Conventions say where the tutorial lives and that it's optional, and the README, the plugin and the archive list eight skills
-- [ ] This repository's `docs/tutorial.md` is rewritten by the skill from T-039's recorded run
-- [ ] Decision 0020 records why tutorials come from real runs and are optional
+- [x] `skills/write-tutorial/SKILL.md` writes or updates `docs/tutorial.md` for the project: a small example that goes from installing it through its main uses, each step with what the user types and what comes back
+- [x] Every command and output in the tutorial comes from a real run, never from memory. Shell steps are run in a clean copy of the default branch. Steps that aren't shell commands (an agent's skills, say) are quoted from a recorded run the user points to. If a step fails or no run exists, the skill stops and says so
+- [x] It shows the outline before writing, and delivers the tutorial through a change request; it never merges it, and running it again only updates what changed
+- [x] Conventions say where the tutorial lives and that it's optional, and the README, the plugin and the archive list eight skills
+- [x] This repository's `docs/tutorial.md` is rewritten by the skill from T-039's recorded run
+- [x] Decision 0020 records why tutorials come from real runs and are optional
 
 ### T-043: Ship the tutorial with releases
 Depends on: T-042

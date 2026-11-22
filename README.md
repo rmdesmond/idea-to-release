@@ -31,6 +31,7 @@ idea ──► plan ──► repository ──► issues ──► change reque
 | Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
 | Checks | `ci-setup` | Renders the pipeline: lint, build, unit and integration stages, plus any extras |
 | Repository rules | `repo-governance` | Sets visibility, access, branch rules, required checks and review requirements. Runs after `ci-setup`, so required checks can name real pipeline stages |
+| Tutorial | `write-tutorial` | Optional. Writes `docs/tutorial.md`, a worked example whose every command and output comes from a real run. Run it before a release that should ship one |
 | Changes → release | `cut-release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
 ## Design principles
@@ -100,7 +101,7 @@ cd idea-to-release-<version>
 | Gemini CLI | `gemini` | `.gemini/skills` | `~/.gemini/skills` |
 | Any other | `--dest DIR` | the folder it reads skills from | |
 
-**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
+**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance`, `write-tutorial` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
 
 **Name clashes.** An agent loads only one skill of a given name, without a warning. In Claude Code, a personal skill wins over a project skill. So `install.sh` never replaces a folder it didn't install, and it stops if one of your personal skills has the same name as one of these. `--force` installs anyway, with a warning ([decision 0015](docs/decisions/0015-skill-name-clashes.md)).
 
@@ -134,6 +135,7 @@ Start with `idea-to-plan` for a new idea, or with `repo-bootstrap` to adopt an e
 9. Target adapters and `cut-release`: done, with the `agent-skills` and `shell-cli` targets
 10. First tagged release of the skill set: done, [v0.1.0](https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0), cut with `cut-release`
 11. Branch rules enforced on `main`, with the repository kept private: done
+12. `write-tutorial`: done, and used for this repository's tutorial
 
 The order follows the idea-to-release flow, and each skill is used on this repository once it works. It may change as building the early skills exposes gaps; [decision 0005](docs/decisions/0005-roadmap-order.md) explains the current order. Progress is tracked in this repository's issues and milestones.
 
