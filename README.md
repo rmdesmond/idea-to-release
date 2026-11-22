@@ -27,7 +27,8 @@ idea ──► plan ──► repository ──► issues ──► change reque
 |---|---|---|
 | Idea → plan | `idea-to-plan` | Turns an idea into a plan with milestones, tasks and a verification strategy, saved in a new private repository (or a change request to an existing one) |
 | Plan → ready repository | `accept-the-plan` | Accepts the plan, and readies its repository in one dry run: settings, labels and standard files, the pipeline (a passing placeholder for each stage a task will set up), the milestones and issues, and branch rules that require the core checks |
-| Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request |
+| Accepted plan → releases | `work-the-plan` | Works an accepted plan task by task in plan order through `work-issue`, stopping at each change request for your merge, and runs `cut-release` at each milestone with a `Release:` line |
+| Issues → changes | `work-issue` | Takes a ready issue through branch, commits, tests and change request. Used by `work-the-plan`, or alone for a single issue |
 | Tutorial | `write-tutorial` | Optional. Writes `docs/tutorial.md`, a worked example whose every command and output comes from a real run. Run it before a release that should ship one |
 | Changes → release | `cut-release` | Derives the version, writes the changelog and release notes, tags and publishes |
 
@@ -98,7 +99,7 @@ cd idea-to-release-<version>
 | Gemini CLI | `gemini` | `.gemini/skills` | `~/.gemini/skills` |
 | Any other | `--dest DIR` | the folder it reads skills from | |
 
-**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `accept-the-plan`, `work-issue`, `write-tutorial` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
+**What's installed.** Each skill goes in its own folder: `idea-to-plan`, `accept-the-plan`, `work-the-plan`, `work-issue`, `write-tutorial` and `cut-release`. Beside them, `idea-to-release/` holds the files they share: `conventions.md`, the adapters and the check scripts. It has no `SKILL.md`, so it isn't loaded as a skill ([decision 0014](docs/decisions/0014-installed-shared-files.md)). Running the script again replaces an earlier install.
 
 **Name clashes.** An agent loads only one skill of a given name, without a warning. In Claude Code, a personal skill wins over a project skill. So `install.sh` never replaces a folder it didn't install, and it stops if one of your personal skills has the same name as one of these. `--force` installs anyway, with a warning ([decision 0015](docs/decisions/0015-skill-name-clashes.md)).
 
@@ -115,7 +116,7 @@ adapters/target/agent-skills/build.sh v0.0.0 /tmp/idea-to-release   # prints the
 - bash 3.2 or later, `tar`, `git`: the macOS and Linux defaults
 - For the GitHub adapters: the `gh` CLI 2.40 or later, signed in with the `repo` scope (and `workflow` for `accept-the-plan`, which writes the pipeline)
 
-Start with `idea-to-plan`, for a new idea or an existing repository, then `accept-the-plan`.
+Start with `idea-to-plan`, for a new idea or an existing repository, then `accept-the-plan`, then `work-the-plan` after each merge.
 
 **A note on permissions.** These skills run commands with your credentials and can change repository settings, access and releases. Read a skill and its adapter before running it, and review the dry run before confirming any admin action.
 

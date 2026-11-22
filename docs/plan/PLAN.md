@@ -477,12 +477,12 @@ Done when:
 ### T-047: Add work-the-plan
 Depends on: T-046
 Done when:
-- [ ] `skills/work-the-plan/SKILL.md` refuses a plan whose `Status:` isn't `accepted`, and says to run `accept-the-plan`
-- [ ] It proposes the next task in plan order whose issue is `ready`, or whose `blocked` label is stale, and on a yes runs `work-issue` on it
-- [ ] It stops when the change request is open, and says to run it again after the merge. A second run with that change request still open says so and stops
-- [ ] When the last task of a milestone with a `Release:` line is merged, it offers `write-tutorial` (optional), then runs `cut-release` with that version, keeping cut-release's confirmations
-- [ ] When every task is done, it reports the plan complete
-- [ ] On a scratch repository, it refuses a draft plan, stops at each change request, and offers the release at the end of a release milestone
+- [x] `skills/work-the-plan/SKILL.md` refuses a plan whose `Status:` isn't `accepted`, and says to run `accept-the-plan`
+- [x] It proposes the next task in plan order whose issue is `ready`, or whose `blocked` label is stale, and on a yes runs `work-issue` on it
+- [x] It stops when the change request is open, and says to run it again after the merge. A second run with that change request still open says so and stops
+- [x] When the last task of a milestone with a `Release:` line is merged, it offers `write-tutorial` (optional), then runs `cut-release` with that version, keeping cut-release's confirmations
+- [x] When every task is done, it reports the plan complete
+- [x] On a scratch repository, it refuses a draft plan, stops at each change request, and offers the release at the end of a release milestone
 
 ### T-048: Give every release archive its own README
 Depends on: none
