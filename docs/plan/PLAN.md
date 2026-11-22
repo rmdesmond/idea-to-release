@@ -340,7 +340,7 @@ Done when:
 
 ## M6: Plugin release
 
-The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, and v0.2.0 is released with the plugin.
+The ledger is gone, the skills install as the Claude Code plugin `i2r`, `work-issue` refreshes stale `blocked` labels, a tutorial shows how to use the skills, and v0.2.0 is released with the plugin.
 
 ### T-034: Remove the ledger
 Depends on: none
@@ -377,8 +377,16 @@ Done when:
 - [ ] Problems found are fixed in the skills, or filed as issues
 
 ### T-038: Release v0.2.0
-Depends on: T-037
+Depends on: T-037, T-039
 Done when:
 - [ ] The `cut-release` skill drafts v0.2.0 with the `agent-skills` archive attached and `package.verify` passing, and it's published after confirmation
 - [ ] The plugin's manifests say 0.2.0, and a fresh `claude plugin install i2r@i2r` gets v0.2.0
 - [ ] The README roadmap says v0.2.0 is out
+
+### T-039: Write a tutorial for the skills
+Depends on: T-037
+Done when:
+- [ ] `docs/tutorial.md` takes a new user through a small example project from idea to its first release: installing the plugin, then `idea-to-plan`, `repo-bootstrap`, `plan-to-issues`, `work-issue`, `ci-setup`, `repo-governance` and `cut-release`, in the order they're used
+- [ ] For each skill it shows how to start it, what it asks, the dry run it shows and what the user confirms, and what it changes in the repository and on the tracker
+- [ ] Its commands and outputs come from the end-to-end run in T-037, not from memory, and it says what to do when a step stops (a failing check, a blocked issue, a private repository's branch rules)
+- [ ] The README links to it from "Installing"
