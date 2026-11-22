@@ -11,7 +11,7 @@ Turns what has been merged since the last release into a published, tagged versi
 
 Before doing anything, read `conventions.md`, especially §6 (traceability), §11 (gates), §12 (versions and releases), §13 (safety: tagging and publishing are **admin tier**) and §14 (fallbacks).
 
-**Verbs used:** `cr.list`, `cr.open`, `cr.status`, `pipeline.status`, `tag.create`, `release.draft`, `release.publish` (forge); `issue.list` (tracker); `package.build`, `package.verify`, `package.publish`, `install.describe` (target). Look each one up in the adapters named in `.project/config.yml`.
+**Verbs used:** `cr.list`, `cr.open`, `cr.status`, `pipeline.status`, `tag.create`, `release.draft`, `release.publish` (forge); `issue.list` (tracker); `package.build`, `package.verify`, `package.publish`, `install.describe`, `usage.describe` (target). Look each one up in the adapters named in `.project/config.yml`.
 
 ## Arguments
 
@@ -81,6 +81,8 @@ CHANGELOG.md  ## [0.2.0] - 2026-11-24: Added 2, Fixed 3, Removed 1
                 Removed: - **Breaking:** Remove the ledger (#104)
 Version files: bin/slug  SLUG_VERSION=0.1.0 → 0.2.0
 Tasks:        T-024 (#34, CR #81), T-025 (#35, CR #83) (2 tasks, M5)
+Release README: About from the plan's summary ("slug turns titles into URL slugs…"); Install from install.describe;
+              Usage from usage.describe: `slug --help`
 Tutorial:     docs/tutorial.md, last changed by #80; merged after it: #85, #88 (feat). Consider write-tutorial first
               closed without a change request: T-001 (#20)
               left out, done in the plan at v0.1.0: T-002 to T-009 (#21 to #28)
@@ -102,7 +104,14 @@ This step only writes a branch and opens a change request, so it's write tier: s
 
 ### 6. Package and draft
 
-- **Package:** take a clean copy of the tag and run `package.build` on it, then `package.verify` on the artifacts. If `verify` fails, it's a failed release gate: stop and report.
+- **Package:** take a clean copy of the tag and run `package.build` on it, with the release's page (the forge adapter's release-page link) for the README. Then run `package.verify` on the artifacts. If `verify` fails, it's a failed release gate: stop and report.
+- **The release README** (decision 0023): `package.build` writes it at the top of the archive, in place of the project's own README, from real sources only. It has four sections:
+  - **Version:** the tag and the date
+  - **About:** the plan's summary (the README's first paragraph if there's no plan)
+  - **Install:** `install.describe`
+  - **Usage:** `usage.describe`, real output from the tagged code (`--help`, for a command-line tool)
+
+  `package.verify` fails if one is missing. Show the README with the draft (step 7), since it's what people read first.
 - **Notes:** work out the tasks delivered again, as in step 3, for `<last-tag>..<tag>`, and write the notes from them and the changelog, not from memory:
 
   ```markdown

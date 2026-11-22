@@ -18,6 +18,7 @@ One archive per release, `idea-to-release-<version>.tar.gz`. Its layout is the i
 ```
 idea-to-release-<version>/
   install.sh
+  README.md                   the release README (decision 0023)
   skills/
     <skill>/SKILL.md          one folder per skill
     idea-to-release/          shared files; no SKILL.md, so it isn't loaded as a skill
@@ -41,13 +42,14 @@ idea-to-release-<version>/
 ### package.build
 
 - **Tier:** write (local files only)
-- **Inputs:** version (`v<major>.<minor>.<patch>`) and the tag it was cut from
+- **Inputs:** version (`v<major>.<minor>.<patch>`), the tag it was cut from, and the release's page, for the README
 - **Check existing state:** the archive file. If `<out>/idea-to-release-<version>.tar.gz` exists from an earlier run, build again anyway, since building is cheap and only `package.verify`'s result counts.
 - **Command:** build from a clean copy of the tag, never from the working tree, so the archive holds exactly what was tagged:
   ```sh
   src=$(mktemp -d); git archive <tag> | tar -x -C "$src"
-  adapters/target/agent-skills/build.sh <version> <out> "$src"
+  adapters/target/agent-skills/build.sh <version> <out> "$src" <release-url>
   ```
+  It writes the release README at the top of the archive with `describe.sh readme`: Version, About (the plan's summary), Install (`install.describe`) and Usage (`usage.describe`).
 - **Output:** the archive's path. It's the only artifact, and `release.draft` attaches it.
 
 ### package.verify
@@ -67,6 +69,7 @@ idea-to-release-<version>/
   - a second install replaces the first; `--user`, `--dest` and each `--agent` install where they should
   - name clashes (decision 0015): a same-named folder idea-to-release didn't install is never replaced, even with `--force`, and a same-named personal skill stops a project install unless `--force` is given
   - every install runs with a throw-away `HOME`, so the real personal skills never affect the result
+  - the archive's `README.md` has the Version, About, Install and Usage sections
   - with the tag's copy: the archive ships its `docs/tutorial.md` unchanged, if it has one
   - with the tag's copy: `plugin.json`'s `version` and the marketplace's `ref` match the archive's version, and `claude plugin validate --strict` passes on it, when `claude` is installed
 - **Output:** `ok: … installs N skill(s); M checks passed`, or one `FAIL` line per problem and exit 1. A failure is a release gate: don't draft or publish.
@@ -86,21 +89,20 @@ idea-to-release-<version>/
 
 - **Tier:** read
 - **Inputs:** version and the release URL
-- **Command:** print this text, with `<version>` and `<url>` filled in:
-  ```markdown
-  **Claude Code:** install the plugin `i2r`:
-
-      claude plugin marketplace add rmdesmond/idea-to-release
-      claude plugin install i2r@i2r
-
-  The skills are then `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. To update after a new release: `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`. While the repository is private, you need read access and git credentials for GitHub (`gh auth setup-git`, or an SSH key).
-
-  **Other agents:** download `idea-to-release-<version>.tar.gz` from <url>, then:
-
-      tar -xzf idea-to-release-<version>.tar.gz
-      cd idea-to-release-<version>
-      ./install.sh --agent codex --project /path/to/your/project   # or --user, for every project
-
-  `--agent` takes `claude`, `codex`, `copilot` or `gemini`. For any other agent, use `--dest <its skills folder>`. Each skill goes in its own folder, and the shared files go in `idea-to-release/` beside them. Re-running replaces an earlier install. If a skill of the same name is already there, or in your personal skills, the script stops and names it.
+- **Command:**
+  ```sh
+  adapters/target/agent-skills/describe.sh install <version> <url>
   ```
-- **Output:** the Markdown, for the release notes and the README.
+  It prints two parts: **Claude Code**, installing the plugin `i2r` from this repository's marketplace and updating it; and **other agents**, downloading `idea-to-release-<version>.tar.gz` from `<url>` and running `install.sh` with `--agent` or `--dest`.
+- **Output:** the Markdown, for the release notes and the release README.
+
+### usage.describe
+
+- **Tier:** read
+- **Inputs:** the clean copy of the tag
+- **Command:**
+  ```sh
+  adapters/target/agent-skills/describe.sh usage "$src"
+  ```
+  It lists each skill from its `SKILL.md`: its name, how to invoke it in Claude Code (`/i2r:<name>`, with the plugin's name from `plugin.json`), and the first sentence of its description. Then where a new project starts, and a pointer to `docs/tutorial.md` if there is one.
+- **Output:** the Markdown, for the release README's Usage section.

@@ -18,6 +18,22 @@ tar -czf "$work/broken.tar.gz" -C "$work/x" idea-to-release-v0.0.0
 if out=$("$t/verify.sh" "$work/broken.tar.gz" 2>&1); then echo "verify accepted a broken archive"; exit 1; fi
 grep -q "work-issue: SKILL.md doesn't say where the shared files are" <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }
 
+# The release README (decision 0023): four sections, About from the plan, and
+# every skill under Usage. One without Usage fails verify.
+readme=$(tar -xzOf "$archive" idea-to-release-v0.0.0/README.md)
+for h in '# idea-to-release v0.0.0' '## Version' '## About' '## Install' '## Usage'; do
+  grep -qxF -- "$h" <<<"$readme" || { echo "the release README lacks: $h"; exit 1; }
+done
+grep -qF "$(sed -n '5p' "$root/docs/plan/PLAN.md" | cut -c1-40)" <<<"$readme" || { echo "About isn't the plan's summary"; exit 1; }
+for d in "$root"/skills/*/; do
+  grep -qF "\`/i2r:$(basename "$d")\`" <<<"$readme" || { echo "Usage doesn't list $(basename "$d")"; exit 1; }
+done
+rm -rf "$work/x" && mkdir "$work/x" && tar -xzf "$archive" -C "$work/x"
+sed -i.bak '/^## Usage$/d' "$work/x/idea-to-release-v0.0.0/README.md" && rm "$work/x/idea-to-release-v0.0.0/README.md.bak"
+tar -czf "$work/no-usage.tar.gz" -C "$work/x" idea-to-release-v0.0.0
+if out=$("$t/verify.sh" "$work/no-usage.tar.gz" 2>&1); then echo "verify accepted a README without Usage"; exit 1; fi
+grep -q 'has no "## Usage" section' <<<"$out" || { echo "unexpected verify output: $out"; exit 1; }
+
 # The plugin's manifests (decision 0019) must match the release's version.
 # The source root is a copy of this repository, so `claude plugin validate`
 # runs too when claude is installed (it isn't on CI).
