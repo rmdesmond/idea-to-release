@@ -128,7 +128,7 @@ Start with `idea-to-plan`, for a new idea or an existing repository, then `accep
 
 ## Status
 
-Early: expect the conventions to change between minor versions until 1.0. There are GitHub forge and tracker adapters, and two release targets, `agent-skills` (this repository) and `shell-cli` (command-line tools).
+Early: expect the conventions to change between minor versions until 1.0. There are GitHub forge and tracker adapters, and three release targets: `agent-skills` (this repository), `shell-cli` (command-line scripts) and `cmake-binary` (compiled command-line tools built with CMake).
 
 - **Released:** the [releases](https://github.com/rmdesmond/idea-to-release/releases), and what each one changed in [`CHANGELOG.md`](CHANGELOG.md)
 - **Next:** the plan, [`docs/plan/PLAN.md`](docs/plan/PLAN.md), with one issue per task in this repository's milestones
