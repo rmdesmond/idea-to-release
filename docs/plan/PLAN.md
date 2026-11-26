@@ -1,6 +1,6 @@
 # Plan: idea-to-release
 
-Status: draft
+Status: accepted 2026-11-26
 
 idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
