@@ -1,6 +1,6 @@
 # Plan: idea-to-release
 
-Status: accepted 2026-11-22
+Status: draft
 
 idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
@@ -26,6 +26,9 @@ In (v0.3.0, M7):
 - A README in every release archive: version, about, install and usage (decision 0023)
 - This repository's README cleaned of leftovers from early planning
 
+In (v0.4.0, M8):
+- A third target adapter, `cmake-binary`, for compiled command-line tools built with CMake, written for the `shajarah-tayyibah` project (#143)
+
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
 - Testing on agents other than Claude Code (the install script knows their skill folders, but only Claude Code is tested)
@@ -34,15 +37,13 @@ Out (first release):
 - Anything outside the agent: no separate CLI, app or hosted service
 
 Out (v0.2.0):
-- The Agent Plugins package for Cursor, Copilot and Codex: a later release, tracked in its own issue
 - Packaging projects other than this one with the `agent-skills` target. It packages this repository only, and won't be generalised
 
 Out (v0.3.0):
 - A usage record of each skill run (which skill, the prompts, the questions and answers): considered and dropped, because the plan gate checks that what was asked for is what was understood, and the plan → issues → change requests → releases trail already records the rest
 - Working several issues at once: `work-the-plan` works one task at a time and stops at each change request for the maintainer's merge
-- The Agent Plugins package (#102)
 
-See decisions 0007, 0013, 0018, 0019, 0021, 0022 and 0023.
+See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023 and 0024.
 
 ## Constraints
 
@@ -518,3 +519,25 @@ Depends on: T-049, T-050, T-051
 Done when:
 - [x] `cut-release` publishes v0.3.0 after both confirmations, with the plugin manifests at 0.3.0
 - [x] A fresh install of the plugin gets v0.3.0 with six skills
+
+## M8: Compiled targets
+
+Release: v0.4.0
+
+A project that ships compiled command-line tools built with CMake can release them through the `cmake-binary` target, and v0.4.0 is released with it.
+
+### T-053: Add the cmake-binary target
+Depends on: none
+Issue: #143
+Done when:
+- [x] `adapters/target/cmake-binary.md` and `adapters/target/cmake-binary/` define `package.build`, `package.verify`, `package.publish`, `install.describe` and `usage.describe`, and `scripts/check-adapters.sh` passes
+- [x] `package.build` builds a clean copy of the tag (Release, without tests), runs `cmake --install` into a staging prefix, and archives it as `<repo>-<tag>-<os>-<arch>.tar.gz` with `bin/`, `share/<repo>/`, `install.sh`, `VERSION`, the release README and `LICENSE`
+- [x] `package.verify` installs the archive into a throw-away prefix and runs the project's `tests/smoke.sh` against the installed commands
+- [x] A script test builds and verifies a fixture CMake project, and checks the failure cases; it runs in this repository's `unit` stage, on Linux in CI and on macOS locally
+- [x] The README lists the new target
+
+### T-054: Release v0.4.0
+Depends on: T-053
+Done when:
+- [ ] `cut-release` publishes v0.4.0 after both confirmations, with the plugin manifests at 0.4.0
+- [ ] A fresh install of the plugin gets v0.4.0, with `adapters/target/cmake-binary.md` in it

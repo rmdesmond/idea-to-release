@@ -83,7 +83,6 @@ idea-to-release-<version>/
   - **The archive** is published with the forge release: `release.draft` attaches it, and `release.publish` makes it public.
   - **The plugin** is published by the tag itself. The release change request bumped the manifests, so once the tag exists, the marketplace on the default branch points at it, and `claude plugin marketplace update` finds the new version.
 - **Output:** "published with the forge release; plugin i2r <version> follows the tag".
-- **Notes:** other agents' plugin formats (Agent Plugins, for Cursor, Copilot and Codex) would be added here.
 
 ### install.describe
 
