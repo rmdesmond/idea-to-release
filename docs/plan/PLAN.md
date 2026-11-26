@@ -539,5 +539,5 @@ Done when:
 ### T-054: Release v0.4.0
 Depends on: T-053
 Done when:
-- [ ] `cut-release` publishes v0.4.0 after both confirmations, with the plugin manifests at 0.4.0
-- [ ] A fresh install of the plugin gets v0.4.0, with `adapters/target/cmake-binary.md` in it
+- [x] `cut-release` publishes v0.4.0 after both confirmations, with the plugin manifests at 0.4.0
+- [x] A fresh install of the plugin gets v0.4.0, with `adapters/target/cmake-binary.md` in it
