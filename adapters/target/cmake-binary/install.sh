@@ -44,7 +44,7 @@ if [[ -e $share && ! -f $record ]]; then
 fi
 for f in "$here"/bin/*; do
   c=$(basename "$f")
-  if [[ -e $prefix/bin/$c ]] && ! tail -n +2 "$record" 2>/dev/null | grep -qx "$c"; then
+  if [[ -e $prefix/bin/$c ]] && ! tail -n +2 "$record" 2>/dev/null | grep -x "$c" >/dev/null; then
     clashes="$clashes $prefix/bin/$c"
   fi
 done
