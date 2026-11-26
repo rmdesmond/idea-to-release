@@ -34,8 +34,8 @@ done
 # With a plan, About is the plan's summary instead.
 mkdir -p "$p/docs/plan" && printf '# Plan: hello-cli\n\nStatus: accepted 2026-11-22\n\nA friendly greeter.\n\n## Scope\n' > "$p/docs/plan/PLAN.md"
 a2=$("$t/build.sh" v1.2.3 "$work/out2" "$p" https://example.com/r/v1.2.3)
-tar -xzOf "$a2" hello-cli-v1.2.3/README.md | grep -qx 'A friendly greeter.' || { echo "About isn't the plan's summary"; exit 1; }
-tar -xzOf "$a2" hello-cli-v1.2.3/README.md | grep -qF 'from https://example.com/r/v1.2.3' || { echo "the README doesn't use the release URL"; exit 1; }
+tar -xzOf "$a2" hello-cli-v1.2.3/README.md | grep -x 'A friendly greeter.' >/dev/null || { echo "About isn't the plan's summary"; exit 1; }
+tar -xzOf "$a2" hello-cli-v1.2.3/README.md | grep -F 'from https://example.com/r/v1.2.3' >/dev/null || { echo "the README doesn't use the release URL"; exit 1; }
 rm -rf "$p/docs"
 # An archive whose README lacks a section fails verify.
 mkdir "$work/x" && tar -xzf "$archive" -C "$work/x"
@@ -59,7 +59,7 @@ grep -q 'tests/smoke.sh failed against the installed commands' <<<"$out" || { ec
 printf '#!/usr/bin/env bash\necho "hello, ${1:-world}"\n' > "$p/bin/hello"
 mkdir -p "$p/docs" && printf '# Tutorial\n' > "$p/docs/tutorial.md"
 archive=$("$t/build.sh" v1.2.5 "$work/out" "$p")
-tar -tzf "$archive" | grep -qx 'hello-cli-v1.2.5/docs/tutorial.md' || { echo "the archive doesn't ship docs/tutorial.md"; exit 1; }
+tar -tzf "$archive" | grep -x 'hello-cli-v1.2.5/docs/tutorial.md' >/dev/null || { echo "the archive doesn't ship docs/tutorial.md"; exit 1; }
 "$t/verify.sh" "$archive" "$p" >/dev/null || { echo "verify failed with a shipped tutorial"; "$t/verify.sh" "$archive" "$p"; exit 1; }
 printf '# Tutorial, edited\n' > "$p/docs/tutorial.md"
 if out=$("$t/verify.sh" "$archive" "$p" 2>&1); then echo "verify accepted an archive without the current tutorial"; exit 1; fi

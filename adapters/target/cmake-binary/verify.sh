@@ -54,7 +54,7 @@ for f in "$top"/bin/*; do
 done
 (( n > 0 )) || fail "the archive has no commands"
 if [[ -d $top/share/$name ]]; then
-  if diff -rq "$top/share/$name" "$prefix/share/$name" 2>&1 | grep -v ': \.installed$' | grep -q .; then
+  if diff -rq "$top/share/$name" "$prefix/share/$name" 2>&1 | grep -v ': \.installed$' | grep . >/dev/null; then
     fail "<prefix>/share/$name doesn't match the archive's share/$name"
   else
     ok
