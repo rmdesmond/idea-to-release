@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-26
+
+### Added
+
+- Add the cmake-binary target (#144)
+
+### Fixed
+
+- Stop piped grep -q from failing under pipefail (#149)
+
 ## [0.3.0] - 2026-11-22
 
 ### Added
@@ -79,3 +89,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.1.0]: https://github.com/rmdesmond/idea-to-release/releases/tag/v0.1.0
 [0.2.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.2.0...v0.3.0
+[0.4.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.3.0...v0.4.0
