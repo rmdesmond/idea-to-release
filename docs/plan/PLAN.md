@@ -50,7 +50,7 @@ See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023 and 0024.
 - Skills are Markdown (`SKILL.md` in the Agent Skills format) with no runtime code of their own.
 - Scripts use bash and standard tools only (`awk`, `sed`, `grep`), and work with both the BSD (macOS) and GNU (Linux) versions. No Python or Node dependency.
 - Requires `git`, and `gh` 2.40 or later signed in with the `repo` scope. `ci-setup` also needs the `workflow` scope.
-- This repository stays private (decision 0016). Since 2026-11-21 its account is on GitHub Pro, which enforces branch rules on private repositories. Before that, `repo-governance` was tested on a public scratch repository, and this repository uses the "enforced by procedure" fallback (decision 0012) until T-030 applies the rules.
+- This repository is public since 2026-11-26 (decision 0025, superseding 0016). It was private until then, from 2026-11-21 on GitHub Pro, which enforces branch rules on private repositories. Before that, `repo-governance` was tested on a public scratch repository, and this repository used the "enforced by procedure" fallback (decision 0012) until T-030 applied the rules.
 - There is one maintainer. A required review can't be satisfied by the author, so the review rule is settled in T-018 before governance is applied.
 - No deadline.
 

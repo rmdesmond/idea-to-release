@@ -83,7 +83,7 @@ claude plugin marketplace add rmdesmond/idea-to-release
 claude plugin install i2r@i2r
 ```
 
-The skills are then typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. The short name saves typing ([decision 0019](docs/decisions/0019-claude-code-plugin-i2r.md)). Plugin skills are namespaced, so they never clash with skills of the same name. The plugin follows releases: to update, run `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`. While the repository is private, you need read access and git credentials for GitHub (`gh auth setup-git`, or an SSH key).
+The skills are then typed with the plugin's name in front: `/i2r:idea-to-plan`, `/i2r:work-issue` and so on. The short name saves typing ([decision 0019](docs/decisions/0019-claude-code-plugin-i2r.md)). Plugin skills are namespaced, so they never clash with skills of the same name. The plugin follows releases: to update, run `claude plugin marketplace update i2r`, then `claude plugin update i2r@i2r`.
 
 In the skills' own text, they name each other without the prefix ("then run `accept-the-plan`"). In Claude Code, that's `/i2r:accept-the-plan`.
 
@@ -142,7 +142,7 @@ Changes follow [`conventions.md`](conventions.md): one issue per change request,
 
 ### How `main` is protected
 
-The repository is private ([decision 0016](docs/decisions/0016-stay-private-with-enforced-rules.md)), and GitHub enforces its rules on `main` ([decision 0017](docs/decisions/0017-branch-rules-enforced.md)):
+The repository is public ([decision 0025](docs/decisions/0025-public-repository.md)), and GitHub enforces its rules on `main` ([decision 0017](docs/decisions/0017-branch-rules-enforced.md)):
 
 - Nobody pushes to `main`, the maintainer included. Every change arrives through a pull request, and force pushes and deletion are blocked.
 - A pull request can be merged only when `lint`, `build`, `unit` and `integration` pass. `shellcheck` runs too, as an advisory check.

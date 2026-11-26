@@ -4,7 +4,7 @@ target: agent-skills
 owner: rmdesmond
 repo: idea-to-release
 default_branch: main
-visibility: private
+visibility: public
 merge_method: squash
 release:
   versioning: semver
