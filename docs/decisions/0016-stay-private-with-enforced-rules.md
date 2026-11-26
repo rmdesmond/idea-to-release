@@ -1,7 +1,7 @@
 # 0016: Stay private after the first release, with branch rules enforced
 
 Date: 2026-11-21
-Status: accepted
+Status: superseded by 0025
 
 ## Context
 
