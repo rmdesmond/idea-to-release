@@ -125,8 +125,9 @@ END {
   if (ci != "always" && ci != "on-demand") err("pipeline.ci must be always or on-demand: " ci)
   od = (ci == "on-demand")
   # On-demand (conventions §11): a change request runs only with the ci:full
-  # label or from a release branch, and adding another label starts nothing.
-  prcond = "(github.event_name == \047pull_request\047 && (contains(github.event.pull_request.labels.*.name, \047ci:full\047) || startsWith(github.head_ref, \047chore/release-\047)) && (github.event.action != \047labeled\047 || github.event.label.name == \047ci:full\047))"
+  # label or from a release branch. Adding a label starts a run only when the label
+  # is ci:full, on a branch other than a release branch (which runs anyway).
+  prcond = "(github.event_name == \047pull_request\047 && (contains(github.event.pull_request.labels.*.name, \047ci:full\047) || startsWith(github.head_ref, \047chore/release-\047)) && (github.event.action != \047labeled\047 || (github.event.label.name == \047ci:full\047 && !startsWith(github.head_ref, \047chore/release-\047))))"
   split("lint build unit integration", core, " ")
   for (i = 1; i <= 4; i++) {
     s = core[i]
@@ -170,7 +171,7 @@ END {
     # started by adding some other label skips every job, so it gets its own
     # group and never cancels a real run.
     print "concurrency:"
-    print "  group: pipeline-${{ github.event.pull_request.number || github.ref }}-${{ (github.event.action == \047labeled\047 && github.event.label.name != \047ci:full\047) && \047other-label\047 || \047run\047 }}"
+    print "  group: pipeline-${{ github.event.pull_request.number || github.ref }}-${{ (github.event.action == \047labeled\047 && (github.event.label.name != \047ci:full\047 || startsWith(github.head_ref, \047chore/release-\047))) && \047other-label\047 || \047run\047 }}"
     print "  cancel-in-progress: ${{ github.event_name == \047pull_request\047 }}"
     print ""
   }

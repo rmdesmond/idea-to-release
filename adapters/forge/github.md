@@ -359,7 +359,7 @@ Merging is an admin action (conventions §13). In this project the maintainer me
   - **Runner:** always `ubuntu-latest`. Projects held to macOS tools still run every stage locally through work-issue.
   - **On-demand:** for a private repository that saves Actions minutes (decision 0026).
     - **Triggers:** `pull_request` with `types: [opened, synchronize, reopened, labeled]`; `push` of release tags only, with no push to the default branch; `workflow_dispatch`; and `schedule` as above.
-    - **Change requests:** the `change_request` condition becomes: the pull request carries `ci:full`, or its head branch starts with `chore/release-`, and the event isn't the addition of some other label. Without that, every job is skipped and uses no minutes.
+    - **Change requests:** the `change_request` condition becomes: the pull request carries `ci:full`, or its head branch starts with `chore/release-`. Adding a label starts a run only if it's `ci:full` on a branch that isn't a release branch: a release change request already runs when it's opened, and a second run would cancel the first part-way. Without that, every job is skipped and uses no minutes.
     - **Merges:** `merge` never matches, because pushes to the default branch don't trigger the workflow. An extra stage that runs only on `merge` then runs only on a manual run.
     - **Releases:** tag pushes run what they run in `always`: `build`, `unit`, `integration`, and the extra stages on `release`.
     - **Manual runs:** every job's condition also accepts `workflow_dispatch`, so a manual run (`gh workflow run pipeline --ref <branch>`) runs every stage.
