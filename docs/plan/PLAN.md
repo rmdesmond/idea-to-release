@@ -597,11 +597,11 @@ Done when:
 ### T-058: Work and release with on-demand CI
 Depends on: T-056, T-057
 Done when:
-- [ ] `work-issue` runs every enabled stage before each push to the branch, not only before opening the change request, and records each pushed commit's results in the change request's body
-- [ ] In on-demand mode, `work-issue` copies `ci:full` from the issue to the change request it opens. Without the label, it doesn't wait for the pipeline: it reports that CI was skipped, and that the local runs are the check. With the label, it waits for the pipeline as it does now
-- [ ] In on-demand mode, `cut-release` checks the default branch's head by running every enabled stage locally, because merges run no CI, and puts `ci:full` on the release change request
-- [ ] In on-demand mode, `cut-release` requires every required stage to pass on the release change request and on the tag. A placeholder's pass counts. A `skipped` stage doesn't
-- [ ] With `always`, `work-issue` and `cut-release` behave as they do today
+- [x] `work-issue` runs every enabled stage before each push to the branch, not only before opening the change request, and records each pushed commit's results in the change request's body
+- [x] In on-demand mode, `work-issue` copies `ci:full` from the issue to the change request it opens. Without the label, it doesn't wait for the pipeline: it reports that CI was skipped, and that the local runs are the check. With the label, it waits for the pipeline as it does now
+- [x] In on-demand mode, `cut-release` checks the default branch's head by running every enabled stage locally, because merges run no CI, and puts `ci:full` on the release change request
+- [x] In on-demand mode, `cut-release` requires every required stage to pass on the release change request and on the tag. A placeholder's pass counts. A `skipped` stage doesn't
+- [x] With `always`, `work-issue` and `cut-release` behave as they do today
 
 ### T-059: Test on-demand CI end to end
 Depends on: T-058

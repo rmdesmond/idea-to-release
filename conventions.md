@@ -245,7 +245,7 @@ Typical candidates: security scanning, dependency audit, licence compliance, doc
 
 **Run commands.** Every enabled stage, core or extra, has a `run` command in the config: one shell command, run from the repository root, that exits 0 when the stage passes. It is the single definition of the stage:
 
-- work-issue runs it locally before opening a change request. Required stages must pass; advisory stages are reported. If an advisory stage's tool isn't installed, it is reported as skipped.
+- work-issue runs it locally before each push to a change request. Required stages must pass; advisory stages are reported. If an advisory stage's tool isn't installed, it is reported as skipped.
 - accept-the-plan renders the same command into the pipeline, so local and CI results can't drift apart.
 
 A disabled stage has a `reason` instead of a `run`.

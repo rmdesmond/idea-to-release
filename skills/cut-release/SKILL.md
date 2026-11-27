@@ -56,7 +56,7 @@ On a fresh run, the version isn't known until step 3 works it out. Check first f
 ### 3. Prepare: work out the release
 
 - **Last tag:** the highest `<tag_prefix>X.Y.Z` tag reachable from the default branch. With no tag, this is the first release.
-- **Gates now:** `pipeline.status` on the default branch's head. Every required stage must pass. Don't prepare a release from a red branch.
+- **Gates now:** `pipeline.status` on the default branch's head. Every required stage must pass. Don't prepare a release from a red branch. With `pipeline.ci: on-demand`, merges run no CI (conventions §11), so the head has no results: run every enabled stage locally on it instead (their `run` commands, from a clean checkout of `origin/<default>`). Every required stage must pass.
 - **Included change requests:** `cr.list`, keeping those whose `merge_commit` lies in `<last-tag>..origin/<default>` (or all of the default branch's history, for the first release). Leave out any earlier `chore(release):` change request.
 - **Version:** apply conventions §12 to their titles. If nothing bumps, report "nothing to release" and stop. Use the `version` argument if given, after checking it's valid and higher.
 - **Changelog section:** put each title in the first group that matches, in §12's order (Removed, Changed, Fixed, Added). A breaking removal goes under Removed, marked **Breaking:**. List the groups as Added, Changed, Fixed, Removed, and leave out a group that has no entries. The heading is `## [<X.Y.Z>] - <release date>`. Add the link reference at the end of the file, from the forge adapter's *Release and changelog links*. Keep `## [Unreleased]` at the top, emptied.
@@ -92,14 +92,16 @@ Then (later runs): tag v0.2.0 on the merged commit → release gates → package
 
 This step only writes a branch and opens a change request, so it's write tier: say what will happen, then do it. Commit `chore(release): <version>` on `chore/release-<version>`, then `cr.open` with the changelog section, the tasks delivered and, if `issue` was given, `Closes #<issue>`. Run `cr.status`: `closes` must be exactly that issue, or empty.
 
+**With `pipeline.ci: on-demand`,** also add `ci:full` to the change request with `cr.update` (`labels_add`). Its `chore/release-*` branch already makes CI run, and the label shows it. Then wait for its checks: every required stage must **pass**. A placeholder's pass counts, and a `skipped` stage doesn't: if one is skipped, the pipeline didn't run, so stop and report. In this mode, this is the only CI run before the tag, and tags are permanent.
+
 **Stop there.** The user reviews and merges the release change request. Then run release again.
 
 ### 5. Tag
 
 - **The release commit:** the default branch's head, which must be the release change request's merge commit. If something else was merged after it, stop and ask. The changelog would then miss those changes, so the choice is between re-preparing and tagging the release commit itself.
-- **Gates:** `pipeline.status` on that commit. Every required stage must pass.
+- **Gates:** `pipeline.status` on that commit. Every required stage must pass. With `pipeline.ci: on-demand`, a merge runs no CI, so read the release change request's checks instead (`cr.status`): every required stage must pass, and none may be `skipped`. Its head has the same files as the merge commit, as long as nothing else was merged in between (checked above).
 - **Dry run:** `tag.create <tag> <sha>`, which runs the release stages. Wait for **explicit confirmation** (admin tier).
-- **After the push:** `pipeline.status` for the tag, waiting until nothing is pending. Every stage that gates a release must pass: the core stages and any extra stage that runs on `release` in `required` mode.
+- **After the push:** `pipeline.status` for the tag, waiting until nothing is pending. Every stage that gates a release must pass: the core stages and any extra stage that runs on `release` in `required` mode. `lint` runs only on change requests (conventions §11), so it's `skipped` on a tag and doesn't gate it. Any other `skipped` stage doesn't count as a pass.
   - **If one fails:** stop and report. Don't draft. The tag stays, since tags are never moved (conventions §12). The fix is a new change request, then a patch release.
 
 ### 6. Package and draft
