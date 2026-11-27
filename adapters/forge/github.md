@@ -241,6 +241,7 @@ Making the repository public, or upgrading the account, brings the rules back. R
   - With required checks in place, a change request whose checks never report is `BLOCKED`. `gh pr merge` then suggests `--admin`. Never use it: merging past a gate is a waiver, which is an admin action (conventions §11).
   - GitHub treats a required check that was skipped by an `if:` condition as passing. That's why `lint`, which runs only on change requests, can be required.
   - `strict` is off, so a change request needn't be rebased on the latest default branch before merging. With squash merges and checks on every change request, that's enough.
+  - With `pipeline.ci: on-demand`, a change request without the `ci:full` label skips every job, and the skipped checks satisfy this rule. So the rule is the same in both modes, and on-demand needs no change to it.
 - **Fallback:** see *Fallback: rules the plan can't enforce*.
 
 ## Changes
@@ -347,8 +348,8 @@ Merging is an admin action (conventions §13). In this project the maintainer me
   ```sh
   <skill set>/adapters/forge/github/render-pipeline.sh .project/config.yml > .github/workflows/pipeline.yml
   ```
-  It's deterministic (the same config always gives the same bytes), and it fails, writing nothing, if the config can't be rendered: an enabled stage with no `run`, a disabled stage with no `reason`, a missing core stage, or an unknown `runs_on` or `mode`.
-- **What it renders:** one workflow, `pipeline`, at `.github/workflows/pipeline.yml`, headed "generated, don't edit by hand".
+  It's deterministic (the same config always gives the same bytes), and it fails, writing nothing, if the config can't be rendered: an enabled stage with no `run`, a disabled stage with no `reason`, a missing core stage, an unknown `runs_on` or `mode`, or a `pipeline.ci` other than `always` or `on-demand`.
+- **What it renders:** one workflow, `pipeline`, at `.github/workflows/pipeline.yml`, headed "generated, don't edit by hand". `pipeline.ci` (conventions §11) chooses between two forms. `always`, or no `ci` key, renders the form below. `on-demand` changes it as described under *On-demand*.
   - **Triggers:** `pull_request`; `push` to the default branch; `push` of tags matching `<tag_prefix>*`; and `schedule` if any extra stage runs on it (cron from the first such stage's `cron`, else `0 6 * * 1`).
   - **Core stages:** one job each, with job ID and name exactly `lint`, `build`, `unit` and `integration`, on `ubuntu-latest`.
     - When they run (conventions §11): `lint` on change requests; the other three on change requests, merges and release tags. A job outside its triggers is skipped, and GitHub counts a skipped required check as passing.
@@ -356,6 +357,13 @@ Merging is an admin action (conventions §13). In this project the maintainer me
     - **Disabled:** a placeholder with the reason as a comment, which prints `skipped: <reason>` and succeeds.
   - **Extra stages:** one job each, named after the stage. Its `runs_on` becomes an `if:` condition (`change_request` → pull requests, `merge` → pushes to the default branch, `release` → tag pushes, `schedule` → scheduled runs). `advisory` adds `continue-on-error: true`, so the job's failure doesn't fail the workflow.
   - **Runner:** always `ubuntu-latest`. Projects held to macOS tools still run every stage locally through work-issue.
+  - **On-demand:** for a private repository that saves Actions minutes (decision 0026).
+    - **Triggers:** `pull_request` with `types: [opened, synchronize, reopened, labeled]`; `push` of release tags only, with no push to the default branch; `workflow_dispatch`; and `schedule` as above.
+    - **Change requests:** the `change_request` condition becomes: the pull request carries `ci:full`, or its head branch starts with `chore/release-`, and the event isn't the addition of some other label. Without that, every job is skipped and uses no minutes.
+    - **Merges:** `merge` never matches, because pushes to the default branch don't trigger the workflow. An extra stage that runs only on `merge` then runs only on a manual run.
+    - **Releases:** tag pushes run what they run in `always`: `build`, `unit`, `integration`, and the extra stages on `release`.
+    - **Manual runs:** every job's condition also accepts `workflow_dispatch`, so a manual run (`gh workflow run pipeline --ref <branch>`) runs every stage.
+    - **Concurrency:** a newer run of the same pull request cancels the older one. A run started by adding some other label skips every job, so it goes in its own group and never cancels a real run.
 - **Output:** the path written, and whether it changed.
 - **Notes:**
   - Pushing a file under `.github/workflows/` over HTTPS needs the token's `workflow` scope (`gh auth refresh -s workflow`). Pushing over SSH doesn't.
