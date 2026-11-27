@@ -564,12 +564,12 @@ A private project can work from issues and push freely without using up its GitH
 ### T-055: Define on-demand CI in the conventions
 Depends on: none
 Done when:
-- [ ] Conventions §4 adds `pipeline.ci` to the config, `always` or `on-demand`. A config without it means `always`, so existing projects are unchanged
-- [ ] Conventions §8 adds a pipeline label, `ci:full`, zero or one per issue or change request: "run the full pipeline on this change request". It says who sets it: accept-the-plan on the last task of each release milestone, work-issue when it copies it to the change request, cut-release on the release change request, and the maintainer by hand on anything else
-- [ ] Conventions §11 says what runs in each mode. `always` is the current behaviour. In `on-demand`, a change request runs the pipeline only if it carries `ci:full` or is a release change request (`chore/release-*`). Merges to the default branch run nothing, release tags always run, and a manual run is always possible. Skipped jobs count as passing, so the branch rules are the same in both modes. For a change request with no CI run, work-issue's local runs are the check
-- [ ] Conventions §11 says on-demand is for private repositories. A public repository uses `always`
-- [ ] Conventions §5 has the plan's *Verification strategy* state the mode in a `CI:` line. `scripts/check-plan.sh` accepts `always` and `on-demand`, rejects any other value, and accepts a plan without the line (read as `always`), with fixtures for each case
-- [ ] This repository's plan has `CI: always`
+- [x] Conventions §4 adds `pipeline.ci` to the config, `always` or `on-demand`. A config without it means `always`, so existing projects are unchanged
+- [x] Conventions §8 adds a pipeline label, `ci:full`, zero or one per issue or change request: "run the full pipeline on this change request". It says who sets it: accept-the-plan on the last task of each release milestone, work-issue when it copies it to the change request, cut-release on the release change request, and the maintainer by hand on anything else
+- [x] Conventions §11 says what runs in each mode. `always` is the current behaviour. In `on-demand`, a change request runs the pipeline only if it carries `ci:full` or is a release change request (`chore/release-*`). Merges to the default branch run nothing, release tags always run, and a manual run is always possible. Skipped jobs count as passing, so the branch rules are the same in both modes. For a change request with no CI run, work-issue's local runs are the check
+- [x] Conventions §11 says on-demand is for private repositories. A public repository uses `always`
+- [x] Conventions §5 has the plan's *Verification strategy* state the mode in a `CI:` line. `scripts/check-plan.sh` accepts `always` and `on-demand`, rejects any other value, and accepts a plan without the line (read as `always`), with fixtures for each case
+- [x] This repository's plan has `CI: always`
 
 ### T-056: Render on-demand CI for GitHub
 Depends on: T-055
