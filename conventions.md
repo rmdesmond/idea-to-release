@@ -84,6 +84,7 @@ review:
   required_approvals: 1
   code_owners: false
 pipeline:
+  ci: always             # always | on-demand: when the forge runs the pipeline, see section 11
   stages:                # see section 11
     lint:
       enabled: true
@@ -114,7 +115,7 @@ The plan lives at `docs/plan/PLAN.md`. It is the origin of every issue.
 - **Tests for a task are part of that task.** Its "done when" list names the tests that prove it, and they land in the same change request. "Write tests for X" is never a separate task.
 - **Test infrastructure is a task.** Choosing a framework and wiring up the harness is one-time work and gets its own early task.
 - **Tests that span tasks get their own tasks.** Integration and system-level tests are planned explicitly, usually one or more per milestone.
-- The plan opens with a **Verification strategy** section stating which test levels apply to this project, which pipeline stages are enabled, any extra stages, and why. The config's `pipeline` block mirrors it.
+- The plan opens with a **Verification strategy** section stating which test levels apply to this project, which pipeline stages are enabled, any extra stages, and why. It also says when CI runs, in one line, `CI: always` or `CI: on-demand` (section 11). A plan without the line means `always`. The config's `pipeline` block mirrors it.
 - An optional **Release target** section says what the project ships, and how people install it, in one line: ``Target: `shell-cli` - a `slug` command, installed into a `bin` folder``, or `Target: none` for releases without packaged artifacts. The name is a target adapter (`adapters/target/<name>.md`, decision 0013), and the config's `target` mirrors it.
 
 ```markdown
@@ -177,10 +178,13 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 | Priority | `priority:high`, `priority:normal`, `priority:low` | Exactly one per issue |
 | State | `ready`, `blocked`, `needs-decision` | Zero or one |
 | Area | `area:<name>` | Optional, project-defined |
+| Pipeline | `ci:full` | Zero or one. Only in on-demand CI (section 11) |
 
 `ready` means the issue is fully specified and nothing blocks it; work-issue only picks up `ready` issues.
 
 **Who changes state labels:** accept-the-plan sets them, refreshes them as dependencies finish, and removes them from closed issues. work-issue changes one, and only on the issue it's about to take: `blocked` → `ready`, when every blocker is closed and the user has confirmed taking it. No other skill changes them. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
+
+**`ci:full`** means "run the full pipeline on this change request". It is used only when the config says `pipeline.ci: on-demand`. accept-the-plan puts it on the issue of the last task of each milestone with a `Release:` line. work-issue copies it from the issue to the change request it opens, cut-release puts it on the release change request, and the maintainer may add it by hand to any other issue or change request.
 
 ## 9. Issues
 
@@ -245,6 +249,19 @@ Typical candidates: security scanning, dependency audit, licence compliance, doc
 - accept-the-plan renders the same command into the pipeline, so local and CI results can't drift apart.
 
 A disabled stage has a `reason` instead of a `run`.
+
+**When CI runs.** The config's `pipeline.ci` says when the forge runs the pipeline. A config without it means `always` (decision 0026):
+
+| Event | `always` | `on-demand` |
+|---|---|---|
+| Change request | Every push | Only if it carries the `ci:full` label (section 8), or is a release change request (`chore/release-*`, section 12) |
+| Merge to the default branch | Runs | Runs nothing |
+| Release tag | Runs | Runs |
+| Manual run | Not offered | Possible, and runs every stage |
+
+In `on-demand`, the pipeline still has every stage, and a change request that doesn't run CI reports its jobs as skipped. A skipped job counts as passing, so the branch rules are the same in both modes, and nothing waits for a check that never reports. For such a change request, work-issue's local runs of the stages are the check, and its body records them.
+
+`on-demand` is for private repositories, where the forge limits CI minutes. A public repository uses `always`.
 
 **Thresholds.** There is no default coverage floor. A project that wants one sets `coverage_min` on the `unit` stage, and the stage fails below it.
 
