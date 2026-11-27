@@ -1,0 +1,22 @@
+# expect: pipeline.ci must be always or on-demand: sometimes
+default_branch: main
+pipeline:
+  ci: sometimes
+  stages:
+    lint:
+      enabled: true
+      run: "true"
+    build:
+      enabled: false
+      reason: "x"
+    unit:
+      enabled: false
+      reason: "x"
+    integration:
+      enabled: false
+      reason: "x"
+  extra_stages:
+    - name: audit
+      runs_on: [change_request]
+      mode: advisory
+      run: "true"

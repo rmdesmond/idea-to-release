@@ -11,6 +11,7 @@
 #   release:
 #     tag_prefix: v
 #   pipeline:
+#     ci: on-demand                  (optional: always | on-demand; default always)
 #     stages:
 #       lint:
 #         enabled: true
@@ -75,12 +76,15 @@ function cond(runs_on,    n, r, i, parts, p) {
     else if (r[i] == "release") parts = "(github.event_name == \047push\047 && startsWith(github.ref, \047refs/tags/" prefix "\047))"
     else if (r[i] == "schedule") parts = "github.event_name == \047schedule\047"
     else { err("unknown runs_on value: " r[i]); continue }
+    if (od && r[i] == "change_request") parts = prcond
+    if (od && r[i] == "merge") continue   # on-demand: merges run nothing
     p = (p == "") ? parts : p " || " parts
   }
+  if (od) p = (p == "") ? "github.event_name == \047workflow_dispatch\047" : p " || github.event_name == \047workflow_dispatch\047"
   return p
 }
 
-BEGIN { branch = "main"; prefix = "v"; nx = 0 }
+BEGIN { branch = "main"; prefix = "v"; nx = 0; ci = "always" }
 
 { line = $0 }
 /^[ \t]*#/ || /^[ \t]*$/ { next }
@@ -93,6 +97,7 @@ BEGIN { branch = "main"; prefix = "v"; nx = 0 }
 top == "release" && /^  tag_prefix:/ { v = line; sub(/^  tag_prefix:/, "", v); prefix = value(v); next }
 top != "pipeline" { next }
 
+/^  ci:/ { v = line; sub(/^  ci:/, "", v); ci = value(v); sec = ""; next }
 /^  stages:/ { sec = "stages"; next }
 /^  extra_stages:/ {
   sec = "extra"; v = line; sub(/^  extra_stages:/, "", v); v = value(v)
@@ -117,6 +122,11 @@ sec == "extra" && /^      [a-z_]+:/ {
 { err("unexpected line in the pipeline block: " line) }
 
 END {
+  if (ci != "always" && ci != "on-demand") err("pipeline.ci must be always or on-demand: " ci)
+  od = (ci == "on-demand")
+  # On-demand (conventions §11): a change request runs only with the ci:full
+  # label or from a release branch, and adding another label starts nothing.
+  prcond = "(github.event_name == \047pull_request\047 && (contains(github.event.pull_request.labels.*.name, \047ci:full\047) || startsWith(github.head_ref, \047chore/release-\047)) && (github.event.action != \047labeled\047 || github.event.label.name == \047ci:full\047))"
   split("lint build unit integration", core, " ")
   for (i = 1; i <= 4; i++) {
     s = core[i]
@@ -145,14 +155,25 @@ END {
   print ""
   print "on:"
   print "  pull_request:"
+  if (od) print "    types: [opened, synchronize, reopened, labeled]"
   print "  push:"
-  print "    branches: [" branch "]"
+  if (!od) print "    branches: [" branch "]"
   print "    tags: [\047" prefix "*\047]"
+  if (od) print "  workflow_dispatch:"
   if (sched) { print "  schedule:"; print "    - cron: \047" cron "\047" }
   print ""
   print "permissions:"
   print "  contents: read"
   print ""
+  if (od) {
+    # A newer run of the same change request cancels the older one. A run
+    # started by adding some other label skips every job, so it gets its own
+    # group and never cancels a real run.
+    print "concurrency:"
+    print "  group: pipeline-${{ github.event.pull_request.number || github.ref }}-${{ (github.event.action == \047labeled\047 && github.event.label.name != \047ci:full\047) && \047other-label\047 || \047run\047 }}"
+    print "  cancel-in-progress: ${{ github.event_name == \047pull_request\047 }}"
+    print ""
+  }
   print "jobs:"
 
   # Core stages (conventions §11): lint on change requests; the rest on

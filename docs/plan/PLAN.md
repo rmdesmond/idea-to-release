@@ -574,16 +574,16 @@ Done when:
 ### T-056: Render on-demand CI for GitHub
 Depends on: T-055
 Done when:
-- [ ] With `pipeline.ci` missing or `always`, `render-pipeline.sh` output is byte-identical to today's, and the existing `ok` fixtures pass unchanged
-- [ ] With `on-demand`, the workflow:
+- [x] With `pipeline.ci` missing or `always`, `render-pipeline.sh` output is byte-identical to today's, and the existing `ok` fixtures pass unchanged
+- [x] With `on-demand`, the workflow:
   - triggers on `pull_request` (`opened`, `synchronize`, `reopened`, `labeled`), on pushes of release tags only, and on `workflow_dispatch`
   - adds a job condition: the change request carries `ci:full` or its head branch starts with `chore/release-`, and a `labeled` event starts a run only when the label added is `ci:full`
-  - runs every stage on a tag push or a manual run
+  - on a tag push, runs the stages that run on release tags in `always` (every core stage but `lint`, and extra stages on `release`), and on a manual run, every stage
   - adds a `concurrency` group that cancels an earlier run of the same change request
   - leaves scheduled extra stages unchanged
-- [ ] An unknown `pipeline.ci` value fails rendering, and writes nothing
-- [ ] `tests/render-pipeline-github` gains an `ok/on-demand` fixture and an `err/bad-ci.yml` fixture, and `tests/run.sh` passes
-- [ ] `adapters/forge/github.md` describes both modes under `pipeline.render`, and notes under `rule.require-checks` that skipped on-demand jobs satisfy the required checks. `scripts/check-adapters.sh` passes
+- [x] An unknown `pipeline.ci` value fails rendering, and writes nothing
+- [x] `tests/render-pipeline-github` gains an `ok/on-demand` fixture and an `err/bad-ci.yml` fixture, and `tests/run.sh` passes
+- [x] `adapters/forge/github.md` describes both modes under `pipeline.render`, and notes under `rule.require-checks` that skipped on-demand jobs satisfy the required checks. `scripts/check-adapters.sh` passes
 
 ### T-057: Plan and accept on-demand CI
 Depends on: T-055
