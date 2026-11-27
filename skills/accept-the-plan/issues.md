@@ -87,6 +87,8 @@ The inferred labels are shown in the dry run, where the user can change any of t
 
 **Links.** For each dependency, the dependent task's issue is `blocked-by` the dependency's issue (`issue.link`). Record each link from the dependent side only. A link present on the forge but no longer in the plan is reported, and removed only if the user agrees.
 
+**The `ci:full` label** (conventions §8 and §11), only with `pipeline.ci: on-demand` in the config. For each milestone with a `Release:` line, find its last live task in plan order. Skip a task whose title starts with "Release": that's the release itself, and the release change request runs CI anyway. A new issue gets it in `issue.create`'s labels. An existing open issue without it gets it with `issue.update`. Either way, the change request that finishes the milestone runs CI before the release. A run after a plan revision labels a new last task in the same way. Never remove `ci:full` from an issue: the maintainer may have added it by hand. With `always`, add none.
+
 **Closing:**
 
 - **Done task, newly created issue:** close it as `completed` straight after creating it, with the comment "Completed before the plan was turned into issues."
@@ -104,6 +106,7 @@ issue.create      "T-001: Add the rot13 command"     type:feature priority:norma
                   "T-002: Add the test harness"      type:chore   priority:normal blocked
 issue.update      #1 (T-002): set milestone M1; append Plan-Task: T-002; title prefix "T-002: "
 issue.link        T-002 blocked-by T-001   (+ 3 more)
+ci:full           T-002 (last task of M1, release v0.1.0)   (on-demand only)
 issue.close       none
 labels            remove ready from closed #39, #44 (outside the plan)
 Reported, not changed:
@@ -117,8 +120,8 @@ Issues that don't exist yet have no number, so refer to them by task ID: list th
 In this order, stopping at the first failure:
 
 1. `milestone.ensure` for every milestone
-2. `issue.create` for every new issue, in plan order
-3. `issue.update` for existing issues
+2. `issue.create` for every new issue, in plan order, with `ci:full` among the labels where it belongs
+3. `issue.update` for existing issues, adding `ci:full` where it belongs
 4. `issue.link` for every dependency. All issue numbers are known by now.
 5. `issue.close` for done and dropped tasks, as above
 

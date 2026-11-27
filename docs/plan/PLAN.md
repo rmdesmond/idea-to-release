@@ -588,11 +588,11 @@ Done when:
 ### T-057: Plan and accept on-demand CI
 Depends on: T-055
 Done when:
-- [ ] `idea-to-plan` asks, in the *Constraints* topic, whether the repository will stay private or go public when the plan is accepted, and records the answer in *Constraints*
-- [ ] If the repository stays private, the *Verification strategy* topic asks about the CI mode and proposes `on-demand`. If it goes public, the mode is `always` and idea-to-plan doesn't ask. Either way it writes the plan's `CI:` line and the config's `pipeline.ci`
-- [ ] In on-demand mode, `accept-the-plan` creates the `ci:full` label with `label.ensure`, and puts it on the issue of the last task of each milestone with a `Release:` line. After a plan revision, a later run labels a new last task, and leaves labels added by hand alone
-- [ ] `accept-the-plan`'s dry run shows the CI mode and which issues get the label
-- [ ] When `accept-the-plan` makes an on-demand repository public, it says the mode is no longer needed and suggests switching to `always` with `idea-to-plan`
+- [x] `idea-to-plan` asks, in the *Constraints* topic, whether the repository will stay private or go public when the plan is accepted, and records the answer in *Constraints*
+- [x] If the repository stays private, the *Verification strategy* topic asks about the CI mode and proposes `on-demand`. If it goes public, the mode is `always` and idea-to-plan doesn't ask. Either way it writes the plan's `CI:` line and the config's `pipeline.ci`
+- [x] In on-demand mode, `accept-the-plan` creates the `ci:full` label with `label.ensure`, and puts it on the issue of the last task of each milestone with a `Release:` line. After a plan revision, a later run labels a new last task, and leaves labels added by hand alone
+- [x] `accept-the-plan`'s dry run shows the CI mode and which issues get the label
+- [x] When `accept-the-plan` makes an on-demand repository public, it says the mode is no longer needed and suggests switching to `always` with `idea-to-plan`
 
 ### T-058: Work and release with on-demand CI
 Depends on: T-056, T-057

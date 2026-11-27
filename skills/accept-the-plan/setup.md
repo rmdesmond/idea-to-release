@@ -48,6 +48,12 @@ The set from conventions §8, checked with `label.ensure`:
 | `blocked` | `000000` | Waiting on another issue |
 | `needs-decision` | `d876e3` | Needs a decision before work can start |
 
+With `pipeline.ci: on-demand` in the config (conventions §11), add one more. With `always`, it isn't created, and an existing one is left alone:
+
+| Name | Colour | Description |
+|---|---|---|
+| `ci:full` | `5319e7` | Run the full pipeline on this change request |
+
 A label that exists with a different colour or description is listed separately, and each needs its own yes before it's changed.
 
 ## Files

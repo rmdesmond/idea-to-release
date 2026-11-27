@@ -50,11 +50,11 @@ Work through these topics **one at a time**, in this order. For each, propose an
 
 1. **Goal:** what the project is for and who uses it, in two or three sentences
 2. **Scope:** what is in, and what is explicitly out (non-goals)
-3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed
+3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed. Also ask whether the repository will **stay private**, or go public when the plan is accepted. It is always created private (step 10), and that answer decides the CI mode (step 3). Record it in *Constraints*
 4. **Release target:** what a release ships, and how people install it (step 3)
 5. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton. Also ask which milestones end in a release, and with which version: each of those gets a `Release: vX.Y.Z` line (step 6)
 6. **Tasks:** per milestone (step 3)
-7. **Verification strategy:** test levels and pipeline stages (step 3)
+7. **Verification strategy:** test levels and pipeline stages, and for a repository that stays private, when CI runs (step 3)
 
 In revise mode, start from the existing plan: ask what changed, and go through only the topics the change touches.
 
@@ -71,6 +71,10 @@ Follow conventions §5:
 - **Integration and system tests:** these get their own tasks, usually one or more per milestone, at the end of the milestone and depending on the tasks they exercise.
 - **Order:** within a milestone, list tasks so that dependencies come first where possible.
 - **Verification strategy:** state the test levels that apply, and the four core stages (`lint`, `build`, `unit`, `integration`). Each stage is enabled, or disabled with a one-line reason. Also list any extra stages, with when they run and whether they're required or advisory (§11).
+- **When CI runs** (conventions §11, decision 0026): the plan's `CI:` line, mirrored by the config's `pipeline.ci`.
+  - **The repository stays private:** ask, proposing `on-demand`. Private repositories have a limited allowance of CI minutes. In `on-demand`, a change request runs CI only with the `ci:full` label or as a release change request, release tags always run it, and work-issue's local runs are the check the rest of the time. accept-the-plan labels the last task of each release milestone. `always` runs CI on every change.
+  - **The repository goes public:** `always`, without asking. CI minutes on standard runners are free for public repositories.
+  - **A `non-interactive` run,** or a user who leaves it open: assume the repository stays private and use `on-demand`, recorded as an assumption.
 - **Release target:** propose what a release ships, from the goal and constraints (a command-line tool, an app, a package, a set of agent skills), and how people install it. Match it to a target adapter in the skill set's `adapters/target/` (conventions §2, decision 0013) and confirm the choice with the user:
   - **An adapter fits:** write ``Target: `<name>` - <what ships>``.
   - **None fits:** that's a gap. Say so, and offer two choices:
@@ -131,6 +135,8 @@ Target: `<adapter-name>` - <what ships, and how people install it>
 
 ## Verification strategy
 
+CI: <always | on-demand>
+
 Test levels: ...
 
 | Stage | Enabled | Run command, or reason if disabled |
@@ -161,11 +167,11 @@ Then run `scripts/check-plan.sh docs/plan/PLAN.md`. The script belongs to the id
 
 ### 7. Keep the config in step
 
-Compare the verification strategy with the `pipeline` block of `.project/config.yml`, and the release target with its `target`. Work out the changes needed to make them match: `enabled`, `run`, `reason`, `extra_stages` and `target` (removed for `Target: none`). Leave everything else in the config untouched (conventions §4).
+Compare the verification strategy with the `pipeline` block of `.project/config.yml`, and the release target with its `target`. Work out the changes needed to make them match: `enabled`, `run`, `reason`, `extra_stages`, `ci` and `target` (removed for `Target: none`). Leave everything else in the config untouched (conventions §4).
 
 **A new repository has no config yet.** Write `.project/config.yml` in the conventions §4 shape:
 - `forge` and `tracker`, `owner` and `repo` (step 10), `default_branch: main` and `visibility: private`
-- `target`, and the `pipeline` block, from the plan
+- `target`, and the `pipeline` block, from the plan, with `ci` from the plan's `CI:` line
 - the defaults for the rest: `merge_method: squash`, `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, and `review: {required_approvals: 0, code_owners: false}`. Only the owner can write to a new repository, and a required approval would block every merge, since nobody can approve their own change request
 
 - **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.

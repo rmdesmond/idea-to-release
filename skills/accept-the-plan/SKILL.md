@@ -58,7 +58,7 @@ Change nothing yet. Follow each supporting file in turn:
 
 ### 3. Dry run and confirmation
 
-Show one summary of everything, grouped by tier, in the order it will be applied:
+Show one summary of everything, grouped by tier, in the order it will be applied. It includes the CI mode (`pipeline.ci`, conventions §11), and with `on-demand`, which issues get `ci:full` (`issues.md`):
 
 ```
 Plan:        rot13 (draft), 1 milestone, 2 tasks, release v0.1.0, target shell-cli; assumptions: none
@@ -75,14 +75,15 @@ Write:
   label.ensure    create 10 labels; 0 already present; 0 differ
   files           create CHANGELOG.md, LICENSE (MIT), .gitignore, README.md, templates
   decisions       create 0002-licence-mit.md, 0003-visibility-private.md, 0004-merge-strategy.md, 0005-review-rule.md
-  pipeline        4 core stages (1 enabled, 1 pending, 2 not needed)
+  pipeline        CI: on-demand (only change requests with ci:full, release change requests and tags)
+                  4 core stages (1 enabled, 1 pending, 2 not needed)
                     lint         run: git ls-files -z 'bin/*' '*.sh' | xargs -0 -r shellcheck
                     build        placeholder: Shell scripts; nothing to compile
                     unit         pending: not set up yet: T-002 adds it
                     integration  placeholder: No external interfaces
                   create .github/workflows/pipeline.yml; local run: lint pass
   commit          chore: set up the repository → main (no branch rules yet); then wait for its pipeline
-  issues          create M1: Walking skeleton; create T-001 (ready), T-002 (blocked); link T-002 blocked-by T-001
+  issues          create M1: Walking skeleton; create T-001 (ready), T-002 (blocked, ci:full); link T-002 blocked-by T-001
   acceptance      Status: draft → accepted 2026-11-22; 0004-word-handling.md: proposed → accepted (your yes)
                   change request docs/accept-plan → main, "docs(plan): accept the plan"
 No change:
