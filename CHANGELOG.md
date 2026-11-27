@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-27
+
+### Added
+
+- Define on-demand CI (#162)
+- Render on-demand CI (#163)
+- Plan and accept on-demand CI (#164)
+- Work and release with on-demand CI (#165)
+
+### Fixed
+
+- Fixes from the on-demand CI end-to-end test (#167)
+
 ## [0.4.0] - 2026-11-26
 
 ### Added
@@ -90,3 +103,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.1.0...v0.2.0
 [0.3.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.2.0...v0.3.0
 [0.4.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.3.0...v0.4.0
+[0.5.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.4.0...v0.5.0
