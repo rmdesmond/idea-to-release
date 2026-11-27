@@ -1,6 +1,6 @@
 # Plan: idea-to-release
 
-Status: accepted 2026-11-26
+Status: draft
 
 idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
@@ -29,6 +29,11 @@ In (v0.3.0, M7):
 In (v0.4.0, M8):
 - A third target adapter, `cmake-binary`, for compiled command-line tools built with CMake, written for the `shajarah-tayyibah` project (#143)
 
+In (v0.5.0, M9):
+- On-demand CI for private repositories, where GitHub Actions minutes are limited: a change request runs the pipeline only when it carries the `ci:full` label, or when it's a release change request. Release tags always run it, and merges to the default branch never do. The rest of the time, work-issue's local runs are the check (decision 0026)
+- `idea-to-plan` asks whether a project's repository will stay private. Only then does it ask about the CI mode, proposing on-demand. A repository that goes public keeps CI on every change, because Actions minutes on standard runners are free for public repositories
+- `accept-the-plan` puts `ci:full` on the last task of each release milestone. This repository stays public, with CI on every change
+
 Out (first release):
 - Adapters for other forges or trackers (GitLab, Jira, Linear). The design allows them; none are built yet
 - Testing on agents other than Claude Code (the install script knows their skill folders, but only Claude Code is tested)
@@ -43,7 +48,13 @@ Out (v0.3.0):
 - A usage record of each skill run (which skill, the prompts, the questions and answers): considered and dropped, because the plan gate checks that what was asked for is what was understood, and the plan → issues → change requests → releases trail already records the rest
 - Working several issues at once: `work-the-plan` works one task at a time and stops at each change request for the maintainer's merge
 
-See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023 and 0024.
+Out (v0.5.0):
+- On-demand CI for forges other than GitHub. The conventions define the mode in neutral terms, and only the GitHub adapter renders it
+- Choosing stages per label (`ci:lint`, say): the label runs the whole pipeline or nothing
+- Reporting local runs to the forge as check results: the branch rules accept only checks from GitHub Actions, so local results go in the change request's body
+- A git hook for local checks: work-issue runs them before each push, so no clone needs extra setup
+
+See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023, 0024 and 0026.
 
 ## Constraints
 
@@ -541,3 +552,65 @@ Depends on: T-053
 Done when:
 - [x] `cut-release` publishes v0.4.0 after both confirmations, with the plugin manifests at 0.4.0
 - [x] A fresh install of the plugin gets v0.4.0, with `adapters/target/cmake-binary.md` in it
+
+## M9: On-demand CI
+
+Release: v0.5.0
+
+A private project can work from issues and push freely without using up its GitHub Actions minutes: unlabelled change requests are checked locally by work-issue, and CI runs only on change requests labelled `ci:full`, on release change requests and on release tags. v0.5.0 is released with it.
+
+### T-055: Define on-demand CI in the conventions
+Depends on: none
+Done when:
+- [ ] Conventions §4 adds `pipeline.ci` to the config, `always` or `on-demand`. A config without it means `always`, so existing projects are unchanged
+- [ ] Conventions §8 adds a pipeline label, `ci:full`, zero or one per issue or change request: "run the full pipeline on this change request". It says who sets it: accept-the-plan on the last task of each release milestone, work-issue when it copies it to the change request, cut-release on the release change request, and the maintainer by hand on anything else
+- [ ] Conventions §11 says what runs in each mode. `always` is the current behaviour. In `on-demand`, a change request runs the pipeline only if it carries `ci:full` or is a release change request (`chore/release-*`). Merges to the default branch run nothing, release tags always run, and a manual run is always possible. Skipped jobs count as passing, so the branch rules are the same in both modes. For a change request with no CI run, work-issue's local runs are the check
+- [ ] Conventions §11 says on-demand is for private repositories. A public repository uses `always`
+- [ ] Conventions §5 has the plan's *Verification strategy* state the mode in a `CI:` line. `scripts/check-plan.sh` accepts `always` and `on-demand`, rejects any other value, and accepts a plan without the line (read as `always`), with fixtures for each case
+- [ ] This repository's plan has `CI: always`
+
+### T-056: Render on-demand CI for GitHub
+Depends on: T-055
+Done when:
+- [ ] With `pipeline.ci` missing or `always`, `render-pipeline.sh` output is byte-identical to today's, and the existing `ok` fixtures pass unchanged
+- [ ] With `on-demand`, the workflow:
+  - triggers on `pull_request` (`opened`, `synchronize`, `reopened`, `labeled`), on pushes of release tags only, and on `workflow_dispatch`
+  - adds a job condition: the change request carries `ci:full` or its head branch starts with `chore/release-`, and a `labeled` event starts a run only when the label added is `ci:full`
+  - runs every stage on a tag push or a manual run
+  - adds a `concurrency` group that cancels an earlier run of the same change request
+  - leaves scheduled extra stages unchanged
+- [ ] An unknown `pipeline.ci` value fails rendering, and writes nothing
+- [ ] `tests/render-pipeline-github` gains an `ok/on-demand` fixture and an `err/bad-ci.yml` fixture, and `tests/run.sh` passes
+- [ ] `adapters/forge/github.md` describes both modes under `pipeline.render`, and notes under `rule.require-checks` that skipped on-demand jobs satisfy the required checks. `scripts/check-adapters.sh` passes
+
+### T-057: Plan and accept on-demand CI
+Depends on: T-055
+Done when:
+- [ ] `idea-to-plan` asks, in the *Constraints* topic, whether the repository will stay private or go public when the plan is accepted, and records the answer in *Constraints*
+- [ ] If the repository stays private, the *Verification strategy* topic asks about the CI mode and proposes `on-demand`. If it goes public, the mode is `always` and idea-to-plan doesn't ask. Either way it writes the plan's `CI:` line and the config's `pipeline.ci`
+- [ ] In on-demand mode, `accept-the-plan` creates the `ci:full` label with `label.ensure`, and puts it on the issue of the last task of each milestone with a `Release:` line. After a plan revision, a later run labels a new last task, and leaves labels added by hand alone
+- [ ] `accept-the-plan`'s dry run shows the CI mode and which issues get the label
+- [ ] When `accept-the-plan` makes an on-demand repository public, it says the mode is no longer needed and suggests switching to `always` with `idea-to-plan`
+
+### T-058: Work and release with on-demand CI
+Depends on: T-056, T-057
+Done when:
+- [ ] `work-issue` runs every enabled stage before each push to the branch, not only before opening the change request, and records each pushed commit's results in the change request's body
+- [ ] In on-demand mode, `work-issue` copies `ci:full` from the issue to the change request it opens. Without the label, it doesn't wait for the pipeline: it reports that CI was skipped, and that the local runs are the check. With the label, it waits for the pipeline as it does now
+- [ ] In on-demand mode, `cut-release` checks the default branch's head by running every enabled stage locally, because merges run no CI, and puts `ci:full` on the release change request
+- [ ] In on-demand mode, `cut-release` requires every required stage to pass on the release change request and on the tag. A placeholder's pass counts. A `skipped` stage doesn't
+- [ ] With `always`, `work-issue` and `cut-release` behave as they do today
+
+### T-059: Test on-demand CI end to end
+Depends on: T-058
+Done when:
+- [ ] Through the plugin, on a new private scratch repository with an on-demand plan: the jobs on an unlabelled change request are skipped and the branch rules allow its merge, a merge to the default branch starts no jobs, and the labelled last task, the release change request and the release tag each run every stage
+- [ ] The scratch repository's Actions runs show jobs only for those three runs
+- [ ] A scratch plan for a repository that will go public gets `CI: always`, with no question about the mode
+- [ ] Every problem found is fixed in this milestone or filed as an issue
+
+### T-060: Release v0.5.0
+Depends on: T-059
+Done when:
+- [ ] `cut-release` publishes v0.5.0 after both confirmations, with the plugin manifests at 0.5.0
+- [ ] A fresh install of the plugin gets v0.5.0, and its `conventions.md` defines `pipeline.ci` and `ci:full`
