@@ -614,5 +614,5 @@ Done when:
 ### T-060: Release v0.5.0
 Depends on: T-059
 Done when:
-- [ ] `cut-release` publishes v0.5.0 after both confirmations, with the plugin manifests at 0.5.0
-- [ ] A fresh install of the plugin gets v0.5.0, and its `conventions.md` defines `pipeline.ci` and `ci:full`
+- [x] `cut-release` publishes v0.5.0 after both confirmations, with the plugin manifests at 0.5.0
+- [x] A fresh install of the plugin gets v0.5.0, and its `conventions.md` defines `pipeline.ci` and `ci:full`
