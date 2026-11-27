@@ -91,6 +91,8 @@ An item with no evidence isn't done. If it can't be done in this change request,
 - **An advisory stage's tool is missing:** report it as skipped.
 - **A stage has no `run` command:** stop and say which one. The command goes into the config in its own change request (it isn't this task's work). Once that merges, rebase this branch onto the default branch and verify again.
 
+**Before every push,** run the stages again on the commit being pushed: the first push in step 8, and each one after it (resume mode, step 9). Never push a commit whose required stages haven't passed locally. With `pipeline.ci: on-demand`, most change requests run no CI, so these local runs are their only check (conventions §11).
+
 ### 7. Tick the plan
 
 For a plan task, tick its *Done when* boxes in `docs/plan/PLAN.md`: every item that has evidence, and only those (conventions §10). Run `scripts/check-plan.sh` on the plan. The script belongs to the idea-to-release skill set, next to `conventions.md`. Commit with `docs(plan): mark <ID> done` and the `Refs: #<n>` footer.
@@ -109,7 +111,7 @@ Say what will happen (write tier, §13): push the branch, then `cr.open`:
   ## How it was verified
 
   <one line per Done-when item, with its evidence>
-  <each stage's result: pass, fail (advisory) or skipped, and why>
+  <each stage's result: pass, fail (advisory) or skipped, and why, with the commit it ran on (short SHA). After a later push, update it to the new head commit>
 
   ## Issue
 
@@ -125,7 +127,9 @@ Then run `cr.status`. Check that `closes` is **exactly** the issue being worked:
 
 In either case, fix the body with `cr.update` and read `cr.status` again. GitHub can take a few seconds to parse a new body, so read it again before deciding it's wrong.
 
-**Wait for the pipeline.** If the project has CI (accept-the-plan has run), wait for the change request's checks to finish, and report `pipeline.status`:
+**The `ci:full` label,** only with `pipeline.ci: on-demand`. If the issue carries `ci:full`, add it to the change request with `cr.update` (`labels_add`), straight after opening it. Adding the label starts the pipeline.
+
+**Wait for the pipeline.** If the project has CI (accept-the-plan has run), wait for the change request's checks to finish, and report `pipeline.status`. With `pipeline.ci: on-demand` and no `ci:full` on the change request, the pipeline skips every job: don't wait. Report that CI was skipped (on-demand, conventions §11), and that the local runs in the body are the check. If the user adds `ci:full` later, the pipeline runs then.
 
 - **A required check fails on CI** although it passed locally: the environments differ (tools, shell, operating system). Fix it on the branch as in resume mode (step 9), and wait again. Don't hand over a red change request without saying so.
 - **The branch rules block merging** (`cr.status` mergeable reason `BLOCKED`) for any reason other than a pending review: report why.
