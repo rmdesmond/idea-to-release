@@ -101,7 +101,7 @@ In this order, stopping at the first failure and reporting what was done:
 1. `repo.configure` with only the settings that differ (not visibility: that's step 7)
 2. `label.ensure` with the label set
 3. Write the files, the decision records and the rendered pipeline
-4. **The first setup, with no branch rules yet:** commit them on the default branch, `chore: set up the repository`, and push. This is the one setup commit conventions §10 allows before any branch rules exist. Then wait for the pipeline on that commit, and check it as `pipeline.md` says under "After the commit".
+4. **The first setup, with no branch rules yet:** commit them on the default branch, `chore: set up the repository`, and push. This is the one setup commit conventions §10 allows before any branch rules exist. Then wait for the pipeline on that commit, and check it as `pipeline.md` says under "After the commit". With `pipeline.ci: on-demand`, a push to the default branch starts no pipeline (conventions §11): don't wait for one. The acceptance change request is its first run (step 6).
 
    **Otherwise** (branch rules exist, or the setup commit is already there from an earlier run): don't commit yet. These files go in the acceptance change request (step 6).
 
@@ -118,7 +118,7 @@ Apply `issues.md`: milestones, new issues, updates, links and closures, in its o
    - **How it was verified:** `check-plan.sh`, the local run of the enabled stages, and the setup commit's pipeline result.
    - **Issue:** the closing reference if there's an issue.
 4. `cr.status`: `closes` must be exactly that issue, or empty.
-5. Wait for the change request's checks. Every required check must report and pass, `lint` included: in a new repository, this is the first place it runs (conventions §11).
+5. Wait for the change request's checks. Every required check must report and pass, `lint` included: in a new repository, this is the first place it runs (conventions §11). With `pipeline.ci: on-demand`, first add `ci:full` to it with `cr.update` (`labels_add`). Without the label every job is skipped, and the branch rules would go on over checks that never really ran. A `skipped` required check doesn't count here.
 
 ### 7. Apply the branch rules
 

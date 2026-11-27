@@ -606,10 +606,10 @@ Done when:
 ### T-059: Test on-demand CI end to end
 Depends on: T-058
 Done when:
-- [ ] Through the plugin, on a new private scratch repository with an on-demand plan: the jobs on an unlabelled change request are skipped and the branch rules allow its merge, a merge to the default branch starts no jobs, and the labelled last task, the release change request and the release tag each run every stage
-- [ ] The scratch repository's Actions runs show jobs only for those three runs
-- [ ] A scratch plan for a repository that will go public gets `CI: always`, with no question about the mode
-- [ ] Every problem found is fixed in this milestone or filed as an issue
+- [x] Through the plugin, on a new private scratch repository with an on-demand plan: the jobs on an unlabelled change request are skipped and the branch rules allow its merge, a merge to the default branch starts no jobs, and the labelled last task, the release change request and the release tag each run every stage
+- [x] The scratch repository's Actions runs show jobs only for those three runs
+- [x] A scratch plan for a repository that will go public gets `CI: always`, with no question about the mode
+- [x] Every problem found is fixed in this milestone or filed as an issue
 
 ### T-060: Release v0.5.0
 Depends on: T-059

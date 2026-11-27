@@ -54,7 +54,7 @@ Local run: lint pass
 
 ## After the commit
 
-Wait for the pipeline to run on the commit (or the change request), then read `pipeline.status`:
+Wait for the pipeline to run on the commit (or the change request), then read `pipeline.status`: With `pipeline.ci: on-demand`, the setup commit on the default branch starts no pipeline, so there's nothing to wait for. Check the acceptance change request instead, which carries `ci:full` (`SKILL.md`, step 6):
 
 - **Expect** every core stage as its own check, and each placeholder passing with its `skipped:` message.
 - **A stage that's missing or failing on CI but passed locally** usually means a difference in environment (tools, shell, operating system). Stop and report it. The branch rules aren't applied over a red pipeline.
