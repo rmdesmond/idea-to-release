@@ -21,6 +21,7 @@ All reads, so run them freely:
 - **Visibility:** the config's `visibility`.
   - If the forge's visibility differs from the config and no `visibility` argument was given, the two contradict each other: stop and ask which is right (conventions §13).
   - If a `visibility` argument differs from the config, that's a request to change it. The change also updates the config, and writes a decision record that supersedes the current visibility record. Both go in the acceptance change request. Making a repository public publishes all of its history: say so plainly.
+  - **Going public with `pipeline.ci: on-demand`:** say that on-demand CI is no longer needed, because CI minutes on standard runners are free for public repositories, and suggest switching the plan's `CI:` line to `always` with idea-to-plan, which keeps the config in step. Don't change the mode here: the pipeline block belongs to idea-to-plan (conventions §4). On-demand still works on a public repository, so this is advice, not a stop.
 - **Access:** each `grant` argument. Access is never removed by this skill. If `access.list` shows someone who shouldn't be there, report it and leave the removal to the user.
 
 ## For the dry run

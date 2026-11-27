@@ -42,6 +42,7 @@ Commands that depend on the CI environment (a service, a secret) can't pass loca
 
 ```
 Pipeline: 4 core stages (1 enabled, 1 pending, 2 not needed), 1 extra stage (advisory)
+CI:       on-demand: change requests with ci:full, release change requests and tags (conventions §11)
   lint         run: git ls-files -z '*.sh' | xargs -0 -r shellcheck
   build        placeholder: Shell scripts; nothing to compile
   unit         pending: not set up yet: T-002 adds it

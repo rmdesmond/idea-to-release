@@ -184,7 +184,7 @@ A small fixed set. Skills create these with `label.ensure` and do not invent oth
 
 **Who changes state labels:** accept-the-plan sets them, refreshes them as dependencies finish, and removes them from closed issues. work-issue changes one, and only on the issue it's about to take: `blocked` → `ready`, when every blocker is closed and the user has confirmed taking it. No other skill changes them. Open, closed and in-progress are tracked by the issue's own state and its linked change request, not by labels.
 
-**`ci:full`** means "run the full pipeline on this change request". It is used only when the config says `pipeline.ci: on-demand`. accept-the-plan puts it on the issue of the last task of each milestone with a `Release:` line. work-issue copies it from the issue to the change request it opens, cut-release puts it on the release change request, and the maintainer may add it by hand to any other issue or change request.
+**`ci:full`** means "run the full pipeline on this change request". It is used only when the config says `pipeline.ci: on-demand`. accept-the-plan puts it on the issue of the last task of each milestone with a `Release:` line, not counting a task titled "Release …", which is the release itself. work-issue copies it from the issue to the change request it opens, cut-release puts it on the release change request, and the maintainer may add it by hand to any other issue or change request.
 
 ## 9. Issues
 
