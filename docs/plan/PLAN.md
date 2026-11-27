@@ -75,6 +75,8 @@ Target: `agent-skills` - an archive of the skills, conventions and adapters, wit
 
 ## Verification strategy
 
+CI: always
+
 Test levels:
 - Format checks on the conventions' artefacts (adapters, plan)
 - Fixture tests for each check script: valid files must pass, and invalid files must fail with a stated message

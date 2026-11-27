@@ -7,6 +7,8 @@
 #   "##" section: "Status: draft" or "Status: accepted YYYY-MM-DD"
 # - a milestone has at most one "Release: vX.Y.Z" line, before its first
 #   task, and no two milestones release the same version
+# - the "## Verification strategy" section has at most one "CI:" line,
+#   "CI: always" or "CI: on-demand" (no line means always)
 # - an optional "## Release target" section has exactly one "Target:" line:
 #   "Target: none" or "Target: `<adapter-name>`", optionally followed by
 #   " - <what ships>" (conventions §5)
@@ -88,8 +90,9 @@ in_milestone && /^Release:/ {
   seen_section = 1
   close_task()
   close_target()
+  in_vs = 0
   in_milestone = 0
-  if ($0 ~ /^## Verification strategy[ \t]*$/) { has_vs = 1; next }
+  if ($0 ~ /^## Verification strategy[ \t]*$/) { has_vs = 1; in_vs = 1; next }
   if ($0 ~ /^## Release target[ \t]*$/) { in_target = 1; target_line = FNR; targets = 0; next }
   if ($0 ~ /^## M/) {
     if ($0 !~ /^## M[0-9]+: [^ ]/) { fail(FNR, "milestone heading must be \"## M<n>: <title>\""); next }
@@ -111,6 +114,14 @@ in_milestone && /^Release:/ {
   exists[task] = 1; line_of[task] = FNR; task_line = FNR
   if ($0 ~ /\(dropped\)[ \t]*$/) dropped[task] = 1
   has_dep = 0; has_done = 0; items = 0
+  next
+}
+
+in_vs && /^CI:/ {
+  cis++
+  if (cis > 1) { fail(FNR, "\"## Verification strategy\" has more than one \"CI:\" line"); next }
+  if ($0 !~ /^CI: (always|on-demand)[ \t]*$/)
+    fail(FNR, "\"CI:\" must be \"always\" or \"on-demand\"")
   next
 }
 
