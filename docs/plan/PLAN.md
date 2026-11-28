@@ -707,5 +707,5 @@ Done when:
 ### T-069: Release v0.6.0
 Depends on: T-068
 Done when:
-- [ ] `cut-release` publishes v0.6.0 after both confirmations, with the plugin manifests at 0.6.0
-- [ ] A fresh install of the plugin gets v0.6.0, with `adapters/forge/local.md` and `adapters/tracker/local.md` in it
+- [x] `cut-release` publishes v0.6.0 after both confirmations, with the plugin manifests at 0.6.0
+- [x] A fresh install of the plugin gets v0.6.0, with `adapters/forge/local.md` and `adapters/tracker/local.md` in it
