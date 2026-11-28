@@ -1,6 +1,6 @@
 {
   "name": "i2r",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "idea-to-release: agent skills that take a software project from an idea to a tagged release, with a person confirming the steps that matter.",
   "author": { "name": "Randall Desmond" },
   "homepage": "https://github.com/rmdesmond/idea-to-release",
