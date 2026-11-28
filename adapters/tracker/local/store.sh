@@ -181,3 +181,7 @@ table_rows() {
     for (i = 2; i <= n; i++) out = out "\t" f[i]
     print out }' "$1"
 }
+
+# store_end_write: release the lock before the end of the script, so another
+# command (tracker.sh, from merge.sh) can write.
+store_end_write() { rmdir "$STORE/.lock" 2>/dev/null || true; trap - EXIT; }

@@ -2,7 +2,7 @@
 
 Remote: none
 
-The repository is plain git on one machine, with no hosting service and no remote (decision 0027). Change requests, and later releases, are records in the `local` tracker's store, and the maintainer merges with the adapter's `merge.sh`. It pairs with the `local` tracker. Mixing it with a hosted tracker isn't supported.
+The repository is plain git on one machine, with no hosting service and no remote (decision 0027). Change requests and releases are records in the `local` tracker's store, and the maintainer merges with the adapter's `merge.sh`. It pairs with the `local` tracker. Mixing it with a hosted tracker isn't supported.
 
 `Remote: none` means skills skip every push and fetch step, and work from the local default branch wherever they would use `origin/<default>` (conventions §2).
 
@@ -171,27 +171,94 @@ The local forge has no server to enforce branch rules. It uses the fallback in c
 
 ## Changes
 
+Change requests are records in the tracker store, `crs/NNNN.md`, in the same format as issues (see [`../tracker/local.md`](../tracker/local.md)): `Number`, `Title`, `State` (`open`, `closed` or `merged`), `Head`, `Base`, `Created`, `Labels`, `Merged`, `Merge-Commit` and `Closes`, then a blank line and the body. They're numbered from the store's shared counter, so a change request and an issue never share a number. Every write is one commit in the store.
+
+There's no push: a change request names a local branch, and its commits are already there.
+
 ### cr.open
 
-Status: not yet implemented
-
-T-064 adds change requests as records in the tracker store.
+- **Tier:** write
+- **Inputs:** head branch, base branch (default branch), title (Conventional Commit format), body, optional labels
+- **Check existing state:** built in. If an open change request already exists for the head, the command prints `exists <n>` and opens nothing: use `cr.update` instead.
+- **Command:** write the body to a temporary file, then:
+  ```sh
+  forge.sh cr-open --head <branch> --title "<title>" --body-file <file> [--base <base>] [--label "<label>"]
+  ```
+  The head must be a local branch with commits that aren't on the base. Every label must exist in the store (`label.ensure`).
+- **Output:** `opened <n>`, and the issues its body closes. The record is `<store>/crs/<NNNN>.md`.
+- **Closing reference:** put `Closes #<issue>` in the body. As on GitHub, any of `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves` or `resolved`, in any case, with an optional colon, followed by `#<n>`, closes that issue on merge, anywhere in the body. So write other mentions without the keyword. `cr.status`'s `closes` shows what will be closed: only numbers that are issues in the store count.
+- **Fallback:** none needed.
 
 ### cr.update
 
-Status: not yet implemented
+- **Tier:** write
+- **Inputs:** the change request (number, or head branch), and any of: `title`, `body`, `labels_add`, `labels_remove`
+- **Check existing state:** built in. Only what differs is written, bodies compared after trimming trailing whitespace. Nothing differing prints `no changes`. A change request that isn't open is refused.
+- **Command:**
+  ```sh
+  forge.sh cr-update <n|branch> --title "<title>" --body-file <file> --add-label "<label>" --remove-label "<label>"
+  ```
+- **Output:** fields changed, as `name: old → new` (for the body, just `body changed`).
+- **Notes:** new commits aren't an update. They're on the head branch already.
+- **Fallback:** none needed.
 
 ### cr.status
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** the change request (number, or head branch: its open one, or else its latest)
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  forge.sh cr-status <n|branch>
+  ```
+- **Output:** `key: value` lines:
+
+  | Neutral | Local |
+  |---|---|
+  | `state` | `open`, `closed` or `merged` |
+  | `checks` | `no checks reported`: there's no pipeline service, so work-issue's local runs, recorded in the body, are the check (conventions §11). `merge.sh` runs the required stages again before merging |
+  | `review` | `no review required` |
+  | `mergeable` | `yes` or `conflicts`, from a trial merge (`git merge-tree --write-tree`, git 2.38 or later), or `merged` |
+  | `closes` | the issues the body's closing references name. Once merged, the issues the merge closed |
+
+  It also prints `number`, `title`, `head`, `base`, `labels` and the record's path, and once merged, `merged` and `merge_commit`.
+- **Fallback:** none needed.
 
 ### cr.list
 
-Status: not yet implemented
+- **Tier:** read
+- **Inputs:** base branch (default branch)
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  forge.sh cr-list [--base <base>]
+  ```
+  `--state open`, `closed` or `all` lists the others instead: `number`, `state`, `title` and `head`.
+- **Output:** for each merged change request, one tab-separated line:
+  - `number`
+  - `title`
+  - `merged`: the UTC date
+  - `merge_commit`: the squash commit on the base branch
+  - `closes`: the issues the merge closed
+- **Notes:** to find the change requests in a range, intersect `merge_commit` with `git rev-list <from>..<to>`, as on any forge.
+- **Fallback:** none needed.
 
 ### cr.merge
 
-Status: not yet implemented
+- **Tier:** admin. **The maintainer's command:** no skill runs it (conventions §10). work-issue ends by telling the maintainer to run it.
+- **Inputs:** the change request's number
+- **Check existing state:** built in. It refuses, changing nothing, a change request that isn't open, whose branches are missing, that has conflicts with the base, that changes nothing, or that fails a required stage. It also refuses if a worktree that has the base checked out has uncommitted changes.
+- **Command:**
+  ```sh
+  <skill set>/adapters/forge/local/merge.sh <n>          # asks for a yes
+  <skill set>/adapters/forge/local/merge.sh <n> --yes    # doesn't ask
+  ```
+  1. In a temporary worktree, it squash-merges the head into the base as one commit, `<title> (#<n>)`, with the body as the commit message's body, as on GitHub (conventions §10).
+  2. It runs the required stages (`rule.require-checks`, else the four core stages) with their `run` commands from the merge result's config. A disabled stage is a placeholder, and passes. A failing stage leaves its log, and nothing is merged.
+  3. After a yes, it moves the base to the merge commit with `I2R_MERGE=1`, so the hooks let it through. A clean worktree that has the base checked out is moved forward too.
+  4. It records the merge (`State: merged`, `Merged`, `Merge-Commit` and `Closes`), closes each issue the body names with `issue.close` (`completed`, with a comment naming the change request), and deletes the head branch if `delete_branch_on_merge` is on and it isn't checked out.
+- **Output:** each stage's result, the commit, the issues closed, and `merged #<n> as <short sha>`.
+- **Fallback:** none needed.
 
 ## Pipeline
 

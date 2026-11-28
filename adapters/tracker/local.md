@@ -29,6 +29,7 @@ Every tracker verb has a section here. The commands live in `adapters/tracker/lo
   labels.md        | Name | Colour | Description |
   milestones.md    | Number | Title | State | Description |
   issues/NNNN.md   one file per issue
+  crs/NNNN.md      the local forge's change requests (adapters/forge/local.md)
 ```
 
 An issue file is `Key: value` header lines, a blank line, then the body:
