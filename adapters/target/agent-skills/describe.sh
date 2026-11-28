@@ -45,7 +45,7 @@ describe_install() {
     claude plugin marketplace add rmdesmond/idea-to-release
     claude plugin install i2r@i2r
 
-The skills are then \`/i2r:idea-to-plan\`, \`/i2r:accept-the-plan\` and so on. To update after a new release: \`claude plugin marketplace update i2r\`, then \`claude plugin update i2r@i2r\`. While the repository is private, you need read access and git credentials for GitHub (\`gh auth setup-git\`, or an SSH key).
+The skills are then \`/i2r:idea-to-plan\`, \`/i2r:accept-the-plan\` and so on. To update after a new release: \`claude plugin marketplace update i2r\`, then \`claude plugin update i2r@i2r\`.
 
 **Other agents:** download \`idea-to-release-$tag.tar.gz\` from $url, then:
 
