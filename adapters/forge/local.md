@@ -297,7 +297,7 @@ Releases are kept in the tracker store, one folder per tag:
 ```
 <store>/releases/<tag>/
   release.md       "Key: value" header (Tag, Title, State: draft | published, Commit, Created, Published), a blank line, the notes
-  assets/          the release's files: the archives package.build made
+  <archive> ...     the release's files, next to it: the archives package.build made
 ```
 
 Every write is one commit in the store. The tag itself is an ordinary annotated git tag in the project. With no remote there's nothing to push, so creating it starts nothing: cut-release runs the release stages with `pipeline.status <tag>`.
@@ -385,6 +385,6 @@ forge.sh release-links <tag> [<path>]
 
 There are no URLs, only paths:
 
-- A release page: `<store>/releases/<tag>/release.md`. package.build puts it in the release README in place of a URL.
+- A release page: `<store>/releases/<tag>`, the folder with the release's record and its archives. package.build puts it in the release README in place of a URL, so "Download `<archive>` from `<store>/releases/<tag>`" reads as it should.
 - A file at a release, for the notes' tutorial link: `<path>` at `<tag>`, which anyone with the repository can read with `git show <tag>:<path>`.
 - The changes in a release, for the changelog's link references: none. cut-release writes the changelog section without a link reference.

@@ -111,7 +111,7 @@ expect "notes changed" "$fg" release-draft v0.1.0 --title "v0.1.0" --notes-file 
 expect "published v0.1.0" "$fg" release-publish v0.1.0
 expect "no change: v0.1.0 was published" "$fg" release-publish v0.1.0
 refuse "already published" "$fg" release-draft v0.1.0 --notes-file "$work/notes"
-[[ -f $store/releases/v0.1.0/assets/titlecase-v0.1.0.tar.gz ]] || fail "the asset isn't in the store"
+[[ -f $store/releases/v0.1.0/titlecase-v0.1.0.tar.gz ]] || fail "the asset isn't in the store"
 git -C "$store" log --format=%s | grep -x 'release.publish: v0.1.0' >/dev/null || fail "no commit for the publish"
 [[ -z $(git -C "$store" status --porcelain) ]] || fail "the store is dirty"
 
@@ -122,7 +122,9 @@ git tag -d v0.2.0 >/dev/null && git tag -a v0.2.0 feat/1-break -m moved
 refuse "not the drafted commit" "$fg" release-publish v0.2.0
 
 # Release and changelog links.
-expect "release: $store/releases/v0.1.0/release.md" "$fg" release-links v0.1.0
+expect "release: $store/releases/v0.1.0" "$fg" release-links v0.1.0
+printf x > "$work/release.md"
+refuse "can't be named release.md" "$fg" release-draft v0.2.0 --notes-file "$work/notes" --asset "$work/release.md"
 expect "docs/tutorial.md at v0.1.0 (git show v0.1.0:docs/tutorial.md)" "$fg" release-links v0.1.0 docs/tutorial.md
 expect "compare: none" "$fg" release-links v0.1.0
 

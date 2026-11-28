@@ -473,7 +473,10 @@ case $cmd in
     [[ -n $notes && -f $notes ]] || die "release-draft needs --notes-file with an existing file"
     check_line "a title" "$title"
     sha=$(git -C "$PROJECT" rev-parse -q --verify "refs/tags/$tag^{commit}") || die "tag $tag doesn't exist: run tag.create first"
-    for a in ${assets[@]+"${assets[@]}"}; do [[ -f $a ]] || die "no such asset: $a"; done
+    for a in ${assets[@]+"${assets[@]}"}; do
+      [[ -f $a ]] || die "no such asset: $a"
+      [[ $(basename "$a") != release.md ]] || die "an asset can't be named release.md"
+    done
     store_begin_write
     d="$STORE/releases/$tag" r="$STORE/releases/$tag/release.md" changes=""
     if [[ -f $r ]]; then
@@ -483,21 +486,20 @@ case $cmd in
       if [[ $(rec_body "$r" | normalise_body) != "$(normalise_body < "$notes")" ]]; then rec_set_body "$r" "$notes"; changes="${changes}notes changed"$'\n'; fi
       verb=updated
     else
-      mkdir -p "$d/assets"
+      mkdir -p "$d"
       { printf 'Tag: %s\nTitle: %s\nState: draft\nCommit: %s\nCreated: %s\nPublished:\n\n' "$tag" "$title" "$sha" "$(today)"; cat "$notes"; } > "$r"
       verb=created
     fi
-    mkdir -p "$d/assets"
     for a in ${assets[@]+"${assets[@]}"}; do
       b=$(basename "$a")
-      if [[ -f $d/assets/$b ]] && cmp -s "$a" "$d/assets/$b"; then continue; fi
-      cp "$a" "$d/assets/$b"; changes="${changes}asset: $b"$'\n'
+      if [[ -f $d/$b ]] && cmp -s "$a" "$d/$b"; then continue; fi
+      cp "$a" "$d/$b"; changes="${changes}asset: $b"$'\n'
     done
     if [[ $verb == updated && -z $changes ]]; then echo "no changes: draft $tag"; exit 0; fi
     store_commit "release.draft: $tag"
     echo "$verb draft $tag ($r)"
     printf '%s' "$changes"
-    for a in "$d"/assets/*; do [[ -f $a ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
+    for a in "$d"/*; do [[ -f $a && $(basename "$a") != release.md ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
     true
     ;;
 
@@ -521,14 +523,14 @@ case $cmd in
     r="$STORE/releases/$1/release.md"
     [[ -f $r ]] || die "release not found: $1"
     cat "$r"
-    for a in "$STORE/releases/$1"/assets/*; do [[ -f $a ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
+    for a in "$STORE/releases/$1"/*; do [[ -f $a && $(basename "$a") != release.md ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
     true
     ;;
 
   release-links)
     [[ $# -ge 1 ]] || usage
     need_repo; store_resolve "$PROJECT"
-    printf 'release: %s/releases/%s/release.md\n' "$STORE" "$1"
+    printf 'release: %s/releases/%s\n' "$STORE" "$1"
     printf 'file: %s at %s (git show %s:%s)\n' "${2:-<path>}" "$1" "$1" "${2:-<path>}"
     printf 'compare: none (the changelog has no link references)\n'
     ;;

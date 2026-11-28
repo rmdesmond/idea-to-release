@@ -29,7 +29,7 @@ All optional. Pass them as `key=value`.
 ### 1. Read the project
 
 - Read `.project/config.yml`, the adapters it names, the plan (its goal, scope and done tasks), the README, and `docs/tutorial.md` if it exists. If a verb above is `not yet implemented`, stop and say which one.
-- Make sure the working tree is clean and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). Never stash or discard someone's changes.
+- Make sure the working tree is clean and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). Never stash or discard someone's changes. With a forge that declares `Remote: none` (the `local` forge), skip the pull.
 - **The mode:**
   - **Write:** there's no tutorial yet.
   - **Update:** there is one. Keep its example and its steps where they still hold, and change only what the project's changes call for.
@@ -105,7 +105,7 @@ Change request: branch docs/12-tutorial → main, "docs: write the tutorial"
 
 1. Create branch `docs/<issue>-tutorial` (or `docs/tutorial` with no issue) from the default branch.
 2. Commit `docs: write the tutorial` (or `docs: update the tutorial`), with a `Refs: #<issue>` footer if there's an issue.
-3. Push, then `cr.open`:
+3. Push, then `cr.open`. With the `local` forge, don't push: `cr.open` names the local branch, and the maintainer merges with `merge.sh <n>`.
    - **What changed:** the outline, marked as in step 2.
    - **How it was verified:** the commit the steps ran on, each step's result, and the recorded run used, if any.
    - **Issue:** the closing reference if there's an issue.
