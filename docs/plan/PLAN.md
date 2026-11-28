@@ -647,11 +647,11 @@ Done when:
 ### T-062: Add the local tracker
 Depends on: T-061
 Done when:
-- [ ] `adapters/tracker/local.md` and `adapters/tracker/local/` define every tracker verb, and `scripts/check-adapters.sh` passes
-- [ ] The store at `tracker_path` holds `issues/NNNN.md` (`Key: value` header lines for title, state, labels, milestone, blocked-by, parent, closed date and reason, then a blank line and the body), `labels.md`, `milestones.md` and a `next` counter that issues and change requests share
-- [ ] The store is a git repository: the first write creates it with `git init` and says so, and every write is one commit naming the verb and the issue. `issue.list` with no store returns nothing and says the store doesn't exist yet
-- [ ] `issue.create` finds an existing issue by its `Plan-Task:` line instead of creating another, `issue.link` refuses a cycle, `issue.close` keeps the issue, and the `ensure` verbs report a difference instead of overwriting
-- [ ] A script test, `tests/script-tracker-local.sh`, exercises every verb on a temporary store, including the re-run and failure cases, and passes on macOS (bash 3.2, BSD tools) and on Linux in CI
+- [x] `adapters/tracker/local.md` and `adapters/tracker/local/` define every tracker verb, and `scripts/check-adapters.sh` passes
+- [x] The store at `tracker_path` holds `issues/NNNN.md` (`Key: value` header lines for title, state, labels, milestone, blocked-by, parent, closed date and reason, then a blank line and the body), `labels.md`, `milestones.md` and a `next` counter that issues and change requests share
+- [x] The store is a git repository: the first write creates it with `git init` and says so, and every write is one commit naming the verb and the issue. `issue.list` with no store returns nothing and says the store doesn't exist yet
+- [x] `issue.create` finds an existing issue by its `Plan-Task:` line instead of creating another, `issue.link` refuses a cycle, `issue.close` keeps the issue, and the `ensure` verbs report a difference instead of overwriting
+- [x] A script test, `tests/script-tracker-local.sh`, exercises every verb on a temporary store, including the re-run and failure cases, and passes on macOS (bash 3.2, BSD tools) and on Linux in CI
 
 ### T-063: Add the local forge: repository, access and rules
 Depends on: T-061
