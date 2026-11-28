@@ -2,6 +2,8 @@
 
 Supporting file for `SKILL.md`, steps 2 and 6. It makes the repository enforce what the conventions promise: nobody pushes straight to the default branch, every change request passes the core checks and gets the configured reviews, and visibility and access are what the project says they are. Every change here is **admin tier** (conventions §13).
 
+**With the `local` forge,** read *On the local forge* in `SKILL.md` alongside this file: it says what applies there, and what doesn't.
+
 **Verbs:** `repo.describe`, `repo.configure`, `access.list`, `access.grant`, `rule.protect-branch`, `rule.require-review`, `rule.require-checks`, `pipeline.status` (forge).
 
 Also read the decision records about review and visibility, and any branch-rules fallback (`*-branch-rules-fallback.md`), in `docs/decisions/`.

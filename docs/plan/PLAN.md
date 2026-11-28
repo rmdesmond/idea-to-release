@@ -683,10 +683,10 @@ Done when:
 ### T-066: Plan and accept on the local forge
 Depends on: T-065
 Done when:
-- [ ] `idea-to-plan` offers `local` as the forge for a new repository (the default stays `github`), with the `local` tracker, and asks for `tracker_path`, proposing `../<repo>-tracker`. Step 10 creates the repository with no remote and pushes nothing, and the config has `tracker_path` and no `visibility`
-- [ ] With the `local` forge, `idea-to-plan` doesn't ask whether the repository stays private, or about the CI mode
-- [ ] With the `local` forge, `accept-the-plan`'s dry run shows the hooks in place of a ruleset, no CI files, and no visibility or access changes, and its apply step pushes nothing
-- [ ] With `github`, both skills behave as they do today
+- [x] `idea-to-plan` offers `local` as the forge for a new repository (the default stays `github`), with the `local` tracker, and asks for `tracker_path`, proposing `../<repo>-tracker`. Step 10 creates the repository with no remote and pushes nothing, and the config has `tracker_path` and no `visibility`
+- [x] With the `local` forge, `idea-to-plan` doesn't ask whether the repository stays private, or about the CI mode
+- [x] With the `local` forge, `accept-the-plan`'s dry run shows the hooks in place of a ruleset, no CI files, and no visibility or access changes, and its apply step pushes nothing
+- [x] With `github`, both skills behave as they do today
 
 ### T-067: Work and release on the local forge
 Depends on: T-066

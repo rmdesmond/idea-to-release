@@ -2,6 +2,8 @@
 
 Supporting file for `SKILL.md`, step 2. It works out the standard setup every other skill expects: settings, labels, standard files and decision records. Nothing is changed here. Every difference goes into the one dry run (`SKILL.md`, step 4).
 
+**With the `local` forge,** read *On the local forge* in `SKILL.md` alongside this file: it says what applies there, and what doesn't.
+
 **Verbs:** `repo.describe`, `access.list` (forge); `label.ensure`'s check (tracker). Also the forge adapter's sources for licence text, `.gitignore` templates, template paths and the owner's display name.
 
 ## Inputs

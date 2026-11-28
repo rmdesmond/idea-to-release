@@ -40,7 +40,7 @@ All optional. Pass them as `key=value`.
 
 - `.project/config.yml`, and the adapters it names. If a verb above is `not yet implemented`, stop and say which one. **No config:** stop. The plan isn't saved in a repository yet, so run idea-to-plan first.
 - `repo.describe`. If the repository doesn't exist on the forge, stop, and say to run idea-to-plan.
-- Make sure the working tree is clean, and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). Never stash or discard someone's changes.
+- Make sure the working tree is clean, and the default branch is up to date (`git switch <default>`, `git pull --ff-only`). With a forge that declares `Remote: none`, skip the pull: the local branch is the only one (*On the local forge*, below). Never stash or discard someone's changes.
 - `docs/plan/PLAN.md` must pass `scripts/check-plan.sh`. A plan that fails can't be accepted: list the problems, and say to fix them with idea-to-plan.
 - **Show the plan being accepted:** its status, its milestones with task counts and releases, the release target, the verification strategy and the assumptions. Accepting it is the point of this skill, so the user sees what they're accepting before anything else.
 - **Proposed decision records.** An assumption made without the user has a decision record with `Status: proposed` (idea-to-plan, step 8). Accepting the plan doesn't accept them. For each one, show what it decides and ask, one record at a time: accept it as written, or leave it proposed (to change it, revise the plan with idea-to-plan). Only the user's own answer counts, and a `non-interactive` run, even with `confirm`, leaves them proposed. Each one accepted is set to `Status: accepted` in the acceptance change request (step 6). A task that depends on one still proposed waits for it: work-the-plan won't take it.
@@ -101,7 +101,7 @@ In this order, stopping at the first failure and reporting what was done:
 1. `repo.configure` with only the settings that differ (not visibility: that's step 7)
 2. `label.ensure` with the label set
 3. Write the files, the decision records and the rendered pipeline
-4. **The first setup, with no branch rules yet:** commit them on the default branch, `chore: set up the repository`, and push. This is the one setup commit conventions §10 allows before any branch rules exist. Then wait for the pipeline on that commit, and check it as `pipeline.md` says under "After the commit". With `pipeline.ci: on-demand`, a push to the default branch starts no pipeline (conventions §11): don't wait for one. The acceptance change request is its first run (step 6).
+4. **The first setup, with no branch rules yet:** commit them on the default branch, `chore: set up the repository`, and push. (With the `local` forge, there's no push and no pipeline to wait for: see *On the local forge*.) This is the one setup commit conventions §10 allows before any branch rules exist. Then wait for the pipeline on that commit, and check it as `pipeline.md` says under "After the commit". With `pipeline.ci: on-demand`, a push to the default branch starts no pipeline (conventions §11): don't wait for one. The acceptance change request is its first run (step 6).
 
    **Otherwise** (branch rules exist, or the setup commit is already there from an earlier run): don't commit yet. These files go in the acceptance change request (step 6).
 
@@ -113,7 +113,7 @@ Apply `issues.md`: milestones, new issues, updates, links and closures, in its o
 
 1. Create branch `docs/<issue>-accept-plan` (or `docs/accept-plan` with no issue) from the default branch.
 2. Set the plan's `Status: accepted <date>`, and `Status: accepted` on each proposed decision record the user accepted (step 1). In the plan's *Assumptions* section, change that assumption's note from proposed to accepted by the user, with the date, so the plan and the record agree. With branch rules already in place, add the files from step 4 too.
-3. Commit `docs(plan): accept the plan`, with a `Refs: #<issue>` footer if there's an issue. Push, then `cr.open`:
+3. Commit `docs(plan): accept the plan`, with a `Refs: #<issue>` footer if there's an issue. Push, then `cr.open`: (With the `local` forge: no push, see *On the local forge*.)
    - **What changed:** the plan accepted (milestones, task counts, releases), and the setup, pipeline and issues this run applied, with numbers.
    - **How it was verified:** `check-plan.sh`, the local run of the enabled stages, and the setup commit's pipeline result.
    - **Issue:** the closing reference if there's an issue.
@@ -122,13 +122,35 @@ Apply `issues.md`: milestones, new issues, updates, links and closures, in its o
 
 ### 7. Apply the branch rules
 
-Once the acceptance change request's checks have passed, apply `rules.md`: visibility (if confirmed on its own), access, then the branch rules. On the fallback path, write the fallback record and push it to the acceptance change request, then `cr.update` its body to say so.
+With the `local` forge, read *On the local forge* first. Once the acceptance change request's checks have passed, apply `rules.md`: visibility (if confirmed on its own), access, then the branch rules. On the fallback path, write the fallback record and push it to the acceptance change request, then `cr.update` its body to say so.
 
 The acceptance change request is now the first change request the branch rules apply to. **Stop there.** Don't merge it. When the user merges it, the plan is accepted.
 
 ### 8. Report
 
 List what was created, changed, skipped (and why), and anything that differs but was left alone: settings, labels, files, the pipeline's results, the issues with their numbers, the branch rules (or the fallback record), and the acceptance change request's link. Then what comes next: merge the acceptance change request, then run **work-the-plan**.
+
+## On the local forge
+
+The `local` forge (decision 0027) is git on one machine, with no hosting service, no remote and no pipeline service. Its tracker is the `local` tracker, whose store sits outside the repository at the config's `tracker_path`. The procedure is the same, with these differences:
+
+- **No push, no pull** (`Remote: none`, conventions §2). Every "push" above is skipped: commits are already where they need to be, and `cr.open` names the local branch.
+- **The tracker store** is created by the first tracker write, `label.ensure`. Say so in the dry run, with its path from `tracker_path`.
+- **Settings** (`setup.md`): only `merge_method` (squash) and `delete_branch_on_merge` apply. They live in the repository's own git config. Wiki, projects and visibility don't apply, so don't show them as changes. There are no issue or change request templates to write. The licence text comes from the adapter's bundled texts. For any other licence, ask the user for the text.
+- **The pipeline** (`pipeline.md`): `pipeline.render` writes no CI files, so there's nothing to commit or compare. The dry run says `no CI files: the stages run locally`. Don't ask about the CI mode, and don't create or use `ci:full`: `pipeline.ci` doesn't apply (conventions §11).
+- **Checks.** Nothing runs on a push. In place of waiting for the setup commit's pipeline (step 4) and the acceptance change request's checks (step 6), run `pipeline.status` on each. It runs the stages in a clean worktree. Every required stage must pass. Record the results in the acceptance change request's body.
+- **Branch rules** (`rules.md`): `rule.protect-branch` installs git hooks that refuse any change to the default branch except through `merge.sh`. `rule.require-review` sets 0 approvals: there is one person. `rule.require-checks` records the stages `merge.sh` runs before merging. Show them in the dry run as:
+
+  ```
+  Branch rules (git hooks in this clone, guard-rails, conventions §14):
+    protect   pre-commit, reference-transaction → installed: main changes only through merge.sh
+    reviews   required approvals → 0
+    checks    merge.sh runs → lint, build, unit, integration
+  ```
+
+  "A required check has never reported" doesn't apply. The hooks are the fallback for a forge with no server (conventions §14), so no fallback record is written. Visibility and access don't apply: there's nothing to change, and nobody to invite.
+- **Order.** The hooks guard the default branch, so they go on only after the setup commit, which goes straight to the default branch (conventions §10). That's step 7, as on any forge.
+- **The merge.** Stop at the acceptance change request as usual. The maintainer merges it with the adapter's `merge.sh <n>`. Report that command, with the change request's number.
 
 ## Re-running
 
