@@ -1,6 +1,6 @@
 ---
 name: idea-to-plan
-description: Turn a project idea into a plan (docs/plan/PLAN.md) with a verification strategy, milestones and dependency-ordered tasks, following the idea-to-release conventions, or revise an existing plan without renumbering it. Ends with the plan saved in a repository: a new private one it creates, or a change request in an existing one. Also keeps the project config's pipeline stages in step with the plan. Use when starting a project, when scope changes, or when work done outside the plan needs recording.
+description: Turn a project idea into a plan (docs/plan/PLAN.md) with a verification strategy, milestones and dependency-ordered tasks, following the idea-to-release conventions, or revise an existing plan without renumbering it. Ends with the plan saved in a repository: a new private one it creates (or a local one, with no hosting service), or a change request in an existing one. Also keeps the project config's pipeline stages in step with the plan. Use when starting a project, when scope changes, or when work done outside the plan needs recording.
 ---
 
 # idea-to-plan
@@ -19,7 +19,9 @@ All optional. Pass them as `key=value`.
 |---|---|---|
 | `idea` | ask | Text, or a path to a file describing the idea |
 | `issue` | none | Issue number for the branch and change request |
-| `owner`, `repo` | from config or git remote; else ask | Only for a new repository (step 10). The repo name is proposed from the project's name |
+| `forge` | from config; else ask, proposing `github` | Only for a new repository: `github`, or `local` for a project with no hosting service (decision 0027). `local` also means the `local` tracker |
+| `tracker_path` | ask, proposing `../<repo>-tracker` | Only for a new repository on the `local` forge: where the tracker store goes, relative to the repository |
+| `owner`, `repo` | from config or git remote; else ask | Only for a new repository (step 10). The repo name is proposed from the project's name. The `local` forge needs no `owner` |
 | `description` | ask, proposing one from the goal | Only for a new repository: its one-line description |
 | `non-interactive` | off | Don't ask. Work from the idea and the repository alone, and record every assumption (see "Assumptions") |
 
@@ -39,10 +41,10 @@ All optional. Pass them as `key=value`.
 
   If `issue.list` fails (for example, the repository isn't on the forge yet), say so and continue with git history only.
 
-**Where the plan will be saved.** Find the repository: from `.project/config.yml`, else from `git remote get-url origin` (conventions §4: say what was inferred). Then `repo.describe`.
+**Where the plan will be saved.** Find the repository: from `.project/config.yml`, else from `git remote get-url origin` (conventions §4: say what was inferred). Then `repo.describe`. With `forge: local` in the config, the repository is the project folder itself, and has no remote (conventions §2).
 
 - **An existing repository:** the plan goes in a change request (step 9).
-- **No repository yet** (no config and no remote, or a repository that doesn't exist on the forge): the plan goes in a new repository, which step 10 creates. The forge defaults to `github`. The tracker is the forge's own.
+- **No repository yet** (no config and no remote, or a repository that doesn't exist on the forge): the plan goes in a new repository, which step 10 creates. The forge is settled in the *Constraints* topic: `github` by default, or `local`. With `github`, the tracker is the forge's own. With `local`, it's the `local` tracker, whose store sits outside the repository (decision 0027).
 
 ### 2. Understand the idea
 
@@ -50,11 +52,13 @@ Work through these topics **one at a time**, in this order. For each, propose an
 
 1. **Goal:** what the project is for and who uses it, in two or three sentences
 2. **Scope:** what is in, and what is explicitly out (non-goals)
-3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed. Also ask whether the repository will **stay private**, or go public when the plan is accepted. It is always created private (step 10), and that answer decides the CI mode (step 3). Record it in *Constraints*
+3. **Constraints:** language, platform, hosting, dependencies, deadlines, anything fixed.
+   - **Hosting,** for a new repository: on a forge (`github`, the default), or **local only**, with git on one machine and no hosting service (`local`, decision 0027). With `local`, also ask where the tracker store goes (`tracker_path`), proposing `../<repo>-tracker`, next to the repository. Record the choice in *Constraints*.
+   - **On a hosted forge,** also ask whether the repository will **stay private**, or go public when the plan is accepted. It is always created private (step 10), and that answer decides the CI mode (step 3). Record it in *Constraints*. A `local` repository has no visibility, so don't ask
 4. **Release target:** what a release ships, and how people install it (step 3)
 5. **Milestones:** each one a usable step, not a phase like "design" or "testing". The first is usually a walking skeleton. Also ask which milestones end in a release, and with which version: each of those gets a `Release: vX.Y.Z` line (step 6)
 6. **Tasks:** per milestone (step 3)
-7. **Verification strategy:** test levels and pipeline stages, and for a repository that stays private, when CI runs (step 3)
+7. **Verification strategy:** test levels and pipeline stages, and for a hosted repository that stays private, when CI runs (step 3)
 
 In revise mode, start from the existing plan: ask what changed, and go through only the topics the change touches.
 
@@ -75,6 +79,7 @@ Follow conventions §5:
   - **The repository stays private:** ask, proposing `on-demand`. Private repositories have a limited allowance of CI minutes. In `on-demand`, a change request runs CI only with the `ci:full` label or as a release change request, release tags always run it, and work-issue's local runs are the check the rest of the time. accept-the-plan labels the last task of each release milestone. `always` runs CI on every change.
   - **The repository goes public:** `always`, without asking. CI minutes on standard runners are free for public repositories.
   - **A `non-interactive` run,** or a user who leaves it open: assume the repository stays private and use `on-demand`, recorded as an assumption.
+  - **The `local` forge:** no `CI:` line and no `pipeline.ci`, without asking. There's no pipeline service, so the mode doesn't apply: work-issue's local runs are the check on every change request, `merge.sh` runs the required stages before each merge, and cut-release runs the release stages locally (conventions §11). Say so in the *Verification strategy*.
 - **Release target:** propose what a release ships, from the goal and constraints (a command-line tool, an app, a package, a set of agent skills), and how people install it. Match it to a target adapter in the skill set's `adapters/target/` (conventions §2, decision 0013) and confirm the choice with the user:
   - **An adapter fits:** write ``Target: `<name>` - <what ships>``.
   - **None fits:** that's a gap. Say so, and offer two choices:
@@ -171,7 +176,8 @@ Compare the verification strategy with the `pipeline` block of `.project/config.
 
 **A new repository has no config yet.** Write `.project/config.yml` in the conventions §4 shape:
 - `forge` and `tracker`, `owner` and `repo` (step 10), `default_branch: main` and `visibility: private`
-- `target`, and the `pipeline` block, from the plan, with `ci` from the plan's `CI:` line
+- with the `local` forge instead: `forge: local`, `tracker: local`, `tracker_path` (the confirmed path, relative to the repository), `repo` and `default_branch: main`, with no `owner` and no `visibility` (conventions §4)
+- `target`, and the `pipeline` block, from the plan, with `ci` from the plan's `CI:` line (none with the `local` forge)
 - the defaults for the rest: `merge_method: squash`, `release: {versioning: semver, strategy: trunk, tag_prefix: v, version_files: []}`, and `review: {required_approvals: 0, code_owners: false}`. Only the owner can write to a new repository, and a required approval would block every merge, since nobody can approve their own change request
 
 - **Enabling** a stage: include `enabled: true` and its confirmed `run` command. Changing a `run` command or a reason: include it in the change.
@@ -199,9 +205,9 @@ Show the user, in both cases:
 
 - create branch `docs/<issue>-plan` (or `docs/plan` with no issue) from the default branch
 - commit with `docs(plan): <summary>`, plus a `Refs: #<issue>` footer if there is an issue
-- push, then `cr.open`
+- push, then `cr.open`. With the `local` forge there's no push (`Remote: none`): `cr.open` names the local branch
 
-The change request body lists the summary above and says it was checked with `scripts/check-plan.sh`. Don't merge it: plan changes go through review like any other change (§5).
+The change request body lists the summary above and says it was checked with `scripts/check-plan.sh`. Don't merge it: plan changes go through review like any other change (§5). With the `local` forge, the maintainer merges it with the adapter's `merge.sh <n>`: say so, with the command.
 
 After the change request merges, the plan is a draft again: run **accept-the-plan** to accept it.
 
@@ -209,7 +215,7 @@ After the change request merges, the plan is a draft again: run **accept-the-pla
 
 Only when step 1 found no repository.
 
-1. **Owner, name and description.** Use the arguments, or ask: propose the repository name from the project's name (lower case, words joined by `-`), and a one-line description from the goal. Never invent a description the user didn't confirm. If `repo.describe` now finds the repository, stop and say so: it already exists, so run again to save the plan in a change request.
+1. **Owner, name and description.** Use the arguments, or ask (the `local` forge has no owner): propose the repository name from the project's name (lower case, words joined by `-`), and a one-line description from the goal. Never invent a description the user didn't confirm. If `repo.describe` now finds the repository, stop and say so: it already exists, so run again to save the plan in a change request.
 2. **Dry run.** Creating a repository is an admin action (§13). Show what will happen, and wait for a yes:
 
    ```
@@ -220,12 +226,22 @@ Only when step 1 found no repository.
    ```
 
    The repository is always created **private**. That isn't a question: the plan is a draft, and going public later is a separate, deliberate change (accept-the-plan with `visibility=public`). A `non-interactive` run stops after the dry run.
+
+   **With the `local` forge,** there's no owner, visibility or remote, and the dry run says where the tracker store will go. The store itself is created by accept-the-plan's first tracker write:
+
+   ```
+   Repository:    ~/repos/titlecase   create, local (git only, no remote)
+   Tracker store: ../titlecase-tracker (tracker_path), created by accept-the-plan
+   Commit:        docs(plan): plan titlecase   → main, the repository's first commit
+                  docs/plan/PLAN.md (Status: draft), docs/decisions/0001-…, .project/config.yml
+   Next:          review the plan, then accept-the-plan
+   ```
 3. **Apply,** stopping at the first failure:
    1. `git init -b main` if the folder isn't a git repository yet. Existing local commits are kept, and pushed with the plan.
-   2. `repo.create` with `visibility: private`, which also sets the `origin` remote.
+   2. `repo.create` with `visibility: private`, which also sets the `origin` remote. With the `local` forge, `repo.create` with the description, which adds no remote.
    3. Commit the plan, the decision records and the config on `main`: `docs(plan): <summary>`. This is one of the two commits made straight to the default branch, before any branch rules exist (conventions §10).
-   4. Push `main`.
-4. **Report** the repository's address, and what comes next: review the plan, change it with this skill if it's not right, and when it is, run **accept-the-plan**. That's the user accepting the plan, and it readies the repository for work.
+   4. Push `main`. Not with the `local` forge: there's nothing to push to.
+4. **Report** the repository's address (with the `local` forge, its folder, and the tracker store's path), and what comes next: review the plan, change it with this skill if it's not right, and when it is, run **accept-the-plan**. That's the user accepting the plan, and it readies the repository for work.
 
 ## Re-running
 

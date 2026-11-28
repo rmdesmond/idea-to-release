@@ -2,6 +2,8 @@
 
 Supporting file for `SKILL.md`, step 3. It turns the `pipeline` block of `.project/config.yml` into the forge's CI files. The config is the single definition of each stage, and the generated files are never edited by hand. Nothing is committed here. The result goes into the one dry run (`SKILL.md`, step 4).
 
+**With the `local` forge,** read *On the local forge* in `SKILL.md` alongside this file: it says what applies there, and what doesn't.
+
 **Verbs:** `pipeline.render`, `pipeline.status` (forge).
 
 ## 1. Check the pipeline block
