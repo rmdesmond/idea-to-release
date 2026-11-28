@@ -20,7 +20,7 @@ All optional. Pass them as `key=value`.
 | Argument | Default | Notes |
 |---|---|---|
 | `version` | derived (conventions §12) | e.g. `0.2.0` or `v0.2.0`. Must be valid and higher than the last tag. If it differs from the derived version, say so in the dry run |
-| `issue` | none | An issue this release completes, such as a plan task "Release v0.1.0". The release change request closes it |
+| `issue` | none | An issue this release completes, such as a plan task "Release v0.1.0". The release change request closes it, and step 8 ticks the task's boxes once the release is out. Without it, the release task is the plan task titled "Release <tag>", if there is one |
 
 There is no non-interactive mode. Creating the tag and publishing always need a person's yes.
 
@@ -45,6 +45,8 @@ Look for the version's traces, in this order, and go to the first stage that's n
 
 | What's found | Stage |
 |---|---|
+| A published release for the version, and an open change request on `chore/<n>-tick-<task>` | Report it (`cr.status`) and stop. The user merges it |
+| A published release for the version, with a release task whose *Done when* boxes aren't all ticked | 8. Tick the release task |
 | A published release for the version (`release.publish`'s check) | Done: report it and stop |
 | The tag exists | 6. Package and draft |
 | `CHANGELOG.md` on the default branch has a section for the version | 5. Tag |
@@ -144,7 +146,15 @@ This step only writes a branch and opens a change request, so it's write tier: s
 - **Dry run:** the draft's URL, its assets, and the gates on the tag (all pass). Then wait for **explicit confirmation** (admin tier). Without a yes, stop: the draft stays as it is, and a later run picks it up here.
 - **Then** `package.publish`, then `release.publish`.
 
-### 8. Report
+### 8. Tick the release task
+
+Only if the release has a release task: the `issue` argument's task, or the plan task titled "Release <tag>" (conventions §12). Its *Done when* boxes describe what's only true once the release is out ("publishes vX.Y.Z", "a fresh install gets vX.Y.Z"), so the release change request couldn't tick them, and they're ticked now, in a change request of their own.
+
+- **Evidence for every box,** as work-issue's step 6: what was run and what was seen. The publish itself is evidence for a box about publishing. A box that asks for a check (a fresh install, say) needs that check, run now. A box without evidence stays unticked: say why, and don't claim it.
+- Say what will happen (write tier): branch `chore/<n>-tick-<task id, lower case>` from the default branch (`<n>` is the task's issue), tick the boxes in `docs/plan/PLAN.md`, run `scripts/check-plan.sh`, and commit `chore(plan): tick <ID>, <tag> is out` with a `Refs: #<n>` footer. Run the enabled stages, push, and `cr.open`. The body lists each box with its evidence. It has no closing reference: the release change request already closed the issue. Run `cr.status`: `closes` must be empty.
+- Wait for its checks, as work-issue does. **Stop there.** The user merges it. The next run finds every box ticked, and reports the release done.
+
+### 9. Report
 
 Report:
 - the version and the release URL

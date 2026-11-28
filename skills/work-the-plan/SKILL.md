@@ -46,20 +46,20 @@ There is no non-interactive mode. Every step it hands over asks for the user's y
 
 ### 2. Is a change request waiting?
 
-For each open plan-task issue, look for an open change request, as work-issue does (its step 2: `cr.status` on the branch `<type>/<n>-*`, or a change request that closes the issue). Also look for an open release change request (`chore/release-*`, conventions §12).
+For each open plan-task issue, look for an open change request, as work-issue does (its step 2: `cr.status` on the branch `<type>/<n>-*`, or a change request that closes the issue). Also look for an open release change request (`chore/release-*`, conventions §12), and an open change request ticking a release task (`chore/<n>-tick-*`, conventions §12).
 
 **One is open:** this skill works one task at a time, so it doesn't start another. Report the change request, its checks and its reviews (`cr.status`), and stop:
 
 - **Checks pass, and no changes are requested:** it's waiting for the user's merge. Say so, and that running this skill again after the merge carries on. With the `local` forge, a change request reports no checks: its body's local runs are its checks. It's waiting for the maintainer to run `merge.sh <n>`, so give the command.
 - **A required check fails, or a reviewer asked for changes:** offer to resume it with **work-issue** (`issue=<n>`, its resume mode). On a yes, follow work-issue from there.
-- **A release change request:** offer to continue **cut-release**, which picks up where it stopped.
+- **A release change request, or one ticking a release task:** offer to continue **cut-release**, which picks up where it stopped.
 
 ### 3. Is a release due?
 
 Go through the milestones with a `Release: vX.Y.Z` line, in plan order. A release is **due** when:
 
 - every live task in that milestone is done (its issue is closed as completed), and
-- no tag `vX.Y.Z` exists yet (`git tag -l`). A tag with no published release also counts: cut-release finishes it.
+- no tag `vX.Y.Z` exists yet (`git tag -l`). A tag with no published release also counts: cut-release finishes it. So does a published release whose release task (the milestone's task titled "Release vX.Y.Z") still has unticked *Done when* boxes: cut-release ticks them (its step 8), and the tutorial isn't asked about again.
 
 If a release is due, it comes before any later task. Releases ship in plan order:
 
