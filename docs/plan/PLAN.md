@@ -691,11 +691,11 @@ Done when:
 ### T-067: Work and release on the local forge
 Depends on: T-066
 Done when:
-- [ ] With the `local` forge, `work-issue` runs the stages, opens the change request without pushing, records the local results in its body, and ends by telling the maintainer to run `merge.sh <N>`. `work-the-plan` stops at each change request with the same instruction
-- [ ] With the `local` forge, `cut-release` works from the local default branch, runs every enabled stage locally on the release commit and on the tag, has the maintainer merge the release change request with `merge.sh`, and keeps the release in the store
-- [ ] `write-tutorial` works with the `local` forge
-- [ ] With `github`, every skill behaves as it does today
-- [ ] The README lists the local forge and tracker, and how a project chooses them
+- [x] With the `local` forge, `work-issue` runs the stages, opens the change request without pushing, records the local results in its body, and ends by telling the maintainer to run `merge.sh <N>`. `work-the-plan` stops at each change request with the same instruction
+- [x] With the `local` forge, `cut-release` works from the local default branch, runs every enabled stage locally on the release commit and on the tag, has the maintainer merge the release change request with `merge.sh`, and keeps the release in the store
+- [x] `write-tutorial` works with the `local` forge
+- [x] With `github`, every skill behaves as it does today
+- [x] The README lists the local forge and tracker, and how a project chooses them
 
 ### T-068: Test the local forge and tracker end to end
 Depends on: T-067
