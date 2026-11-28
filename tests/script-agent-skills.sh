@@ -24,6 +24,8 @@ readme=$(tar -xzOf "$archive" idea-to-release-v0.0.0/README.md)
 for h in '# idea-to-release v0.0.0' '## Version' '## About' '## Install' '## Usage'; do
   grep -qxF -- "$h" <<<"$readme" || { echo "the release README lacks: $h"; exit 1; }
 done
+# The repository is public (decision 0025): Install mustn't say it's private (#170).
+if grep -qi 'repository is private' <<<"$readme"; then echo "the release README says the repository is private"; exit 1; fi
 grep -qF "$(sed -n '5p' "$root/docs/plan/PLAN.md" | cut -c1-40)" <<<"$readme" || { echo "About isn't the plan's summary"; exit 1; }
 for d in "$root"/skills/*/; do
   grep -qF "\`/i2r:$(basename "$d")\`" <<<"$readme" || { echo "Usage doesn't list $(basename "$d")"; exit 1; }
