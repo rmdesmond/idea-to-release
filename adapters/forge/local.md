@@ -262,29 +262,88 @@ There's no push: a change request names a local branch, and its commits are alre
 
 ## Pipeline
 
+The local forge has no pipeline service (conventions §11). The config's `pipeline` block is still the single definition of each stage, and its `run` commands are run locally: by work-issue before each change request, by `merge.sh` before each merge, and by cut-release, through `pipeline.status`, on the release commit and the tag. `pipeline.ci` doesn't apply, and either value is accepted.
+
 ### pipeline.render
 
-Status: not yet implemented
-
-T-065: the local forge has no pipeline service, so it writes no CI files.
+- **Tier:** write (but it writes nothing)
+- **Inputs:** the project's `.project/config.yml`
+- **Check existing state:** not applicable: there are no CI files to compare.
+- **Command:**
+  ```sh
+  forge.sh pipeline-render [<config>]
+  ```
+  It checks the pipeline block as the GitHub renderer does, and fails, naming the problem, if every core stage isn't there, an enabled stage has no `run`, a disabled stage has no `reason`, or an extra stage lacks a valid `mode`, `runs_on` or `run`.
+- **Output:** `no CI files written`, then each stage: its mode, when it runs and its command, or `placeholder: <reason>`.
+- **Fallback:** this is the fallback for a forge with no pipeline service (conventions §11).
 
 ### pipeline.status
 
-Status: not yet implemented
+- **Tier:** read. It runs the stages' commands, in a temporary worktree, and changes nothing in the repository.
+- **Inputs:** a commit, a branch, a tag, or a change request's number. The event that chooses which stages run is `change_request` for a change request (at its head) or a commit, and `release` for a tag. Give `--event change_request`, `merge` or `release` to choose another.
+- **Check existing state:** not applicable (this is the read).
+- **Command:**
+  ```sh
+  forge.sh pipeline-status <commit|branch|tag|cr-number> [--event change_request|merge|release]
+  ```
+  It makes a clean worktree of that commit, so uncommitted and untracked files don't count, and runs each stage whose `runs_on` includes the event, as conventions §11 says: `lint` on change requests only, the other core stages on all three, and each extra stage on its own `runs_on`. The worktree is removed afterwards.
+- **Output:** the commit and event, then one line per stage in config order: `pass`, `pass (placeholder)` for a disabled stage, `fail (log: <path>)`, `fail (advisory; ...)` for an advisory stage, or `skipped (runs on ...)`. Finally `overall: pass` if every required stage that ran passed, else `overall: fail`. Nothing is ever `pending`: the result is there when the command ends.
+- **Fallback:** none needed.
 
 ## Release
 
+Releases are kept in the tracker store, one folder per tag:
+
+```
+<store>/releases/<tag>/
+  release.md       "Key: value" header (Tag, Title, State: draft | published, Commit, Created, Published), a blank line, the notes
+  assets/          the release's files: the archives package.build made
+```
+
+Every write is one commit in the store. The tag itself is an ordinary annotated git tag in the project. With no remote there's nothing to push, so creating it starts nothing: cut-release runs the release stages with `pipeline.status <tag>`.
+
+**Order,** as on any forge: `tag.create`, then `release.draft`, then `release.publish`. A draft needs its tag, and publishing checks that the tag still points at the drafted commit.
+
 ### tag.create
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** tag name (`<tag_prefix><version>`), the commit (normally the local default branch's head), and a message (the release title)
+- **Check existing state:** built in. No such tag: create it. The same commit: `no change`. **A different commit: it stops and reports.** A release tag is never moved or deleted (conventions §13).
+- **Command:**
+  ```sh
+  forge.sh tag-create <tag> <commit> -m "<message>"
+  ```
+- **Output:** the tag and the commit it points to.
+- **Notes:** there's no push, and no pipeline is triggered. Run `pipeline.status <tag>` for the release stages.
+- **Fallback:** none needed.
 
 ### release.draft
 
-Status: not yet implemented
+- **Tier:** write
+- **Inputs:** tag, title, notes (written to a file), and asset files (may be none)
+- **Check existing state:** built in.
+  - **No release for the tag:** create the draft.
+  - **A draft exists:** update it, changing only what differs: title, notes (compared after trimming trailing whitespace), the commit, and assets (by name and content). Nothing differing prints `no changes`.
+  - **A published release exists:** it stops and reports. A correction is a new patch release.
+- **Command:**
+  ```sh
+  forge.sh release-draft <tag> --title "<title>" --notes-file <notes> --asset <file> [--asset <file> ...]
+  ```
+  It fails with "tag <tag> doesn't exist" if `tag.create` hasn't run. Report that as a missing step.
+- **Output:** the record's path, what changed, and each asset's name and size. `forge.sh release-view <tag>` shows the record and its assets again.
+- **Fallback:** none needed.
 
 ### release.publish
 
-Status: not yet implemented
+- **Tier:** admin
+- **Inputs:** tag
+- **Check existing state:** built in. **Already published:** `no change`. **No draft:** a failure, so run `release.draft` first. **The tag is missing, or points somewhere other than the drafted commit:** it stops and reports.
+- **Command:**
+  ```sh
+  forge.sh release-publish <tag>
+  ```
+- **Output:** the record's path. It's marked `State: published`, with today's UTC date in `Published`. There's no "latest" marker: the highest published version is the latest.
+- **Fallback:** none needed.
 
 ## Forge-specific sources
 
@@ -320,4 +379,12 @@ Not applicable: issues and change requests are records in the tracker store, wri
 
 ### Release and changelog links
 
-Not yet implemented (T-065).
+```sh
+forge.sh release-links <tag> [<path>]
+```
+
+There are no URLs, only paths:
+
+- A release page: `<store>/releases/<tag>/release.md`. package.build puts it in the release README in place of a URL.
+- A file at a release, for the notes' tutorial link: `<path>` at `<tag>`, which anyone with the repository can read with `git show <tag>:<path>`.
+- The changes in a release, for the changelog's link references: none. cut-release writes the changelog section without a link reference.

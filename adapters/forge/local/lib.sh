@@ -136,3 +136,66 @@ run_stages() {
   done
   return $status
 }
+
+# stage_list <config>: every stage in config order, one tab-separated line each:
+# name, enabled (true|false), mode (required|advisory), runs_on (space-separated),
+# then the run command or the reason. Core stages are required, and run where
+# conventions §11 says: lint on change requests, the others on change
+# requests, merges and releases. Errors in the block go to stderr, with status 1.
+stage_list() {
+  awk '
+    function value(s,    out, i, c) {
+      sub(/^[ \t]+/, "", s)
+      if (substr(s, 1, 1) == "\"") {
+        out = ""
+        for (i = 2; i <= length(s); i++) {
+          c = substr(s, i, 1)
+          if (c == "\\") { i++; out = out substr(s, i, 1); continue }
+          if (c == "\"") return out
+          out = out c
+        }
+        return out
+      }
+      sub(/[ \t]+#.*$/, "", s); sub(/[ \t]+$/, "", s)
+      return s
+    }
+    function err(m) { print "error: " m > "/dev/stderr"; bad = 1 }
+    /^[ \t]*#/ || /^[ \t]*$/ { next }
+    /^[a-z_]+:/ { top = $0; sub(/:.*$/, "", top); sec = ""; next }
+    top != "pipeline" { next }
+    /^  stages:/ { sec = "stages"; next }
+    /^  extra_stages:/ { sec = "extra"; next }
+    /^  [a-z_]+:/ { sec = ""; next }
+    sec == "stages" && /^    [a-z0-9_-]+:[ \t]*$/ { st = $0; sub(/^    /, "", st); sub(/:.*$/, "", st); order[++n] = st; next }
+    sec == "stages" && /^      [a-z_]+:/ {
+      k = $0; sub(/^      /, "", k); sub(/:.*$/, "", k)
+      v = $0; sub(/^      [a-z_]+:/, "", v); S[st, k] = value(v); next
+    }
+    sec == "extra" && /^    - name:/ { v = $0; sub(/^    - name:/, "", v); st = value(v); order[++n] = st; X[st] = 1; S[st, "enabled"] = "true"; next }
+    sec == "extra" && /^      [a-z_]+:/ {
+      k = $0; sub(/^      /, "", k); sub(/:.*$/, "", k)
+      v = $0; sub(/^      [a-z_]+:/, "", v); v = value(v)
+      if (k == "runs_on") { gsub(/[\[\],]/, " ", v); gsub(/  +/, " ", v); sub(/^ /, "", v); sub(/ $/, "", v) }
+      S[st, k] = v; next
+    }
+    END {
+      split("lint build unit integration", core, " ")
+      for (i = 1; i <= 4; i++) { found = 0; for (j = 1; j <= n; j++) if (order[j] == core[i]) found = 1; if (!found) err("the core stage " core[i] " is missing from the pipeline block") }
+      for (j = 1; j <= n; j++) {
+        st = order[j]; en = S[st, "enabled"]
+        if (X[st]) {
+          mode = S[st, "mode"]; runs = S[st, "runs_on"]
+          if (mode != "required" && mode != "advisory") err(st ": mode must be required or advisory")
+          if (runs == "") err(st ": runs_on is missing")
+          if (S[st, "run"] == "") err(st ": an extra stage needs a run command")
+        } else {
+          mode = "required"; runs = (st == "lint") ? "change_request" : "change_request merge release"
+          if (en != "true" && en != "false") err(st ": enabled must be true or false")
+          if (en == "true" && S[st, "run"] == "") err(st ": an enabled stage needs a run command")
+          if (en == "false" && S[st, "reason"] == "") err(st ": a disabled stage needs a reason")
+        }
+        print st "\t" en "\t" mode "\t" runs "\t" (en == "true" ? S[st, "run"] : S[st, "reason"])
+      }
+      exit bad
+    }' "$1"
+}
