@@ -37,7 +37,7 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
   - If a verb above is `not yet implemented`, stop and say which one.
   - **No target, or no adapter for it:** carry on without artifacts (decision 0013), and say so in the dry run.
 - Run `scripts/check-plan.sh` on the project's plan. If it fails, stop: it's fixed through a change request first.
-- `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree. If you make a temporary worktree or copy (for the release branch, or the clean copy of the tag), remove it before the run stops, including when it stops to wait for a merge or a confirmation.
+- `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree. With a forge that declares `Remote: none` (the `local` forge), there's nothing to fetch: work from the local default branch, wherever this skill says `origin/<default>` (*On the local forge*, below). If you make a temporary worktree or copy (for the release branch, or the clean copy of the tag), remove it before the run stops, including when it stops to wait for a merge or a confirmation.
 
 ### 2. Find the stage
 
@@ -100,7 +100,7 @@ This step only writes a branch and opens a change request, so it's write tier: s
 
 - **The release commit:** the default branch's head, which must be the release change request's merge commit. If something else was merged after it, stop and ask. The changelog would then miss those changes, so the choice is between re-preparing and tagging the release commit itself.
 - **Gates:** `pipeline.status` on that commit. Every required stage must pass. With `pipeline.ci: on-demand`, a merge runs no CI, so read the release change request's checks instead (`cr.status`): every required stage must pass, and none may be `skipped`. Its head has the same files as the merge commit, as long as nothing else was merged in between (checked above).
-- **Dry run:** `tag.create <tag> <sha>`, which runs the release stages. Wait for **explicit confirmation** (admin tier).
+- **Dry run:** `tag.create <tag> <sha>`, which runs the release stages. Wait for **explicit confirmation** (admin tier). With the `local` forge, creating the tag runs nothing: after it, run the release stages with `pipeline.status <tag>`.
 - **After the push:** `pipeline.status` for the tag, waiting until nothing is pending. Every stage that gates a release must pass: the core stages and any extra stage that runs on `release` in `required` mode. `lint` runs only on change requests (conventions §11), so it's `skipped` on a tag and doesn't gate it. Any other `skipped` stage doesn't count as a pass.
   - **If one fails:** stop and report. Don't draft. The tag stays, since tags are never moved (conventions §12). The fix is a new change request, then a patch release.
 
@@ -151,6 +151,16 @@ Report:
 - the assets
 - the tasks delivered
 - anything the user should look at, such as tasks closed without a change request, or a `release.publish` result where the release isn't marked latest
+
+## On the local forge
+
+With the `local` forge (decision 0027), there's no remote and no pipeline service, and releases are kept in the `local` tracker's store. The stages, order and confirmations are the same, with these differences:
+
+- **No fetch, no push.** Work from the local default branch (conventions §2). Its head is the release commit once the release change request is merged. The release branch is local, and `cr.open` names it.
+- **Gates are local runs.** Every "`pipeline.status`" above runs the stages in a clean worktree, so nothing is ever `pending`. On the default branch's head (step 3) and the release commit (step 5), it runs the change request stages. On the tag (step 5), it runs the release stages, with `lint` skipped, as on a forge. `pipeline.ci` and `ci:full` don't apply. Every required stage must pass.
+- **The release change request** is merged by the maintainer with `merge.sh <n>`, which runs the required stages on the merge result. Stop and give the command, as usual.
+- **Links** come from the adapter's *Release and changelog links*. The release page is the release's record in the store, which `package.build` takes in place of a URL. The tutorial link in the notes is `docs/tutorial.md` at the tag. There is no compare link, so the changelog section gets no link reference.
+- **The release** is `releases/<tag>/` in the store: `release.draft` copies the archives next to its record, `release.md`, and `release.publish` marks it published. Report its path where a forge would give a URL. The tag itself is an ordinary local git tag.
 
 ## Re-running
 

@@ -35,7 +35,7 @@ There is no non-interactive mode. Every step it hands over asks for the user's y
 ### 1. Read and check
 
 - `.project/config.yml`, and the adapters it names.
-- Make sure the working tree is clean and the default branch is up to date (`git switch <default>`, `git pull --ff-only`, `git fetch --tags`). Never stash or discard someone's changes.
+- Make sure the working tree is clean and the default branch is up to date (`git switch <default>`, `git pull --ff-only`, `git fetch --tags`). Never stash or discard someone's changes. With a forge that declares `Remote: none` (the `local` forge), skip the pull and the fetch: the local branches and tags are the only ones.
 - `docs/plan/PLAN.md` on the default branch must pass `scripts/check-plan.sh`.
 - **The plan must be accepted.** Its `Status:` line must say `accepted <date>` (decision 0022). If it says `draft`, refuse:
   - with an open acceptance change request (a `docs/*accept-plan` branch): say it's waiting for the user's merge
@@ -50,7 +50,7 @@ For each open plan-task issue, look for an open change request, as work-issue do
 
 **One is open:** this skill works one task at a time, so it doesn't start another. Report the change request, its checks and its reviews (`cr.status`), and stop:
 
-- **Checks pass, and no changes are requested:** it's waiting for the user's merge. Say so, and that running this skill again after the merge carries on.
+- **Checks pass, and no changes are requested:** it's waiting for the user's merge. Say so, and that running this skill again after the merge carries on. With the `local` forge, a change request reports no checks: its body's local runs are its checks. It's waiting for the maintainer to run `merge.sh <n>`, so give the command.
 - **A required check fails, or a reviewer asked for changes:** offer to resume it with **work-issue** (`issue=<n>`, its resume mode). On a yes, follow work-issue from there.
 - **A release change request:** offer to continue **cut-release**, which picks up where it stopped.
 

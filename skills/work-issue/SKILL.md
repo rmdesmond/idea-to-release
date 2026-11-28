@@ -63,7 +63,7 @@ Make a checklist from the *Done when* items. Each item will need evidence (step 
 
 ### 4. Create the branch
 
-- Update the default branch (`git switch <default>` then `git pull --ff-only`).
+- Update the default branch (`git switch <default>` then `git pull --ff-only`). With a forge that declares `Remote: none`, there's nothing to pull (*On the local forge*, below).
 - Create `<type>/<n>-<slug>` from it (conventions §10). The type comes from the issue's type label: `type:feature` → `feat`, `type:bug` → `fix`, `type:chore` → `chore`, `type:docs` → `docs`. The slug is three or four words from the title, without the task ID.
 - If the branch already exists locally or on the remote with commits, don't overwrite it: ask whether to continue on it.
 
@@ -99,7 +99,7 @@ For a plan task, tick its *Done when* boxes in `docs/plan/PLAN.md`: every item t
 
 ### 8. Open the change request
 
-Say what will happen (write tier, §13): push the branch, then `cr.open`:
+Say what will happen (write tier, §13): push the branch, then `cr.open`. With the `local` forge there's no push: see *On the local forge*.
 
 - **Title:** a Conventional Commit summary for the whole change (it becomes the squash commit on the default branch), without the task ID
 - **Body:**
@@ -145,6 +145,14 @@ For an issue whose change request is already open:
 3. Address each point, with commits as in step 5, and verify again as in step 6.
 4. Push, then `cr.update` the body so *How it was verified* matches what's in the branch now.
 5. Report what changed, and stop. Merging is still the user's call.
+
+## On the local forge
+
+With the `local` forge (decision 0027), the repository is git on one machine, with no remote and no pipeline service, and the issues and change requests are in the `local` tracker's store. The procedure is the same, with these differences:
+
+- **No pull, no push** (`Remote: none`, conventions §2). The branch stays local, and `cr.open` names it. In resume mode, check out the branch and commit on it. There's nothing to pull or push, and `cr.update` brings the body up to date.
+- **The local runs are the check.** There's no pipeline to wait for: `cr.status` reports "no checks reported". The stages you ran before opening the change request, recorded in its body with their commit, are its checks (conventions §11). The `ci:full` label doesn't apply.
+- **The merge is the maintainer's:** `merge.sh` runs the required stages again on the merge result before it merges. End by telling the maintainer the command, with the change request's number: `<skill set>/adapters/forge/local/merge.sh <n>`. Never run it yourself.
 
 ## Re-running
 

@@ -40,7 +40,7 @@ A task's ID links each step to the next: plan → issue → change request → r
 
 ## Design principles
 
-- **Forge-agnostic.** Skills are written in neutral terms ("open a change request", "protect the default branch"). Adapters translate those into commands for a specific forge or tracker. There are GitHub adapters today. Others can be added without touching the skills.
+- **Forge-agnostic.** Skills are written in neutral terms ("open a change request", "protect the default branch"). Adapters translate those into commands for a specific forge or tracker. There are GitHub adapters, and local ones for a project with no hosting service. Others can be added without touching the skills.
 - **One set of conventions.** Labels, branch names, commit style, the plan format and traceability are defined once in [`conventions.md`](conventions.md), and every skill follows it.
 - **The repository is the record.** The plan and decision records are files in the repo. Which release shipped each task is read from the issues, change requests and tags, not stored a second time.
 - **Same pipeline shape everywhere.** Every project has the same four core stages. A stage a project doesn't need stays in place as a no-op that states why, so it can be switched on later without changing branch rules.
@@ -52,8 +52,8 @@ A task's ID links each step to the next: plan → issue → change request → r
 ```
 skills/              # one folder per skill, each with a SKILL.md
 adapters/
-  forge/             # one file per forge: github.md
-  tracker/           # one file per tracker
+  forge/             # one file per forge: github.md, local.md
+  tracker/           # one file per tracker: github.md, local.md
   target/            # one file per release target: how a project's releases are packaged and installed
 conventions.md       # shared rules every skill reads first
 .claude-plugin/      # plugin.json and marketplace.json: the Claude Code plugin i2r
@@ -121,14 +121,17 @@ adapters/target/agent-skills/build.sh v0.0.0 /tmp/idea-to-release   # prints the
 - An agent that reads Agent Skills
 - bash 3.2 or later, `tar`, `git`: the macOS and Linux defaults
 - For the GitHub adapters: the `gh` CLI 2.40 or later, signed in with the `repo` scope (and `workflow` for `accept-the-plan`, which writes the pipeline)
+- For the local adapters: nothing more. git 2.38 or later, with `user.name` and `user.email` set
 
 Start with `idea-to-plan`, for a new idea or an existing repository, then `accept-the-plan`, then `work-the-plan` after each merge.
+
+**Hosted or local.** idea-to-plan asks where a new project lives. On **GitHub** (`forge: github`), the forge holds the issues, change requests, pipeline and releases. **Local only** (`forge: local`, decision 0027) is git on one machine with no hosting service, account or network. The issues, change requests and releases live in a tracker store, a git repository of its own next to the project (`tracker_path`, `../<repo>-tracker` by default). The stages run locally, git hooks guard the default branch, and you merge each change request yourself with `adapters/forge/local/merge.sh <n>`.
 
 **A note on permissions.** These skills run commands with your credentials and can change repository settings, access and releases. Read a skill and its adapter before running it, and review the dry run before confirming any admin action.
 
 ## Status
 
-Early: expect the conventions to change between minor versions until 1.0. There are GitHub forge and tracker adapters, and three release targets: `agent-skills` (this repository), `shell-cli` (command-line scripts) and `cmake-binary` (compiled command-line tools built with CMake).
+Early: expect the conventions to change between minor versions until 1.0. There are GitHub and local forge and tracker adapters, and three release targets: `agent-skills` (this repository), `shell-cli` (command-line scripts) and `cmake-binary` (compiled command-line tools built with CMake).
 
 - **Released:** the [releases](https://github.com/rmdesmond/idea-to-release/releases), and what each one changed in [`CHANGELOG.md`](CHANGELOG.md)
 - **Next:** the plan, [`docs/plan/PLAN.md`](docs/plan/PLAN.md), with one issue per task in this repository's milestones

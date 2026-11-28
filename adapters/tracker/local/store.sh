@@ -12,7 +12,7 @@
 #   milestones.md    a table: | Number | Title | State | Description |
 #   issues/NNNN.md   one file per issue: "Key: value" header lines, a blank line, the body
 #   crs/NNNN.md      the local forge's change requests, in the same format
-#   releases/<tag>/  the local forge's releases: release.md and assets/
+#   releases/<tag>/  the local forge's releases: release.md and the archives
 #
 # Written for bash 3.2 and BSD or GNU tools.
 

@@ -30,7 +30,7 @@ Every tracker verb has a section here. The commands live in `adapters/tracker/lo
   milestones.md    | Number | Title | State | Description |
   issues/NNNN.md   one file per issue
   crs/NNNN.md      the local forge's change requests (adapters/forge/local.md)
-  releases/<tag>/   the local forge's releases: release.md and assets/
+  releases/<tag>/   the local forge's releases: release.md and the archives
 ```
 
 An issue file is `Key: value` header lines, a blank line, then the body:
