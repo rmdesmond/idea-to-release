@@ -656,12 +656,12 @@ Done when:
 ### T-063: Add the local forge: repository, access and rules
 Depends on: T-061
 Done when:
-- [ ] `adapters/forge/local.md` has a section for every forge verb, declares `Remote: none`, and `scripts/check-adapters.sh` passes. The change, pipeline and release verbs say `Status: not yet implemented` until T-064 and T-065
-- [ ] `repo.describe` reports the repository's folder, default branch, merge method and whether the tracker store exists. `repo.create` runs `git init -b <default>` and adds no remote. `repo.configure` accepts only the `squash` merge method, and reports visibility and features as not applicable
-- [ ] `access.grant` and `access.list` are not applicable (one person, one machine): `access.list` reports the git user, and `access.grant` refuses and says why
-- [ ] `rule.protect-branch` installs a `pre-commit` hook that refuses commits on the default branch unless `merge.sh` makes them, and `rule.require-checks` records the required stages for `merge.sh`. Both are idempotent and report an existing different hook instead of overwriting it. `rule.require-review` accepts only 0 approvals, the single-maintainer rule (decision 0011)
-- [ ] The forge-specific sources work offline: licence texts for MIT, Apache-2.0, BSD-3-Clause, GPL-3.0 and MPL-2.0 under `adapters/forge/local/licences/` (any other licence: ask for its text), the owner's name from `git config user.name`, a `.gitignore` with only the OS and editor block, and no issue or change request templates
-- [ ] A script test, `tests/script-forge-local.sh`, covers these verbs and shows the hook refusing a direct commit on the default branch, and passes on macOS and Linux
+- [x] `adapters/forge/local.md` has a section for every forge verb, declares `Remote: none`, and `scripts/check-adapters.sh` passes. The change, pipeline and release verbs say `Status: not yet implemented` until T-064 and T-065
+- [x] `repo.describe` reports the repository's folder, default branch, merge method and whether the tracker store exists. `repo.create` runs `git init -b <default>` and adds no remote. `repo.configure` accepts only the `squash` merge method, and reports visibility and features as not applicable
+- [x] `access.grant` and `access.list` are not applicable (one person, one machine): `access.list` reports the git user, and `access.grant` refuses and says why
+- [x] `rule.protect-branch` installs a `pre-commit` hook that refuses commits on the default branch unless `merge.sh` makes them, and `rule.require-checks` records the required stages for `merge.sh`. Both are idempotent and report an existing different hook instead of overwriting it. `rule.require-review` accepts only 0 approvals, the single-maintainer rule (decision 0011)
+- [x] The forge-specific sources work offline: licence texts for MIT, Apache-2.0, BSD-3-Clause, GPL-3.0 and MPL-2.0 under `adapters/forge/local/licences/` (any other licence: ask for its text), the owner's name from `git config user.name`, a `.gitignore` with only the OS and editor block, and no issue or change request templates
+- [x] A script test, `tests/script-forge-local.sh`, covers these verbs and shows the hook refusing a direct commit on the default branch, and passes on macOS and Linux
 
 ### T-064: Add the local forge: change requests and merging
 Depends on: T-062, T-063
