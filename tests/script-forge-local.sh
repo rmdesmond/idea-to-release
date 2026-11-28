@@ -29,6 +29,11 @@ p="$work/titlecase"
 expect "exists: false" "$fg" -C "$work" repo-describe
 expect "created $p (default branch main, no remote)" "$fg" -C "$p" repo-create --description "Title-cases text"
 expect "exists $p" "$fg" -C "$p" repo-create
+# A folder git-inited before repo-create gets the description; a set one is kept.
+p3="$work/inited" && git init -q "$p3"
+expect "description: none → Inited first" "$fg" -C "$p3" repo-create --description "Inited first"
+expect "repo-configure --description changes it" "$fg" -C "$p3" repo-create --description "Another"
+expect "description: Inited first" "$fg" -C "$p3" repo-describe
 cd "$p"
 mkdir -p .project && printf 'forge: local\ntracker: local\nrepo: titlecase\ndefault_branch: main\n' > .project/config.yml
 out=$("$fg" repo-describe)

@@ -37,7 +37,7 @@ Every run starts with steps 1 and 2, then carries on from the stage the release 
   - If a verb above is `not yet implemented`, stop and say which one.
   - **No target, or no adapter for it:** carry on without artifacts (decision 0013), and say so in the dry run.
 - Run `scripts/check-plan.sh` on the project's plan. If it fails, stop: it's fixed through a change request first.
-- `git fetch --tags origin`. Work from the remote default branch (`origin/<default>`), never from a local working tree. With a forge that declares `Remote: none` (the `local` forge), there's nothing to fetch: work from the local default branch, wherever this skill says `origin/<default>` (*On the local forge*, below). If you make a temporary worktree or copy (for the release branch, or the clean copy of the tag), remove it before the run stops, including when it stops to wait for a merge or a confirmation.
+- **With a remote:** `git fetch --tags origin`, then work from the remote default branch (`origin/<default>`), never from a local working tree. **With `Remote: none`** (the `local` forge): there's nothing to fetch. Work from the local default branch, wherever this skill says `origin/<default>` (*On the local forge*, below). If you make a temporary worktree or copy (for the release branch, or the clean copy of the tag), remove it before the run stops, including when it stops to wait for a merge or a confirmation.
 
 ### 2. Find the stage
 

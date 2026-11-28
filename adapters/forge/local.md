@@ -70,7 +70,7 @@ The description is git's own `.git/description`.
 
 - **Tier:** admin
 - **Inputs:** default branch (default `main`), description. Visibility doesn't apply.
-- **Check existing state:** if the folder is already a git repository, nothing is created, and the command says to adopt it.
+- **Check existing state:** if the folder is already a git repository, nothing is created, and the command says to adopt it. A description given is written if the repository has none (so a folder that was `git init`-ed first keeps it), and a different one already set is kept, with a note that `repo.configure` changes it.
 - **Command:**
   ```sh
   forge.sh -C <folder> repo-create --default-branch main --description "<description>"

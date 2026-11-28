@@ -238,7 +238,7 @@ Only when step 1 found no repository.
    ```
 3. **Apply,** stopping at the first failure:
    1. `git init -b main` if the folder isn't a git repository yet. Existing local commits are kept, and pushed with the plan.
-   2. `repo.create` with `visibility: private`, which also sets the `origin` remote. With the `local` forge, `repo.create` with the description, which adds no remote.
+   2. `repo.create` with `visibility: private`, which also sets the `origin` remote. With the `local` forge, `repo.create` with the description, which adds no remote. Run it on the project folder itself (`-C .`): it runs `git init` there if step 1 didn't, and keeps the description either way.
    3. Commit the plan, the decision records and the config on `main`: `docs(plan): <summary>`. This is one of the two commits made straight to the default branch, before any branch rules exist (conventions §10).
    4. Push `main`. Not with the `local` forge: there's nothing to push to.
 4. **Report** the repository's address (with the `local` forge, its folder, and the tracker store's path), and what comes next: review the plan, change it with this skill if it's not right, and when it is, run **accept-the-plan**. That's the user accepting the plan, and it readies the repository for work.

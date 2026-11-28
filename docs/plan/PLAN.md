@@ -700,9 +700,9 @@ Done when:
 ### T-068: Test the local forge and tracker end to end
 Depends on: T-067
 Done when:
-- [ ] Through the plugin, on a scratch project in a temporary folder with no remote and `gh` not on `PATH`: idea-to-plan saves the plan, accept-the-plan readies it, two tasks are worked and merged with `merge.sh`, and cut-release releases v0.1.0 with its notes and archive in the store
-- [ ] The hook refuses a direct commit on the default branch, and the store's git log shows one commit per tracker write
-- [ ] Every problem found is fixed in this milestone or filed as an issue
+- [x] Through the plugin, on a scratch project in a temporary folder with no remote and `gh` not on `PATH`: idea-to-plan saves the plan, accept-the-plan readies it, two tasks are worked and merged with `merge.sh`, and cut-release releases v0.1.0 with its notes and archive in the store
+- [x] The hook refuses a direct commit on the default branch, and the store's git log shows one commit per tracker write
+- [x] Every problem found is fixed in this milestone or filed as an issue
 
 ### T-069: Release v0.6.0
 Depends on: T-068
