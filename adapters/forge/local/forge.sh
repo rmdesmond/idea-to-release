@@ -17,6 +17,13 @@
 #   cr-update <n|branch> [--title <t>] [--body-file <f>] [--add-label <l>]... [--remove-label <l>]...
 #   cr-status <n|branch>
 #   cr-list [--base <b>] [--state merged|open|closed|all]
+#   pipeline-render [<config>]
+#   pipeline-status <commit|tag|branch|cr-number> [--event change_request|merge|release]
+#   tag-create <tag> <commit> [-m <message>]
+#   release-draft <tag> --notes-file <f> [--title <t>] [--asset <file>]...
+#   release-publish <tag>
+#   release-view <tag>
+#   release-links <tag> [<path>]
 #   licence <key> [<holder>] [<year>]
 #   owner-name
 #   gitignore [<language>]
@@ -30,7 +37,7 @@ here="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=adapters/forge/local/lib.sh
 . "$here/lib.sh"
 
-usage() { sed -n '5,23p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
+usage() { sed -n '5,31p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
 
 project="."
 if [[ ${1:-} == -C ]]; then [[ $# -ge 2 ]] || usage; project=$2; shift 2; fi
@@ -389,6 +396,141 @@ case $cmd in
         printf '%s\t%s\t%s\t%s\n' "$n" "$s" "$(rec_get "$f" Title)" "$(rec_get "$f" Head)"
       fi
     done
+    ;;
+
+  pipeline-render)
+    need_repo
+    config="${1:-$PROJECT/.project/config.yml}"
+    [[ -f $config ]] || die "$config not found"
+    list=$(stage_list "$config") || die "the pipeline block can't be run (see above)"
+    echo "no CI files written: the local forge has no pipeline service; the stages run locally"
+    while IFS=$'\t' read -r st en mode runs what; do
+      if [[ $en == true ]]; then printf '  %s\t%s, on %s: %s\n' "$st" "$mode" "$runs" "$what"
+      else printf '  %s\tplaceholder: %s\n' "$st" "$what"; fi
+    done <<<"$list"
+    ;;
+
+  pipeline-status)
+    [[ $# -ge 1 ]] || usage
+    need_repo; target=$1; shift; event=""
+    while [[ $# -gt 0 ]]; do
+      case $1 in --event) event=${2-}; shift 2 ;; *) usage ;; esac
+    done
+    # A change request is checked at its head; a tag on release; anything else as asked.
+    if [[ $target =~ ^[0-9]+$ ]]; then
+      store_resolve "$PROJECT"; store_require_read || die "no change requests: the store doesn't exist yet"
+      f=$(cr_file "$target"); [[ -f $f ]] || die "no change request #$target"
+      target=$(rec_get "$f" Head); event=${event:-change_request}
+    elif git -C "$PROJECT" rev-parse -q --verify "refs/tags/$target" >/dev/null; then
+      event=${event:-release}
+    fi
+    event=${event:-change_request}
+    case $event in change_request|merge|release) ;; *) die "--event is change_request, merge or release" ;; esac
+    sha=$(git -C "$PROJECT" rev-parse -q --verify "$target^{commit}") || die "no commit for $target"
+    tmp=$(mktemp -d); logs=$(mktemp -d)
+    trap 'git -C "$PROJECT" worktree remove --force "$tmp/wt" >/dev/null 2>&1 || true; rm -rf "$tmp"' EXIT
+    git -C "$PROJECT" worktree add -q --detach "$tmp/wt" "$sha" >/dev/null 2>&1 || die "couldn't make a clean worktree for $sha"
+    config="$tmp/wt/.project/config.yml"
+    [[ -f $config ]] || die "$target has no .project/config.yml"
+    list=$(stage_list "$config") || die "the pipeline block at $target can't be run"
+    echo "commit: $(git -C "$PROJECT" rev-parse --short "$sha") ($event)"
+    overall=pass
+    while IFS=$'\t' read -r st en mode runs what; do
+      case " $runs " in *" $event "*) ;; *) printf '%s: skipped (runs on %s)\n' "$st" "$runs"; continue ;; esac
+      if [[ $en != true ]]; then printf '%s: pass (placeholder)\n' "$st"; continue; fi
+      if (cd "$tmp/wt" && bash -c "$what") > "$logs/$st.log" 2>&1; then printf '%s: pass\n' "$st"
+      elif [[ $mode == advisory ]]; then printf '%s: fail (advisory; log: %s)\n' "$st" "$logs/$st.log"
+      else printf '%s: fail (log: %s)\n' "$st" "$logs/$st.log"; overall=fail; fi
+    done <<<"$list"
+    echo "overall: $overall"
+    ;;
+
+  tag-create)
+    [[ $# -ge 2 ]] || usage
+    need_repo; tag=$1 target=$2; shift 2; msg=$tag
+    [[ ${1:-} == -m ]] && { msg=${2-}; shift 2; }
+    git check-ref-format "refs/tags/$tag" || die "not a valid tag name: $tag"
+    sha=$(git -C "$PROJECT" rev-parse -q --verify "$target^{commit}") || die "no commit for $target"
+    if cur=$(git -C "$PROJECT" rev-parse -q --verify "refs/tags/$tag^{commit}"); then
+      [[ $cur == "$sha" ]] && { echo "no change: $tag is at $(git -C "$PROJECT" rev-parse --short "$sha")"; exit 0; }
+      die "$tag already exists at $(git -C "$PROJECT" rev-parse --short "$cur"), not $(git -C "$PROJECT" rev-parse --short "$sha"); a release tag is never moved"
+    fi
+    git -C "$PROJECT" tag -a "$tag" "$sha" -m "$msg"
+    echo "created $tag at $(git -C "$PROJECT" rev-parse --short "$sha")"
+    ;;
+
+  release-draft)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"; tag=$1; shift; title=$tag notes="" assets=()
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        --title) title=${2-}; shift 2 ;;
+        --notes-file) notes=${2-}; shift 2 ;;
+        --asset) assets+=("${2-}"); shift 2 ;;
+        *) usage ;;
+      esac
+    done
+    [[ -n $notes && -f $notes ]] || die "release-draft needs --notes-file with an existing file"
+    check_line "a title" "$title"
+    sha=$(git -C "$PROJECT" rev-parse -q --verify "refs/tags/$tag^{commit}") || die "tag $tag doesn't exist: run tag.create first"
+    for a in ${assets[@]+"${assets[@]}"}; do [[ -f $a ]] || die "no such asset: $a"; done
+    store_begin_write
+    d="$STORE/releases/$tag" r="$STORE/releases/$tag/release.md" changes=""
+    if [[ -f $r ]]; then
+      [[ $(rec_get "$r" State) == draft ]] || die "$tag is already published; a correction is a new patch release"
+      old=$(rec_get "$r" Title); [[ $old == "$title" ]] || { rec_set "$r" Title "$title"; changes="${changes}title: $old → $title"$'\n'; }
+      old=$(rec_get "$r" Commit); [[ $old == "$sha" ]] || { rec_set "$r" Commit "$sha"; changes="${changes}commit: $old → $sha"$'\n'; }
+      if [[ $(rec_body "$r" | normalise_body) != "$(normalise_body < "$notes")" ]]; then rec_set_body "$r" "$notes"; changes="${changes}notes changed"$'\n'; fi
+      verb=updated
+    else
+      mkdir -p "$d/assets"
+      { printf 'Tag: %s\nTitle: %s\nState: draft\nCommit: %s\nCreated: %s\nPublished:\n\n' "$tag" "$title" "$sha" "$(today)"; cat "$notes"; } > "$r"
+      verb=created
+    fi
+    mkdir -p "$d/assets"
+    for a in ${assets[@]+"${assets[@]}"}; do
+      b=$(basename "$a")
+      if [[ -f $d/assets/$b ]] && cmp -s "$a" "$d/assets/$b"; then continue; fi
+      cp "$a" "$d/assets/$b"; changes="${changes}asset: $b"$'\n'
+    done
+    if [[ $verb == updated && -z $changes ]]; then echo "no changes: draft $tag"; exit 0; fi
+    store_commit "release.draft: $tag"
+    echo "$verb draft $tag ($r)"
+    printf '%s' "$changes"
+    for a in "$d"/assets/*; do [[ -f $a ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
+    true
+    ;;
+
+  release-publish)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"; store_require_read || die "no releases: the store doesn't exist yet"
+    tag=$1; r="$STORE/releases/$tag/release.md"
+    [[ -f $r ]] || die "no draft for $tag: run release.draft first"
+    [[ $(rec_get "$r" State) != published ]] || { echo "no change: $tag was published $(rec_get "$r" Published)"; exit 0; }
+    sha=$(git -C "$PROJECT" rev-parse -q --verify "refs/tags/$tag^{commit}") || die "tag $tag is missing"
+    [[ $sha == "$(rec_get "$r" Commit)" ]] || die "tag $tag points at $sha, not the drafted commit $(rec_get "$r" Commit)"
+    store_begin_write
+    rec_set "$r" State published; rec_set "$r" Published "$(today)"
+    store_commit "release.publish: $tag"
+    echo "published $tag ($r)"
+    ;;
+
+  release-view)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"; store_require_read || die "no releases: the store doesn't exist yet"
+    r="$STORE/releases/$1/release.md"
+    [[ -f $r ]] || die "release not found: $1"
+    cat "$r"
+    for a in "$STORE/releases/$1"/assets/*; do [[ -f $a ]] && printf 'asset %s %s bytes\n' "$(basename "$a")" "$(wc -c < "$a" | tr -d ' ')"; done
+    true
+    ;;
+
+  release-links)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"
+    printf 'release: %s/releases/%s/release.md\n' "$STORE" "$1"
+    printf 'file: %s at %s (git show %s:%s)\n' "${2:-<path>}" "$1" "$1" "${2:-<path>}"
+    printf 'compare: none (the changelog has no link references)\n'
     ;;
 
   licence)
