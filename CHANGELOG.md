@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-28
+
+### Added
+
+- Define the local forge and tracker (#182)
+- Add the local tracker (#183)
+- Add the local forge's repository and rule verbs (#184)
+- Add local change requests and merge.sh (#185)
+- Add the local forge's pipeline and release verbs (#186)
+- Plan and accept on the local forge (#187)
+- Work and release on the local forge (#188)
+
+### Fixed
+
+- Stop saying the repository is private in install.describe (#189)
+- Tick the release task's boxes after publishing (#191)
+- Fixes from the local end-to-end test (#192)
+
 ## [0.5.0] - 2026-11-27
 
 ### Added
@@ -104,3 +122,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.3.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.2.0...v0.3.0
 [0.4.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.3.0...v0.4.0
 [0.5.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.4.0...v0.5.0
+[0.6.0]: https://github.com/rmdesmond/idea-to-release/compare/v0.5.0...v0.6.0
