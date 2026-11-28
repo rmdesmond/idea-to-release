@@ -1,6 +1,6 @@
 # Plan: idea-to-release
 
-Status: accepted 2026-11-27
+Status: draft
 
 idea-to-release is a set of agent skills that take a software project from a rough idea to a tagged release, with a person confirming the steps that matter. Each task keeps a permanent ID from the plan through its issue and change request to the notes of the release that shipped it. It's for developers working with a coding agent (built and tested with Claude Code).
 
@@ -54,13 +54,25 @@ Out (v0.5.0):
 - Reporting local runs to the forge as check results: the branch rules accept only checks from GitHub Actions, so local results go in the change request's body
 - A git hook for local checks: work-issue runs them before each push, so no clone needs extra setup
 
-See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023, 0024 and 0026.
+In (v0.6.0, M10):
+- A `local` forge adapter for a project with no hosting service: the repository is plain git on one machine, with no remote. Change requests are records in the tracker store, the maintainer merges them with the adapter's `merge.sh`, and git hooks guard the default branch
+- A `local` tracker adapter: issues, labels, milestones, change requests and releases in a store outside the repository, a git repository of its own, found through `tracker_path` in the config (default `../<repo>-tracker`)
+- The skills work from idea to release on a project with the local forge and tracker
+
+Out (v0.6.0):
+- Mixing a local adapter with a hosted one (the `github` forge with the `local` tracker, say)
+- A remote for the local forge, even as a backup. The tracker store, being a git repository, can be backed up on its own
+- Several people, or several machines, sharing one tracker store
+- A web view or server for the store
+
+See decisions 0007, 0013, 0018, 0019, 0021, 0022, 0023, 0024, 0026 and 0027.
 
 ## Constraints
 
 - Skills are Markdown (`SKILL.md` in the Agent Skills format) with no runtime code of their own.
 - Scripts use bash and standard tools only (`awk`, `sed`, `grep`), and work with both the BSD (macOS) and GNU (Linux) versions. No Python or Node dependency.
 - Requires `git`, and `gh` 2.40 or later signed in with the `repo` scope. `ci-setup` also needs the `workflow` scope.
+- The `local` forge and tracker need only `git` and the standard tools above: no `gh` and no network. Their store files are plain text that BSD `awk` can read, and their forge-specific sources (licence texts, owner name, `.gitignore`) come from the skill set or from git (decision 0027).
 - This repository is public since 2026-11-26 (decision 0025, superseding 0016). It was private until then, from 2026-11-21 on GitHub Pro, which enforces branch rules on private repositories. Before that, `repo-governance` was tested on a public scratch repository, and this repository used the "enforced by procedure" fallback (decision 0012) until T-030 applied the rules.
 - There is one maintainer. A required review can't be satisfied by the author, so the review rule is settled in T-018 before governance is applied.
 - No deadline.
@@ -616,3 +628,84 @@ Depends on: T-059
 Done when:
 - [x] `cut-release` publishes v0.5.0 after both confirmations, with the plugin manifests at 0.5.0
 - [x] A fresh install of the plugin gets v0.5.0, and its `conventions.md` defines `pipeline.ci` and `ci:full`
+
+## M10: Local forge and tracker
+
+Release: v0.6.0
+
+A project with no hosting service can go from idea to release with git alone on one machine: its issues and change requests live in a tracker store next to the repository, the maintainer merges with `merge.sh`, and releases are kept in the store. v0.6.0 is released with it.
+
+### T-061: Define the local forge and tracker in the conventions
+Depends on: none
+Done when:
+- [ ] Conventions §4 adds `tracker_path` to the config: the tracker store's folder, relative to the repository root, read only by the `local` tracker, and `../<repo>-tracker` when missing. It says `owner` and `visibility` are optional for the `local` forge
+- [ ] Conventions say a forge adapter may declare `Remote: none`. Skills then skip every push and fetch step, and work from the local default branch instead of `origin/<default>`
+- [ ] Conventions §11 says that on a forge with no pipeline service, `pipeline.ci` doesn't apply: work-issue's local runs are the check on every change request, and cut-release runs the release gates locally
+- [ ] Conventions §14 adds a fallback for branch rules on a forge without them: git hooks as guard-rails, plus procedure (decision 0027)
+- [ ] `scripts/check-adapters.sh` and `scripts/check-plan.sh` pass
+
+### T-062: Add the local tracker
+Depends on: T-061
+Done when:
+- [ ] `adapters/tracker/local.md` and `adapters/tracker/local/` define every tracker verb, and `scripts/check-adapters.sh` passes
+- [ ] The store at `tracker_path` holds `issues/NNNN.md` (`Key: value` header lines for title, state, labels, milestone, blocked-by, parent, closed date and reason, then a blank line and the body), `labels.md`, `milestones.md` and a `next` counter that issues and change requests share
+- [ ] The store is a git repository: the first write creates it with `git init` and says so, and every write is one commit naming the verb and the issue. `issue.list` with no store returns nothing and says the store doesn't exist yet
+- [ ] `issue.create` finds an existing issue by its `Plan-Task:` line instead of creating another, `issue.link` refuses a cycle, `issue.close` keeps the issue, and the `ensure` verbs report a difference instead of overwriting
+- [ ] A script test, `tests/script-tracker-local.sh`, exercises every verb on a temporary store, including the re-run and failure cases, and passes on macOS (bash 3.2, BSD tools) and on Linux in CI
+
+### T-063: Add the local forge: repository, access and rules
+Depends on: T-061
+Done when:
+- [ ] `adapters/forge/local.md` has a section for every forge verb, declares `Remote: none`, and `scripts/check-adapters.sh` passes. The change, pipeline and release verbs say `Status: not yet implemented` until T-064 and T-065
+- [ ] `repo.describe` reports the repository's folder, default branch, merge method and whether the tracker store exists. `repo.create` runs `git init -b <default>` and adds no remote. `repo.configure` accepts only the `squash` merge method, and reports visibility and features as not applicable
+- [ ] `access.grant` and `access.list` are not applicable (one person, one machine): `access.list` reports the git user, and `access.grant` refuses and says why
+- [ ] `rule.protect-branch` installs a `pre-commit` hook that refuses commits on the default branch unless `merge.sh` makes them, and `rule.require-checks` records the required stages for `merge.sh`. Both are idempotent and report an existing different hook instead of overwriting it. `rule.require-review` accepts only 0 approvals, the single-maintainer rule (decision 0011)
+- [ ] The forge-specific sources work offline: licence texts for MIT, Apache-2.0, BSD-3-Clause, GPL-3.0 and MPL-2.0 under `adapters/forge/local/licences/` (any other licence: ask for its text), the owner's name from `git config user.name`, a `.gitignore` with only the OS and editor block, and no issue or change request templates
+- [ ] A script test, `tests/script-forge-local.sh`, covers these verbs and shows the hook refusing a direct commit on the default branch, and passes on macOS and Linux
+
+### T-064: Add the local forge: change requests and merging
+Depends on: T-062, T-063
+Done when:
+- [ ] `cr.open` writes `crs/NNNN.md` in the tracker store (head, base, title, state, body), numbered from the shared counter, and refuses a second open change request for the same head
+- [ ] `cr.update` changes only what differs, `cr.status` reports `state`, `mergeable` (from a trial merge), `closes` (parsed from the body with the same closing words as GitHub) and "no checks reported", and `cr.list` returns the merged ones with number, title, merge date, merge commit and closes
+- [ ] `adapters/forge/local/merge.sh <N>`, for the maintainer, refuses a change request that isn't open, has conflicts or fails a required stage on the merge result. Otherwise it squash-merges it into the base as `<title> (#N)`, records the merge commit and date, and closes the issues it names. No skill runs it, and `cr.merge` stays the maintainer's
+- [ ] The script test covers opening, updating, merging, a conflict, a failing stage and a re-run, and passes on macOS and Linux
+
+### T-065: Add the local forge: pipeline and releases
+Depends on: T-064
+Done when:
+- [ ] `pipeline.render` writes no CI files and says the stages run locally. `pipeline.status` runs the enabled stages on a commit in a clean worktree and reports each as `pass` or `fail`, and a disabled stage as a passing placeholder
+- [ ] `tag.create` makes an annotated tag, and refuses to move one that exists
+- [ ] `release.draft` writes `releases/<tag>/` in the tracker store, with the notes and the archives, marked as a draft. `release.publish` marks it published. Each is one commit in the store, and a published release is never overwritten
+- [ ] *Release and changelog links* say what a local release links to (paths at the tag, no URLs), so cut-release writes a changelog without link references
+- [ ] The script test covers these verbs and passes on macOS and Linux
+
+### T-066: Plan and accept on the local forge
+Depends on: T-065
+Done when:
+- [ ] `idea-to-plan` offers `local` as the forge for a new repository (the default stays `github`), with the `local` tracker, and asks for `tracker_path`, proposing `../<repo>-tracker`. Step 10 creates the repository with no remote and pushes nothing, and the config has `tracker_path` and no `visibility`
+- [ ] With the `local` forge, `idea-to-plan` doesn't ask whether the repository stays private, or about the CI mode
+- [ ] With the `local` forge, `accept-the-plan`'s dry run shows the hooks in place of a ruleset, no CI files, and no visibility or access changes, and its apply step pushes nothing
+- [ ] With `github`, both skills behave as they do today
+
+### T-067: Work and release on the local forge
+Depends on: T-066
+Done when:
+- [ ] With the `local` forge, `work-issue` runs the stages, opens the change request without pushing, records the local results in its body, and ends by telling the maintainer to run `merge.sh <N>`. `work-the-plan` stops at each change request with the same instruction
+- [ ] With the `local` forge, `cut-release` works from the local default branch, runs every enabled stage locally on the release commit and on the tag, has the maintainer merge the release change request with `merge.sh`, and keeps the release in the store
+- [ ] `write-tutorial` works with the `local` forge
+- [ ] With `github`, every skill behaves as it does today
+- [ ] The README lists the local forge and tracker, and how a project chooses them
+
+### T-068: Test the local forge and tracker end to end
+Depends on: T-067
+Done when:
+- [ ] Through the plugin, on a scratch project in a temporary folder with no remote and `gh` not on `PATH`: idea-to-plan saves the plan, accept-the-plan readies it, two tasks are worked and merged with `merge.sh`, and cut-release releases v0.1.0 with its notes and archive in the store
+- [ ] The hook refuses a direct commit on the default branch, and the store's git log shows one commit per tracker write
+- [ ] Every problem found is fixed in this milestone or filed as an issue
+
+### T-069: Release v0.6.0
+Depends on: T-068
+Done when:
+- [ ] `cut-release` publishes v0.6.0 after both confirmations, with the plugin manifests at 0.6.0
+- [ ] A fresh install of the plugin gets v0.6.0, with `adapters/forge/local.md` and `adapters/tracker/local.md` in it
