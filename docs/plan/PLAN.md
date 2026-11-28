@@ -638,11 +638,11 @@ A project with no hosting service can go from idea to release with git alone on 
 ### T-061: Define the local forge and tracker in the conventions
 Depends on: none
 Done when:
-- [ ] Conventions §4 adds `tracker_path` to the config: the tracker store's folder, relative to the repository root, read only by the `local` tracker, and `../<repo>-tracker` when missing. It says `owner` and `visibility` are optional for the `local` forge
-- [ ] Conventions say a forge adapter may declare `Remote: none`. Skills then skip every push and fetch step, and work from the local default branch instead of `origin/<default>`
-- [ ] Conventions §11 says that on a forge with no pipeline service, `pipeline.ci` doesn't apply: work-issue's local runs are the check on every change request, and cut-release runs the release gates locally
-- [ ] Conventions §14 adds a fallback for branch rules on a forge without them: git hooks as guard-rails, plus procedure (decision 0027)
-- [ ] `scripts/check-adapters.sh` and `scripts/check-plan.sh` pass
+- [x] Conventions §4 adds `tracker_path` to the config: the tracker store's folder, relative to the repository root, read only by the `local` tracker, and `../<repo>-tracker` when missing. It says `owner` and `visibility` are optional for the `local` forge
+- [x] Conventions say a forge adapter may declare `Remote: none`. Skills then skip every push and fetch step, and work from the local default branch instead of `origin/<default>`
+- [x] Conventions §11 says that on a forge with no pipeline service, `pipeline.ci` doesn't apply: work-issue's local runs are the check on every change request, and cut-release runs the release gates locally
+- [x] Conventions §14 adds a fallback for branch rules on a forge without them: git hooks as guard-rails, plus procedure (decision 0027)
+- [x] `scripts/check-adapters.sh` and `scripts/check-plan.sh` pass
 
 ### T-062: Add the local tracker
 Depends on: T-061

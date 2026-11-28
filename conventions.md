@@ -37,6 +37,8 @@ These are the only operations skills may ask an adapter to perform. An adapter m
 
 Tracker verbs are defined by tracker adapters (`adapters/tracker/`), Target verbs by target adapters (`adapters/target/`), and all others by forge adapters (`adapters/forge/`). The target is what a project ships: a command-line tool, an app, a package, a set of agent skills (decision 0013).
 
+**Forges without a remote.** A forge adapter may declare `Remote: none` near its top: the repository lives on one machine, with no hosting service (the `local` forge, decision 0027). Skills then skip every push and fetch step, including `git push`, `git pull` and `git fetch`, and work from the local default branch wherever they would use `origin/<default>`. Everything else is unchanged: branches, commits and change requests follow section 10 as on any forge.
+
 Verbs ending in `ensure` are idempotent: create if missing, leave alone if present, report a difference if present but different.
 
 ## 3. Repository layout
@@ -69,6 +71,7 @@ See decisions 0014 and 0019.
 ```yaml
 forge: github            # adapter name under adapters/forge/
 tracker: github          # adapter name under adapters/tracker/
+tracker_path: ../example-project-tracker   # local tracker only: the store, see below
 target: shell-cli        # adapter name under adapters/target/: what the project ships
 owner: example-org
 repo: example-project
@@ -101,6 +104,8 @@ pipeline:
       reason: "No external interfaces yet"
   extra_stages: []       # project-defined stages, see section 11
 ```
+
+**The `local` forge and tracker** (decision 0027). `tracker_path` is read only by the `local` tracker: the tracker store's folder, relative to the repository root, and `../<repo>-tracker` when it's missing. Other trackers ignore it. With the `local` forge, `owner` and `visibility` are optional: there is no account to own the repository and no one else to see it. Skills that need an owner's name (a licence holder, say) ask the forge adapter, which reads it from git.
 
 ## 5. Plan format
 
@@ -263,6 +268,8 @@ In `on-demand`, the pipeline still has every stage, and a change request that do
 
 `on-demand` is for private repositories, where the forge limits CI minutes. A public repository uses `always`.
 
+**Forges with no pipeline service.** A forge adapter whose `pipeline.render` writes no CI files (the `local` forge) has no pipeline to run on the forge, so `pipeline.ci` doesn't apply, and either value is accepted and ignored. work-issue's local runs of the stages are the check on every change request, and its body records them. cut-release runs every enabled stage locally on the release commit and on the tag, in place of the release gates on the forge. A placeholder for a disabled stage passes, as on any forge.
+
 **Thresholds.** There is no default coverage floor. A project that wants one sets `coverage_min` on the `unit` stage, and the stage fails below it.
 
 **Waivers.** Merging or releasing past a failing gate is an admin action (section 13): it needs explicit confirmation from the user and a decision record naming the gate, the reason, and the follow-up issue. Agents never waive a gate on their own.
@@ -318,3 +325,4 @@ When a forge or tracker lacks a feature, the adapter states the fallback, and th
 | Milestones | `milestone:<name>` label |
 | Required reviews or checks not available on the plan tier | Record the gap in a decision record; work-issue enforces the rule by procedure |
 | Draft releases | Prepare notes in a CR against `CHANGELOG.md`; publish after merge |
+| Branch rules, on a forge with no server to enforce them | Git hooks in the repository as guard-rails (a `pre-commit` hook that refuses commits on the default branch except from the adapter's merge step), backed by the procedure of decision 0012. Hooks can be bypassed, so they guard against mistakes, not against intent (decision 0027) |
