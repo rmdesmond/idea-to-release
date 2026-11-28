@@ -153,6 +153,13 @@ case $cmd in
     if in_repo; then
       need_repo
       echo "exists $PROJECT (adopt it; nothing created)"
+      # A folder git-inited first keeps the confirmed description.
+      if [[ -n $desc ]]; then
+        old=$(description)
+        if [[ -z $old ]]; then set_description "$desc"; echo "description: none → $desc"
+        elif [[ $old != "$desc" ]]; then note "the description is \"$old\"; repo-configure --description changes it"
+        fi
+      fi
       exit 0
     fi
     mkdir -p "$project"
