@@ -674,11 +674,11 @@ Done when:
 ### T-065: Add the local forge: pipeline and releases
 Depends on: T-064
 Done when:
-- [ ] `pipeline.render` writes no CI files and says the stages run locally. `pipeline.status` runs the enabled stages on a commit in a clean worktree and reports each as `pass` or `fail`, and a disabled stage as a passing placeholder
-- [ ] `tag.create` makes an annotated tag, and refuses to move one that exists
-- [ ] `release.draft` writes `releases/<tag>/` in the tracker store, with the notes and the archives, marked as a draft. `release.publish` marks it published. Each is one commit in the store, and a published release is never overwritten
-- [ ] *Release and changelog links* say what a local release links to (paths at the tag, no URLs), so cut-release writes a changelog without link references
-- [ ] The script test covers these verbs and passes on macOS and Linux
+- [x] `pipeline.render` writes no CI files and says the stages run locally. `pipeline.status` runs the enabled stages on a commit in a clean worktree and reports each as `pass` or `fail`, and a disabled stage as a passing placeholder
+- [x] `tag.create` makes an annotated tag, and refuses to move one that exists
+- [x] `release.draft` writes `releases/<tag>/` in the tracker store, with the notes and the archives, marked as a draft. `release.publish` marks it published. Each is one commit in the store, and a published release is never overwritten
+- [x] *Release and changelog links* say what a local release links to (paths at the tag, no URLs), so cut-release writes a changelog without link references
+- [x] The script test covers these verbs and passes on macOS and Linux
 
 ### T-066: Plan and accept on the local forge
 Depends on: T-065
