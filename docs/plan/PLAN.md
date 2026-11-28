@@ -666,10 +666,10 @@ Done when:
 ### T-064: Add the local forge: change requests and merging
 Depends on: T-062, T-063
 Done when:
-- [ ] `cr.open` writes `crs/NNNN.md` in the tracker store (head, base, title, state, body), numbered from the shared counter, and refuses a second open change request for the same head
-- [ ] `cr.update` changes only what differs, `cr.status` reports `state`, `mergeable` (from a trial merge), `closes` (parsed from the body with the same closing words as GitHub) and "no checks reported", and `cr.list` returns the merged ones with number, title, merge date, merge commit and closes
-- [ ] `adapters/forge/local/merge.sh <N>`, for the maintainer, refuses a change request that isn't open, has conflicts or fails a required stage on the merge result. Otherwise it squash-merges it into the base as `<title> (#N)`, records the merge commit and date, and closes the issues it names. No skill runs it, and `cr.merge` stays the maintainer's
-- [ ] The script test covers opening, updating, merging, a conflict, a failing stage and a re-run, and passes on macOS and Linux
+- [x] `cr.open` writes `crs/NNNN.md` in the tracker store (head, base, title, state, body), numbered from the shared counter, and refuses a second open change request for the same head
+- [x] `cr.update` changes only what differs, `cr.status` reports `state`, `mergeable` (from a trial merge), `closes` (parsed from the body with the same closing words as GitHub) and "no checks reported", and `cr.list` returns the merged ones with number, title, merge date, merge commit and closes
+- [x] `adapters/forge/local/merge.sh <N>`, for the maintainer, refuses a change request that isn't open, has conflicts or fails a required stage on the merge result. Otherwise it squash-merges it into the base as `<title> (#N)`, records the merge commit and date, and closes the issues it names. No skill runs it, and `cr.merge` stays the maintainer's
+- [x] The script test covers opening, updating, merging, a conflict, a failing stage and a re-run, and passes on macOS and Linux
 
 ### T-065: Add the local forge: pipeline and releases
 Depends on: T-064

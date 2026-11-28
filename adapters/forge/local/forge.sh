@@ -13,6 +13,10 @@
 #   rule-protect-branch [--check]
 #   rule-require-review <approvals> [true|false] [--check]
 #   rule-require-checks <stage>... [--check]
+#   cr-open --head <branch> --title <t> --body-file <f> [--base <b>] [--label <l>]...
+#   cr-update <n|branch> [--title <t>] [--body-file <f>] [--add-label <l>]... [--remove-label <l>]...
+#   cr-status <n|branch>
+#   cr-list [--base <b>] [--state merged|open|closed|all]
 #   licence <key> [<holder>] [<year>]
 #   owner-name
 #   gitignore [<language>]
@@ -23,10 +27,10 @@
 
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
-# shellcheck source=adapters/tracker/local/store.sh
-. "$here/../../tracker/local/store.sh"
+# shellcheck source=adapters/forge/local/lib.sh
+. "$here/lib.sh"
 
-usage() { sed -n '5,19p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
+usage() { sed -n '5,23p' "$0" | sed 's/^# \{0,1\}//' >&2; exit 1; }
 
 project="."
 if [[ ${1:-} == -C ]]; then [[ $# -ge 2 ]] || usage; project=$2; shift 2; fi
@@ -243,6 +247,148 @@ case $cmd in
     if [[ $old == "$stages" ]]; then echo "no change: required checks $stages"
     elif [[ -n $check ]]; then echo "required checks: ${old:-none} → $stages"
     else git -C "$PROJECT" config i2r.requiredchecks "$stages"; echo "required checks: ${old:-none} → $stages (merge.sh runs them)"; fi
+    ;;
+
+  cr-open)
+    need_repo; store_resolve "$PROJECT"
+    head="" base="" title="" body="" labels=""
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        --head) head=${2-}; shift 2 ;;
+        --base) base=${2-}; shift 2 ;;
+        --title) title=${2-}; shift 2 ;;
+        --body-file) body=${2-}; shift 2 ;;
+        --label) labels=$(list_add "$labels" "${2-}"); shift 2 ;;
+        *) usage ;;
+      esac
+    done
+    [[ -n $head && -n $title && -n $body ]] || die "cr-open needs --head, --title and --body-file"
+    [[ -f $body ]] || die "no such body file: $body"
+    check_line "a title" "$title"
+    base=${base:-$(default_branch)}
+    [[ $head != "$base" ]] || die "the head and base branches are the same: $head"
+    git -C "$PROJECT" rev-parse -q --verify "refs/heads/$head" >/dev/null || die "no local branch $head"
+    git -C "$PROJECT" rev-parse -q --verify "refs/heads/$base" >/dev/null || die "no local branch $base"
+    [[ $(git -C "$PROJECT" rev-list --count "$base..$head") -gt 0 ]] || die "$head has no commits that aren't on $base"
+    if store_is_store; then
+      for n in $(cr_numbers); do
+        f=$(cr_file "$n")
+        if [[ $(rec_get "$f" Head) == "$head" && $(rec_get "$f" State) == open ]]; then
+          echo "exists $n (an open change request for $head; use cr-update)"; exit 0
+        fi
+      done
+    fi
+    store_begin_write
+    old_ifs=$IFS; IFS=,
+    for l in $labels; do
+      l=${l# }
+      table_rows "$STORE/labels.md" | cut -f1 | tr '[:upper:]' '[:lower:]' | grep -xF -- "$(lower "$l")" >/dev/null ||
+        die "no label '$l' in the store; create it with label-ensure first"
+    done
+    IFS=$old_ifs
+    mkdir -p "$STORE/crs"
+    n=$(store_next_number); f=$(cr_file "$n")
+    {
+      printf 'Number: %s\nTitle: %s\nState: open\nHead: %s\nBase: %s\nCreated: %s\n' "$n" "$title" "$head" "$base" "$(today)"
+      printf 'Labels:%s\nMerged:\nMerge-Commit:\nCloses:\n\n' "${labels:+ $labels}"
+      cat "$body"
+    } > "$f"
+    store_commit "cr.open: #$n $title"
+    echo "opened $n"
+    echo "closes: $(closes_issues "$f")"
+    ;;
+
+  cr-update)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"; store_require_read || die "no change requests: the store doesn't exist yet"
+    n=$(cr_find "$1"); shift; f=$(cr_file "$n")
+    [[ $(rec_get "$f" State) == open ]] || die "#$n is $(rec_get "$f" State); it isn't updated"
+    title="" body="" add="" remove="" changes=""
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        --title) title=${2-}; shift 2 ;;
+        --body-file) body=${2-}; shift 2 ;;
+        --add-label) add=$(list_add "$add" "${2-}"); shift 2 ;;
+        --remove-label) remove=$(list_add "$remove" "${2-}"); shift 2 ;;
+        *) usage ;;
+      esac
+    done
+    store_begin_write
+    if [[ -n $title ]]; then
+      check_line "a title" "$title"; old=$(rec_get "$f" Title)
+      if [[ $old != "$title" ]]; then rec_set "$f" Title "$title"; changes="${changes}title: $old → $title"$'\n'; fi
+    fi
+    if [[ -n $body ]]; then
+      [[ -f $body ]] || die "no such body file: $body"
+      if [[ $(rec_body "$f" | normalise_body) != "$(normalise_body < "$body")" ]]; then
+        rec_set_body "$f" "$body"; changes="${changes}body changed"$'\n'
+      fi
+    fi
+    old=$(rec_get "$f" Labels); new=$old
+    old_ifs=$IFS; IFS=,
+    for l in $add; do
+      l=${l# }
+      table_rows "$STORE/labels.md" | cut -f1 | tr '[:upper:]' '[:lower:]' | grep -xF -- "$(lower "$l")" >/dev/null ||
+        die "no label '$l' in the store; create it with label-ensure first"
+      list_has "$new" "$l" ci || new=$(list_add "$new" "$l")
+    done
+    for l in $remove; do l=${l# }; new=$(list_remove "$new" "$l" ci); done
+    IFS=$old_ifs
+    if [[ $new != "$old" ]]; then rec_set "$f" Labels "$new"; changes="${changes}labels: ${old:-none} → ${new:-none}"$'\n'; fi
+    if [[ -z $changes ]]; then echo "no changes"; exit 0; fi
+    store_commit "cr.update: #$n"
+    printf '%s' "$changes"
+    ;;
+
+  cr-status)
+    [[ $# -ge 1 ]] || usage
+    need_repo; store_resolve "$PROJECT"; store_require_read || die "no change requests: the store doesn't exist yet"
+    n=$(cr_find "$1" any); f=$(cr_file "$n")
+    state=$(rec_get "$f" State); head=$(rec_get "$f" Head); base=$(rec_get "$f" Base)
+    if [[ $state == merged ]]; then
+      mergeable="merged"; closes=$(rec_get "$f" Closes)
+    else
+      closes=$(closes_issues "$f")
+      if ! git -C "$PROJECT" rev-parse -q --verify "refs/heads/$head" >/dev/null; then mergeable="unknown (no branch $head)"
+      else
+        rc=0; git -C "$PROJECT" merge-tree --write-tree --quiet "$base" "$head" >/dev/null 2>&1 || rc=$?
+        case $rc in
+          0) mergeable=yes ;;
+          1) mergeable=conflicts ;;
+          *) mergeable="unknown (git merge-tree failed; it needs git 2.38 or later)" ;;
+        esac
+      fi
+    fi
+    printf 'number: %s\nstate: %s\ntitle: %s\nhead: %s\nbase: %s\nlabels: %s\n' "$n" "$state" "$(rec_get "$f" Title)" "$head" "$base" "$(rec_get "$f" Labels)"
+    printf 'checks: no checks reported (no pipeline service: the local runs in the body are the check)\n'
+    printf 'review: no review required\nmergeable: %s\ncloses: %s\n' "$mergeable" "$closes"
+    [[ $state != merged ]] || printf 'merged: %s\nmerge_commit: %s\n' "$(rec_get "$f" Merged)" "$(rec_get "$f" Merge-Commit)"
+    printf 'record: %s\n' "$f"
+    ;;
+
+  cr-list)
+    need_repo; store_resolve "$PROJECT"
+    base="" state=merged
+    while [[ $# -gt 0 ]]; do
+      case $1 in
+        --base) base=${2-}; shift 2 ;;
+        --state) state=${2-}; shift 2 ;;
+        *) usage ;;
+      esac
+    done
+    case $state in merged|open|closed|all) ;; *) die "--state is merged, open, closed or all" ;; esac
+    base=${base:-$(default_branch)}
+    store_require_read || exit 0
+    for n in $(cr_numbers); do
+      f=$(cr_file "$n"); s=$(rec_get "$f" State)
+      [[ $(rec_get "$f" Base) == "$base" ]] || continue
+      [[ $state == all || $s == "$state" ]] || continue
+      if [[ $state == merged ]]; then
+        printf '%s\t%s\t%s\t%s\t%s\n' "$n" "$(rec_get "$f" Title)" "$(rec_get "$f" Merged)" "$(rec_get "$f" Merge-Commit)" "$(rec_get "$f" Closes)"
+      else
+        printf '%s\t%s\t%s\t%s\n' "$n" "$s" "$(rec_get "$f" Title)" "$(rec_get "$f" Head)"
+      fi
+    done
     ;;
 
   licence)
